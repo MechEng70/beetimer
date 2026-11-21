@@ -105,7 +105,7 @@ class SchedulerTest {
         assertEquals(listOf(b, c), t.state.queue)
 
         val fx = t.send(Cancel(a))
-        assertEquals(CANCELLED, t.run(a).state)
+        assertEquals(NOT_STARTED, t.state.stateOf(a))
         assertNull(t.state.lockHolder)
         assertEquals(listOf(NotifyDeviceFree(b)), fx.filterIsInstance<NotifyDeviceFree>())
         assertEquals(listOf(b, c), t.state.queue)
@@ -126,7 +126,7 @@ class SchedulerTest {
         val t = Harness()
         listOf(a, b, c).forEach { t.send(Start(it)); t.send(Done(it)) }
         val fx = t.send(Cancel(b))
-        assertEquals(CANCELLED, t.run(b).state)
+        assertEquals(NOT_STARTED, t.state.stateOf(b))
         assertEquals(a, t.state.lockHolder)
         assertEquals(listOf(c), t.state.queue)
         assertTrue(fx.none { it is NotifyDeviceFree })
@@ -330,6 +330,26 @@ class SchedulerTest {
         t.assertAt(a, "Load dose", AWAITING_CONFIRM)
         t.send(Start(b))
         assertEquals(Presets.gunType.steps, t.run(b).steps)
+    }
+
+    @Test
+    fun cancel_returnsHiveToNotStartedWithNoRunLeft() {
+        val t = Harness()
+        t.send(Start(a)); t.send(Done(a)); t.send(Done(a)) // heating with the device
+        t.send(Cancel(a))
+        assertFalse(t.state.runs.containsKey(a))
+        assertEquals(NOT_STARTED, t.state.stateOf(a))
+        assertNull(t.alarms[a])
+        assertNull(t.state.lockHolder)
+    }
+
+    @Test
+    fun restore_dropsRunsSavedAsCancelledByOlderBuilds() {
+        val t = Harness()
+        t.send(Start(a))
+        val legacy = t.state.copy(runs = mapOf(a to t.run(a).copy(state = CANCELLED, completedAt = 0)))
+        val restored = t.scheduler.restore(legacy, 10 * SEC).state
+        assertEquals(NOT_STARTED, restored.stateOf(a))
     }
 
     @Test

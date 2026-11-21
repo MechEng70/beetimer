@@ -177,18 +177,14 @@ private class Reduction(var s: SchedulerState, val now: Long) {
         put(enterStep(clearRinging(run), run.currentStepIndex + 1))
     }
 
+    /** Cancel: release the device or queue spot and return the hive to Not started. */
     fun cancel(h: Long) {
         val run = s.runs[h] ?: return
         if (run.isTerminal) return
         releaseLock(h)
         dequeue(h)
-        put(
-            clearRinging(run).copy(
-                state = RunState.CANCELLED,
-                stepEndsAt = null,
-                completedAt = now,
-            ),
-        )
+        clearRinging(run)
+        s = s.copy(runs = s.runs - h)
     }
 
     fun queueSkipHead() {
@@ -214,6 +210,8 @@ private class Reduction(var s: SchedulerState, val now: Long) {
     }
 
     fun restore() {
+        // Runs saved as CANCELLED by older builds become Not started.
+        s = s.copy(runs = s.runs.filterValues { it.state != RunState.CANCELLED })
         s.runs.values.sortedBy { it.hiveId }.forEach { stale ->
             val run = s.runs.getValue(stale.hiveId)
             val ringing = run.ringing

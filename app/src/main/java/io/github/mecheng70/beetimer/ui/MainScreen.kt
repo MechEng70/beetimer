@@ -283,7 +283,6 @@ private fun subtitle(run: HiveRun?): String {
     val ringing = run?.ringing
     return when {
         run == null -> stringResource(R.string.state_not_started)
-        run.state == RunState.CANCELLED -> stringResource(R.string.state_cancelled)
         ringing != null && run.currentStepIndex == ringing.finishedStepIndex ->
             stringResource(R.string.state_finished, run.steps[ringing.finishedStepIndex].name)
         run.state == RunState.DONE -> stringResource(R.string.state_done)

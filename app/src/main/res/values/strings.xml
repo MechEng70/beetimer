@@ -6,8 +6,8 @@
     <string name="channel_alarms_desc">Rings when a timed step ends</string>
     <string name="channel_status_name">Active hives</string>
     <string name="channel_status_desc">Shows each active hive and its next step</string>
-    <string name="channel_device_name">Wand free</string>
-    <string name="channel_device_desc">Tells you which hive gets the wand next</string>
+    <string name="channel_device_name">Vaporizer free</string>
+    <string name="channel_device_desc">Tells you which hive gets the vaporizer next</string>
 
     <!-- Actions -->
     <string name="action_start">Start</string>
@@ -31,13 +31,13 @@
     <string name="action_move_down">Move %1$s down</string>
     <string name="action_toggle_device">%1$s: tap to switch between device and passive</string>
 
-    <!-- Wand status bar -->
-    <string name="device_free">Wand: free</string>
-    <string name="device_free_in">Wand: %1$s, free in %2$s</string>
-    <string name="device_free_now">Wand: %1$s, free now</string>
-    <string name="device_busy">Wand: %1$s, %2$s</string>
+    <!-- Vaporizer status bar -->
+    <string name="device_free">Vaporizer: free</string>
+    <string name="device_free_in">Vaporizer: %1$s, free in %2$s</string>
+    <string name="device_free_now">Vaporizer: %1$s, free now</string>
+    <string name="device_busy">Vaporizer: %1$s, %2$s</string>
     <string name="device_next">Next: %1$s</string>
-    <string name="device_free_next">Wand free: %1$s is next</string>
+    <string name="device_free_next">Vaporizer free: %1$s is next</string>
 
     <!-- Low alarm volume -->
     <string name="volume_low">Alarm volume is low</string>
@@ -57,10 +57,9 @@
 
     <!-- Hive states -->
     <string name="state_not_started">Not started</string>
-    <string name="state_waiting">Waiting for the wand</string>
+    <string name="state_waiting">Waiting for the vaporizer</string>
     <string name="state_queued">Queued</string>
     <string name="state_done">Done</string>
-    <string name="state_cancelled">Cancelled</string>
     <string name="state_finished">%1$s finished</string>
     <string name="pill_device">Device</string>
     <string name="pill_passive">Passive</string>
@@ -70,8 +69,8 @@
     <!-- Hive tab -->
     <string name="hive_step_of">Step %1$d of %2$d, %3$s</string>
     <string name="hive_tap_done">Tap Done when finished</string>
-    <string name="hive_waiting_head">Wand free. Tap Start when the wand is on this hive.</string>
-    <string name="hive_waiting">Waiting for the wand</string>
+    <string name="hive_waiting_head">Vaporizer free. Tap Start when the vaporizer is on this hive.</string>
+    <string name="hive_waiting">Waiting for the vaporizer</string>
     <string name="hive_ready">Ready to start</string>
     <string name="hive_all_done">All steps done</string>
     <string name="step_with_duration">%1$s, %2$s</string>
@@ -80,11 +79,11 @@
     <string name="alarm_finished">%1$s finished</string>
     <string name="alarm_finished_overdue">%1$s finished (overdue)</string>
     <string name="alarm_next_label">Next</string>
-    <string name="alarm_waiting">%1$s, waiting for the wand</string>
+    <string name="alarm_waiting">%1$s, waiting for the vaporizer</string>
     <string name="alarm_all_done">All steps done</string>
     <string name="alarm_timer_starts">%1$s timer starts when you tap Done</string>
-    <string name="alarm_device_frees">Wand frees when you tap Done.</string>
-    <string name="alarm_device_frees_next">Wand frees when you tap Done. %1$s is next.</string>
+    <string name="alarm_device_frees">Vaporizer frees when you tap Done.</string>
+    <string name="alarm_device_frees_next">Vaporizer frees when you tap Done. %1$s is next.</string>
     <string name="alarm_notif_body">%1$s. Next: %2$s</string>
 
     <!-- Status notification -->
@@ -94,12 +93,12 @@
     </plurals>
     <string name="status_line_ends">%1$s: %2$s, ends %3$s</string>
     <string name="status_line_done">%1$s: %2$s, tap Done</string>
-    <string name="status_line_waiting">%1$s: waiting for the wand</string>
+    <string name="status_line_waiting">%1$s: waiting for the vaporizer</string>
     <string name="status_line_ringing">%1$s: %2$s finished</string>
 
-    <!-- Wand free notification -->
-    <string name="device_notif_title">Wand free: %1$s is next</string>
-    <string name="device_notif_text">Move the wand, then tap Start.</string>
+    <!-- Vaporizer free notification -->
+    <string name="device_notif_title">Vaporizer free: %1$s is next</string>
+    <string name="device_notif_text">Move the vaporizer, then tap Start.</string>
 
     <!-- Settings -->
     <string name="settings_title">Settings</string>
@@ -122,7 +121,7 @@
     <string name="preset_short_pan_wand">Pan wand</string>
     <string name="preset_short_gun_type">Gun type</string>
     <string name="template_reset">Reset to defaults</string>
-    <string name="template_split_error">Device steps must be next to each other, or another hive could take the wand mid-treatment. Not saved.</string>
+    <string name="template_split_error">Device steps must be next to each other, or another hive could take the vaporizer mid-treatment. Not saved.</string>
     <string name="template_footer">Defaults are reference values. Follow your product label and vaporizer manual; the label is the legal use spec.</string>
     <string name="duration_seconds">Seconds</string>
     <string name="duration_invalid">Enter 1 to 86400 seconds.</string>

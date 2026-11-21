@@ -73,6 +73,10 @@ data class Hive(
     val position: Int = 0,
 )
 
+/**
+ * CANCELLED is no longer produced: cancelling removes the run so the hive is Not started.
+ * It stays so state saved by older builds still loads; restore drops such runs.
+ */
 @Serializable
 enum class RunState { NOT_STARTED, WAITING_FOR_DEVICE, RUNNING, AWAITING_CONFIRM, DONE, CANCELLED }
 

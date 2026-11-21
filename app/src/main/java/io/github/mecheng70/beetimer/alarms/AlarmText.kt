@@ -17,7 +17,7 @@ data class AlarmInfo(
     val nextAction: String,
     /** "10:00 timer starts when you tap Done" when the next step is timed and waits for Done. */
     val timerLine: String?,
-    /** "Wand frees when you tap Done. Sparky is next." when Done releases the wand. */
+    /** "Vaporizer frees when you tap Done. Sparky is next." when Done releases the vaporizer. */
     val deviceNote: String?,
 )
 

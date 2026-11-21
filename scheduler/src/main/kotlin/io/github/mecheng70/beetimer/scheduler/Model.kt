@@ -13,9 +13,16 @@ data class Step(
     val kind: StepKind,
     /** TIMED only. Ignored for MANUAL. */
     val durationSeconds: Int? = null,
-    /** True while the vaporizer is physically in use on this hive. */
+    /**
+     * True while the vaporizer is physically in use on this hive. For templates this is
+     * derived from the take and release markers ([Template.derived]); the scheduler reads it.
+     */
     val deviceBound: Boolean = false,
     val instruction: String = "",
+    /** This step takes the vaporizer (exactly one per preset). */
+    val takes: Boolean = false,
+    /** Done on this step releases the vaporizer (exactly one per preset). */
+    val releases: Boolean = false,
 ) {
     val durationMs: Long get() = (durationSeconds ?: 0) * MS_PER_SECOND
 }
@@ -37,31 +44,55 @@ data class Template(
             return first..steps.indexOfLast { it.deviceBound }
         }
 
+    val takeIndex: Int get() = steps.indexOfFirst { it.takes }
+    val releaseIndex: Int get() = steps.indexOfFirst { it.releases }
+
+    /**
+     * Device/Passive derived from the markers: every step from the take step through the
+     * release step is device-bound, every other step passive. With the release above the
+     * take (invalid) or a marker missing, nothing is device-bound.
+     */
+    fun derived(): Template {
+        val take = takeIndex
+        val release = releaseIndex
+        val range = if (take >= 0 && release >= take) take..release else IntRange.EMPTY
+        return copy(steps = steps.mapIndexed { i, s -> s.copy(deviceBound = i in range) })
+    }
+
     fun addStep(step: Step, at: Int = steps.size): Template {
         require(at in 0..steps.size) { "index $at out of range" }
-        return copy(steps = steps.toMutableList().apply { add(at, step) })
+        return copy(steps = steps.toMutableList().apply { add(at, step) }).derived()
     }
 
     fun removeStep(index: Int): Template {
         require(index in steps.indices) { "index $index out of range" }
-        return copy(steps = steps.toMutableList().apply { removeAt(index) })
+        return copy(steps = steps.toMutableList().apply { removeAt(index) }).derived()
     }
 
+    /** Moves a step; its markers and duration move with it, and Device/Passive is re-derived. */
     fun moveStep(from: Int, to: Int): Template {
         require(from in steps.indices && to in steps.indices) { "move $from -> $to out of range" }
         val list = steps.toMutableList()
         val step = list.removeAt(from)
         list.add(to, step)
-        return copy(steps = list)
+        return copy(steps = list).derived()
     }
 
     fun updateStep(index: Int, step: Step): Template {
         require(index in steps.indices) { "index $index out of range" }
-        return copy(steps = steps.toMutableList().apply { set(index, step) })
+        return copy(steps = steps.toMutableList().apply { set(index, step) }).derived()
     }
 
     fun withDuration(index: Int, seconds: Int): Template =
         updateStep(index, steps[index].copy(durationSeconds = seconds))
+
+    /** Moves the take marker to [index]. */
+    fun takeAt(index: Int): Template =
+        copy(steps = steps.mapIndexed { i, s -> s.copy(takes = i == index) }).derived()
+
+    /** Moves the release marker to [index]. */
+    fun releaseAt(index: Int): Template =
+        copy(steps = steps.mapIndexed { i, s -> s.copy(releases = i == index) }).derived()
 }
 
 @Serializable
@@ -127,7 +158,14 @@ data class SchedulerState(
     val queue: List<Long> = emptyList(),
     /** Template used by the next Start. Active runs keep their own snapshot. */
     val template: Template,
+    /**
+     * Debug builds only (Settings, Developer): divides timed durations, +1 min, Snooze and
+     * planner estimates so a session can be tested in minutes. Always 1 in release.
+     */
+    val timeScale: Int = 1,
 ) {
+    fun scaled(ms: Long): Long = ms / timeScale.coerceAtLeast(1)
+
     fun runFor(hiveId: Long): HiveRun? = runs[hiveId]
     fun stateOf(hiveId: Long): RunState = runs[hiveId]?.state ?: RunState.NOT_STARTED
 }

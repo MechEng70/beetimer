@@ -175,6 +175,7 @@ object Dimens {
     val StatusPaddingV = 10.dp
     val StepIcon = 20.dp
     val ComingTimeWidth = 64.dp
+    val ComingHiveWidth = 76.dp
 }
 
 val LocalAppColors = staticCompositionLocalOf { Light }

@@ -1,0 +1,91 @@
+--------- beginning of main
+         1795286757.817 17597 17611 I BeeTimerE2E: EVENT t=1795286757817 scale=1 Load
+         1795286757.817 17597 17611 I BeeTimerE2E: LOCK t=1795286757817 holder=none queue=[]
+         1795286757.819 17597 17611 I BeeTimerE2E: FORECAST t=1795286757817 done=null dones= 
+         1795286765.827 17597 17611 I BeeTimerE2E: EVENT t=1795286765826 scale=1 TemplateChanged(template=Template(id=oav-gun-type, name=OAV gun type, steps=[Step(name=Seal hive, kind=MANUAL, durationSeconds=null, deviceBound=false, instruction=Close entrance and cracks., takes=false, releases=false), Step(name=Load cap and inject, kind=MANUAL, durationSeconds=null, deviceBound=true, instruction=Load the dose per label and insert the nozzle., takes=true, releases=false), Step(name=Vaporize, kind=TIMED, durationSeconds=20, deviceBound=true, instruction=Vaporize the dose., takes=false, releases=false), Step(name=Withdraw, kind=MANUAL, durationSeconds=null, deviceBound=true, instruction=Withdraw the nozzle and reseal., takes=false, releases=true), Step(name=Keep sealed, kind=TIMED, durationSeconds=600, deviceBound=false, instruction=Leave the hive sealed., takes=false, releases=false), Step(name=Unseal, kind=MANUAL, durationSeconds=null, deviceBound=false, instruction=Open the entrance., takes=false, releases=false)]))
+         1795286765.827 17597 17611 I BeeTimerE2E: FORECAST t=1795286765826 done=null dones= 
+         1795286770.006 17597 17611 I BeeTimerE2E: EVENT t=1795286770006 scale=10 TimeScaleChanged(scale=10)
+         1795286770.006 17597 17611 I BeeTimerE2E: FORECAST t=1795286770006 done=null dones= 
+         1795286773.628 17597 17611 I BeeTimerE2E: EVENT t=1795286773628 scale=10 Start(hiveId=1)
+         1795286773.628 17597 17611 I BeeTimerE2E: STEP t=1795286773628 hive=Hive 1 idx=0 step=Seal hive device=false
+         1795286773.629 17597 17611 I BeeTimerE2E: FORECAST t=1795286773628 done=1795286859600 dones=Hive 1@1795286859600 Hive 1|Load cap and inject|1795286779600|~;Hive 1|Vaporize|1795286785600|~;Hive 1|Withdraw|1795286787600|~;Hive 1|Keep sealed|1795286793600|~;Hive 1|Unseal|1795286853600|~
+         1795286776.786 17597 17611 I BeeTimerE2E: EVENT t=1795286776786 scale=10 Start(hiveId=2)
+         1795286776.787 17597 17611 I BeeTimerE2E: STEP t=1795286776786 hive=Hive 2 idx=0 step=Seal hive device=false
+         1795286776.792 17597 17611 I BeeTimerE2E: FORECAST t=1795286776786 done=1795286879600 dones=Hive 1@1795286859600,Hive 2@1795286879600 Hive 1|Load cap and inject|1795286779600|~;Hive 1|Vaporize|1795286785600|~;Hive 1|Withdraw|1795286787600|~;Hive 1|Keep sealed|1795286793600|~;Hive 2|Load cap and inject|1795286799600|~;Hive 2|Vaporize|1795286805600|~;Hive 2|Withdraw|1795286807600|~;Hive 2|Keep sealed|1795286813600|~;Hive 1|Unseal|1795286853600|~;Hive 2|Unseal|1795286873600|~
+         1795286778.894 17597 17611 I BeeTimerE2E: EVENT t=1795286778894 scale=10 Start(hiveId=3)
+         1795286778.894 17597 17611 I BeeTimerE2E: STEP t=1795286778894 hive=Hive 3 idx=0 step=Seal hive device=false
+         1795286778.896 17597 17611 I BeeTimerE2E: FORECAST t=1795286778894 done=1795286899600 dones=Hive 1@1795286859600,Hive 2@1795286879600,Hive 3@1795286899600 Hive 1|Load cap and inject|1795286779600|~;Hive 1|Vaporize|1795286785600|~;Hive 1|Withdraw|1795286787600|~;Hive 1|Keep sealed|1795286793600|~;Hive 2|Load cap and inject|1795286799600|~;Hive 2|Vaporize|1795286805600|~;Hive 2|Withdraw|1795286807600|~;Hive 2|Keep sealed|1795286813600|~;Hive 3|Load cap and inject|1795286819600|~;Hive 3|Vaporize|1795286825600|~;Hive 3|Withdraw|1795286827600|~;Hive 3|Keep sealed|1795286833600|~;Hive 1|Unseal|1795286853600|~;Hive 2|Unseal|1795286873600|~;Hive 3|Unseal|1795286893600|~
+         1795286781.664 17597 17611 I BeeTimerE2E: EVENT t=1795286781663 scale=10 Done(hiveId=1)
+         1795286781.664 17597 17611 I BeeTimerE2E: STEP t=1795286781663 hive=Hive 1 idx=1 step=Load cap and inject device=true
+         1795286781.664 17597 17611 I BeeTimerE2E: LOCK t=1795286781663 holder=Hive 1 queue=[]
+         1795286781.667 17597 17611 I BeeTimerE2E: FORECAST t=1795286781663 done=1795286901650 dones=Hive 1@1795286861650,Hive 2@1795286881650,Hive 3@1795286901650 Hive 1|Vaporize|1795286787650|~;Hive 1|Withdraw|1795286789650|~;Hive 1|Keep sealed|1795286795650|~;Hive 2|Load cap and inject|1795286801650|~;Hive 2|Vaporize|1795286807650|~;Hive 2|Withdraw|1795286809650|~;Hive 2|Keep sealed|1795286815650|~;Hive 3|Load cap and inject|1795286821650|~;Hive 3|Vaporize|1795286827650|~;Hive 3|Withdraw|1795286829650|~;Hive 3|Keep sealed|1795286835650|~;Hive 1|Unseal|1795286855650|~;Hive 2|Unseal|1795286875650|~;Hive 3|Unseal|1795286895650|~
+         1795286784.165 17597 17611 I BeeTimerE2E: EVENT t=1795286784165 scale=10 Done(hiveId=2)
+         1795286784.165 17597 17611 I BeeTimerE2E: WAIT t=1795286784165 hive=Hive 2 step=Load cap and inject
+         1795286784.165 17597 17611 I BeeTimerE2E: LOCK t=1795286784165 holder=Hive 1 queue=[Hive 2]
+         1795286784.178 17597 17611 I BeeTimerE2E: FORECAST t=1795286784165 done=1795286901650 dones=Hive 1@1795286861650,Hive 2@1795286881650,Hive 3@1795286901650 Hive 1|Vaporize|1795286787650|~;Hive 1|Withdraw|1795286789650|~;Hive 1|Keep sealed|1795286795650|~;Hive 2|Load cap and inject|1795286801650|~;Hive 2|Vaporize|1795286807650|~;Hive 2|Withdraw|1795286809650|~;Hive 2|Keep sealed|1795286815650|~;Hive 3|Load cap and inject|1795286821650|~;Hive 3|Vaporize|1795286827650|~;Hive 3|Withdraw|1795286829650|~;Hive 3|Keep sealed|1795286835650|~;Hive 1|Unseal|1795286855650|~;Hive 2|Unseal|1795286875650|~;Hive 3|Unseal|1795286895650|~
+         1795286786.603 17597 17611 I BeeTimerE2E: EVENT t=1795286786603 scale=10 Done(hiveId=3)
+         1795286786.604 17597 17611 I BeeTimerE2E: WAIT t=1795286786603 hive=Hive 3 step=Load cap and inject
+         1795286786.604 17597 17611 I BeeTimerE2E: LOCK t=1795286786603 holder=Hive 1 queue=[Hive 2, Hive 3]
+         1795286786.610 17597 17611 I BeeTimerE2E: FORECAST t=1795286786603 done=1795286901650 dones=Hive 1@1795286861650,Hive 2@1795286881650,Hive 3@1795286901650 Hive 1|Vaporize|1795286787650|~;Hive 1|Withdraw|1795286789650|~;Hive 1|Keep sealed|1795286795650|~;Hive 2|Load cap and inject|1795286801650|~;Hive 2|Vaporize|1795286807650|~;Hive 2|Withdraw|1795286809650|~;Hive 2|Keep sealed|1795286815650|~;Hive 3|Load cap and inject|1795286821650|~;Hive 3|Vaporize|1795286827650|~;Hive 3|Withdraw|1795286829650|~;Hive 3|Keep sealed|1795286835650|~;Hive 1|Unseal|1795286855650|~;Hive 2|Unseal|1795286875650|~;Hive 3|Unseal|1795286895650|~
+         1795286788.765 17597 17611 I BeeTimerE2E: EVENT t=1795286788765 scale=10 Done(hiveId=1)
+         1795286788.765 17597 17611 I BeeTimerE2E: STEP t=1795286788765 hive=Hive 1 idx=2 step=Vaporize device=true
+         1795286788.766 17597 17611 I BeeTimerE2E: FORECAST t=1795286788765 done=1795286902749 dones=Hive 1@1795286862749,Hive 2@1795286882749,Hive 3@1795286902749 Hive 1|Withdraw|1795286790749|=;Hive 1|Keep sealed|1795286796749|~;Hive 2|Load cap and inject|1795286802749|~;Hive 2|Vaporize|1795286808749|~;Hive 2|Withdraw|1795286810749|~;Hive 2|Keep sealed|1795286816749|~;Hive 3|Load cap and inject|1795286822749|~;Hive 3|Vaporize|1795286828749|~;Hive 3|Withdraw|1795286830749|~;Hive 3|Keep sealed|1795286836749|~;Hive 1|Unseal|1795286856749|~;Hive 2|Unseal|1795286876749|~;Hive 3|Unseal|1795286896749|~
+         1795286793.772 17597 17611 I BeeTimerE2E: EVENT t=1795286793772 scale=10 TimerFired(hiveId=1)
+         1795286793.772 17597 17611 I BeeTimerE2E: STEP t=1795286793772 hive=Hive 1 idx=3 step=Withdraw device=true
+         1795286793.772 17597 17611 I BeeTimerE2E: RING t=1795286793772 hive=Hive 1 finished=Vaporize
+         1795286793.773 17597 17611 I BeeTimerE2E: FORECAST t=1795286793772 done=1795286902749 dones=Hive 1@1795286862749,Hive 2@1795286882749,Hive 3@1795286902749 Hive 1|Keep sealed|1795286796749|~;Hive 2|Load cap and inject|1795286802749|~;Hive 2|Vaporize|1795286808749|~;Hive 2|Withdraw|1795286810749|~;Hive 2|Keep sealed|1795286816749|~;Hive 3|Load cap and inject|1795286822749|~;Hive 3|Vaporize|1795286828749|~;Hive 3|Withdraw|1795286830749|~;Hive 3|Keep sealed|1795286836749|~;Hive 1|Unseal|1795286856749|~;Hive 2|Unseal|1795286876749|~;Hive 3|Unseal|1795286896749|~
+         1795286795.884 17597 17611 I BeeTimerE2E: EVENT t=1795286795884 scale=10 Done(hiveId=1)
+         1795286795.886 17597 17611 I BeeTimerE2E: STEP t=1795286795884 hive=Hive 1 idx=4 step=Keep sealed device=false
+         1795286795.887 17597 17611 I BeeTimerE2E: LOCK t=1795286795884 holder=none queue=[Hive 2, Hive 3]
+         1795286795.889 17597 17611 I BeeTimerE2E: FORECAST t=1795286795884 done=1795286895884 dones=Hive 1@1795286861800,Hive 2@1795286875884,Hive 3@1795286895884 Hive 2|Load cap and inject|1795286795884|~;Hive 2|Vaporize|1795286801884|~;Hive 2|Withdraw|1795286803884|~;Hive 2|Keep sealed|1795286809884|~;Hive 3|Load cap and inject|1795286815884|~;Hive 3|Vaporize|1795286821884|~;Hive 3|Withdraw|1795286823884|~;Hive 3|Keep sealed|1795286829884|~;Hive 1|Unseal|1795286855800|=;Hive 2|Unseal|1795286869884|~;Hive 3|Unseal|1795286889884|~
+         1795286800.685 17597 17611 I BeeTimerE2E: EVENT t=1795286800685 scale=10 Start(hiveId=2)
+         1795286800.685 17597 17611 I BeeTimerE2E: STEP t=1795286800685 hive=Hive 2 idx=1 step=Load cap and inject device=true
+         1795286800.686 17597 17611 I BeeTimerE2E: LOCK t=1795286800685 holder=Hive 2 queue=[Hive 3]
+         1795286800.687 17597 17611 I BeeTimerE2E: FORECAST t=1795286800685 done=1795286900662 dones=Hive 1@1795286861800,Hive 2@1795286880662,Hive 3@1795286900662 Hive 2|Vaporize|1795286806662|~;Hive 2|Withdraw|1795286808662|~;Hive 2|Keep sealed|1795286814662|~;Hive 3|Load cap and inject|1795286820662|~;Hive 3|Vaporize|1795286826662|~;Hive 3|Withdraw|1795286828662|~;Hive 3|Keep sealed|1795286834662|~;Hive 1|Unseal|1795286855800|=;Hive 2|Unseal|1795286874662|~;Hive 3|Unseal|1795286894662|~
+         1795286803.802 17597 17611 I BeeTimerE2E: EVENT t=1795286803802 scale=10 Done(hiveId=2)
+         1795286803.803 17597 17611 I BeeTimerE2E: STEP t=1795286803802 hive=Hive 2 idx=2 step=Vaporize device=true
+         1795286803.808 17597 17611 I BeeTimerE2E: FORECAST t=1795286803802 done=1795286897784 dones=Hive 1@1795286861800,Hive 2@1795286877784,Hive 3@1795286897784 Hive 2|Withdraw|1795286805784|=;Hive 2|Keep sealed|1795286811784|~;Hive 3|Load cap and inject|1795286817784|~;Hive 3|Vaporize|1795286823784|~;Hive 3|Withdraw|1795286825784|~;Hive 3|Keep sealed|1795286831784|~;Hive 1|Unseal|1795286855800|=;Hive 2|Unseal|1795286871784|~;Hive 3|Unseal|1795286891784|~
+         1795286808.802 17597 17611 I BeeTimerE2E: EVENT t=1795286808802 scale=10 TimerFired(hiveId=2)
+         1795286808.802 17597 17611 I BeeTimerE2E: STEP t=1795286808802 hive=Hive 2 idx=3 step=Withdraw device=true
+         1795286808.802 17597 17611 I BeeTimerE2E: RING t=1795286808802 hive=Hive 2 finished=Vaporize
+         1795286808.803 17597 17611 I BeeTimerE2E: FORECAST t=1795286808802 done=1795286897784 dones=Hive 1@1795286861800,Hive 2@1795286877784,Hive 3@1795286897784 Hive 2|Keep sealed|1795286811784|~;Hive 3|Load cap and inject|1795286817784|~;Hive 3|Vaporize|1795286823784|~;Hive 3|Withdraw|1795286825784|~;Hive 3|Keep sealed|1795286831784|~;Hive 1|Unseal|1795286855800|=;Hive 2|Unseal|1795286871784|~;Hive 3|Unseal|1795286891784|~
+         1795286810.913 17597 17611 I BeeTimerE2E: EVENT t=1795286810913 scale=10 Done(hiveId=2)
+         1795286810.913 17597 17611 I BeeTimerE2E: STEP t=1795286810913 hive=Hive 2 idx=4 step=Keep sealed device=false
+         1795286810.913 17597 17611 I BeeTimerE2E: LOCK t=1795286810913 holder=none queue=[Hive 3]
+         1795286810.930 17597 17611 I BeeTimerE2E: FORECAST t=1795286810913 done=1795286890913 dones=Hive 1@1795286861800,Hive 2@1795286876865,Hive 3@1795286890913 Hive 3|Load cap and inject|1795286810913|~;Hive 3|Vaporize|1795286816913|~;Hive 3|Withdraw|1795286818913|~;Hive 3|Keep sealed|1795286824913|~;Hive 1|Unseal|1795286855800|=;Hive 2|Unseal|1795286870865|=;Hive 3|Unseal|1795286884913|~
+         1795286814.813 17597 17611 I BeeTimerE2E: EVENT t=1795286814813 scale=10 Start(hiveId=3)
+         1795286814.814 17597 17611 I BeeTimerE2E: STEP t=1795286814813 hive=Hive 3 idx=1 step=Load cap and inject device=true
+         1795286814.814 17597 17611 I BeeTimerE2E: LOCK t=1795286814813 holder=Hive 3 queue=[]
+         1795286814.815 17597 17611 I BeeTimerE2E: FORECAST t=1795286814813 done=1795286894798 dones=Hive 1@1795286861800,Hive 2@1795286876865,Hive 3@1795286894798 Hive 3|Vaporize|1795286820798|~;Hive 3|Withdraw|1795286822798|~;Hive 3|Keep sealed|1795286828798|~;Hive 1|Unseal|1795286855800|=;Hive 2|Unseal|1795286870865|=;Hive 3|Unseal|1795286888798|~
+         1795286817.977 17597 17611 I BeeTimerE2E: EVENT t=1795286817977 scale=10 Done(hiveId=3)
+         1795286817.978 17597 17611 I BeeTimerE2E: STEP t=1795286817977 hive=Hive 3 idx=2 step=Vaporize device=true
+         1795286817.979 17597 17611 I BeeTimerE2E: FORECAST t=1795286817977 done=1795286891947 dones=Hive 1@1795286861800,Hive 2@1795286876865,Hive 3@1795286891947 Hive 3|Withdraw|1795286819947|=;Hive 3|Keep sealed|1795286825947|~;Hive 1|Unseal|1795286855800|=;Hive 2|Unseal|1795286870865|=;Hive 3|Unseal|1795286885947|~
+         1795286822.973 17597 17611 I BeeTimerE2E: EVENT t=1795286822973 scale=10 TimerFired(hiveId=3)
+         1795286822.973 17597 17611 I BeeTimerE2E: STEP t=1795286822973 hive=Hive 3 idx=3 step=Withdraw device=true
+         1795286822.973 17597 17611 I BeeTimerE2E: RING t=1795286822973 hive=Hive 3 finished=Vaporize
+         1795286822.974 17597 17611 I BeeTimerE2E: FORECAST t=1795286822973 done=1795286891947 dones=Hive 1@1795286861800,Hive 2@1795286876865,Hive 3@1795286891947 Hive 3|Keep sealed|1795286825947|~;Hive 1|Unseal|1795286855800|=;Hive 2|Unseal|1795286870865|=;Hive 3|Unseal|1795286885947|~
+         1795286824.954 17597 17611 I BeeTimerE2E: EVENT t=1795286824954 scale=10 Done(hiveId=3)
+         1795286824.954 17597 17611 I BeeTimerE2E: STEP t=1795286824954 hive=Hive 3 idx=4 step=Keep sealed device=false
+         1795286824.955 17597 17611 I BeeTimerE2E: LOCK t=1795286824954 holder=none queue=[]
+         1795286824.957 17597 17611 I BeeTimerE2E: FORECAST t=1795286824954 done=1795286890930 dones=Hive 1@1795286861800,Hive 2@1795286876865,Hive 3@1795286890930 Hive 1|Unseal|1795286855800|=;Hive 2|Unseal|1795286870865|=;Hive 3|Unseal|1795286884930|=
+         1795286855.815 17597 17611 I BeeTimerE2E: EVENT t=1795286855815 scale=10 TimerFired(hiveId=1)
+         1795286855.815 17597 17611 I BeeTimerE2E: STEP t=1795286855815 hive=Hive 1 idx=5 step=Unseal device=false
+         1795286855.815 17597 17611 I BeeTimerE2E: RING t=1795286855815 hive=Hive 1 finished=Keep sealed
+         1795286855.815 17597 17611 I BeeTimerE2E: FORECAST t=1795286855815 done=1795286890930 dones=Hive 1@1795286861800,Hive 2@1795286876865,Hive 3@1795286890930 Hive 2|Unseal|1795286870865|=;Hive 3|Unseal|1795286884930|=
+         1795286858.668 17597 17611 I BeeTimerE2E: EVENT t=1795286858668 scale=10 Done(hiveId=1)
+         1795286858.668 17597 17611 I BeeTimerE2E: DONE t=1795286858668 hive=Hive 1
+         1795286858.669 17597 17611 I BeeTimerE2E: FORECAST t=1795286858668 done=1795286890930 dones=Hive 2@1795286876865,Hive 3@1795286890930 Hive 2|Unseal|1795286870865|=;Hive 3|Unseal|1795286884930|=
+         1795286870.881 17597 17611 I BeeTimerE2E: EVENT t=1795286870881 scale=10 TimerFired(hiveId=2)
+         1795286870.881 17597 17611 I BeeTimerE2E: STEP t=1795286870881 hive=Hive 2 idx=5 step=Unseal device=false
+         1795286870.881 17597 17611 I BeeTimerE2E: RING t=1795286870881 hive=Hive 2 finished=Keep sealed
+         1795286870.883 17597 17611 I BeeTimerE2E: FORECAST t=1795286870881 done=1795286890930 dones=Hive 2@1795286876865,Hive 3@1795286890930 Hive 3|Unseal|1795286884930|=
+         1795286872.759 17597 17611 I BeeTimerE2E: EVENT t=1795286872759 scale=10 Done(hiveId=2)
+         1795286872.760 17597 17611 I BeeTimerE2E: DONE t=1795286872759 hive=Hive 2
+         1795286872.761 17597 17611 I BeeTimerE2E: FORECAST t=1795286872759 done=1795286890930 dones=Hive 3@1795286890930 Hive 3|Unseal|1795286884930|=
+         1795286884.951 17597 17611 I BeeTimerE2E: EVENT t=1795286884951 scale=10 TimerFired(hiveId=3)
+         1795286884.951 17597 17611 I BeeTimerE2E: STEP t=1795286884951 hive=Hive 3 idx=5 step=Unseal device=false
+         1795286884.951 17597 17611 I BeeTimerE2E: RING t=1795286884951 hive=Hive 3 finished=Keep sealed
+         1795286884.952 17597 17611 I BeeTimerE2E: FORECAST t=1795286884951 done=1795286890930 dones=Hive 3@1795286890930 
+         1795286886.850 17597 17611 I BeeTimerE2E: EVENT t=1795286886850 scale=10 Done(hiveId=3)
+         1795286886.850 17597 17611 I BeeTimerE2E: DONE t=1795286886850 hive=Hive 3
+         1795286886.853 17597 17611 I BeeTimerE2E: FORECAST t=1795286886850 done=null dones= 

@@ -1,0 +1,14 @@
+--------- beginning of main
+         1795286652.682 16587 16603 I BeeTimerE2E: EVENT t=1795286652682 scale=1 Load
+         1795286652.682 16587 16603 I BeeTimerE2E: LOCK t=1795286652682 holder=none queue=[]
+         1795286652.683 16587 16603 I BeeTimerE2E: FORECAST t=1795286652682 done=null dones= 
+         1795286659.607 16587 16603 I BeeTimerE2E: EVENT t=1795286659607 scale=1 TemplateChanged(template=Template(id=oav-pan-wand, name=OAV pan wand, steps=[Step(name=Seal hive, kind=MANUAL, durationSeconds=null, deviceBound=false, instruction=Close entrance and cracks, insert wand., takes=false, releases=false), Step(name=Load dose, kind=MANUAL, durationSeconds=null, deviceBound=true, instruction=Dose per label into the cold pan., takes=true, releases=false), Step(name=Heat and vaporize, kind=TIMED, durationSeconds=150, deviceBound=true, instruction=Power on. Wand in entrance., takes=false, releases=false), Step(name=Cool in hive, kind=TIMED, durationSeconds=120, deviceBound=true, instruction=Power off. Leave the wand in., takes=false, releases=false), Step(name=Keep sealed, kind=TIMED, durationSeconds=600, deviceBound=true, instruction=Wand stays in. Keep hive sealed., takes=false, releases=false), Step(name=Remove wand, kind=MANUAL, durationSeconds=null, deviceBound=true, instruction=Pull the wand and close the entrance., takes=false, releases=true), Step(name=Unseal, kind=MANUAL, durationSeconds=null, deviceBound=false, instruction=Open the entrance., takes=false, releases=false)]))
+         1795286659.607 16587 16603 I BeeTimerE2E: FORECAST t=1795286659607 done=null dones= 
+         1795286666.276 16587 16603 I BeeTimerE2E: EVENT t=1795286666276 scale=60 TimeScaleChanged(scale=60)
+         1795286666.277 16587 16603 I BeeTimerE2E: FORECAST t=1795286666276 done=null dones= 
+         1795286719.750 16587 16603 I BeeTimerE2E: EVENT t=1795286719750 scale=60 Start(hiveId=1)
+         1795286719.750 16587 16603 I BeeTimerE2E: STEP t=1795286719750 hive=Emory idx=0 step=Seal hive device=false
+         1795286719.761 16587 16603 I BeeTimerE2E: FORECAST t=1795286719750 done=1795286738233 dones=Emory@1795286738233 Emory|Load dose|1795286720733|~;Emory|Heat and vaporize|1795286721733|~;Emory|Cool in hive|1795286724233|~;Emory|Keep sealed|1795286726233|~;Emory|Remove wand|1795286736233|~;Emory|Unseal|1795286737233|~
+         1795286732.572 16587 16603 I BeeTimerE2E: EVENT t=1795286732572 scale=60 NewSession
+         1795286732.572 16587 16603 I BeeTimerE2E: NOTSTARTED t=1795286732572 hive=Emory
+         1795286732.572 16587 16603 I BeeTimerE2E: FORECAST t=1795286732572 done=null dones= 

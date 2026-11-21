@@ -85,7 +85,7 @@ interface StateDao {
 
 @Database(
     entities = [HiveEntity::class, TemplateEntity::class, StateEntity::class],
-    version = 2,
+    version = 3,
     exportSchema = true,
 )
 abstract class BeeTimerDb : RoomDatabase() {
@@ -106,5 +106,22 @@ val MIGRATION_1_2 = object : Migration(1, 2) {
             "UPDATE templates SET name = ?, stepsJson = ? WHERE id = ?",
             arrayOf<Any>(Presets.panWand.name, steps, Presets.PAN_WAND_ID),
         )
+    }
+}
+
+/**
+ * v2 -> v3: no table changes. Presets move to the take/release marker model (Device is
+ * derived from one take step and one release step). Rewrites both preset rows with the new
+ * defaults (pan wand: wand stays in). Active runs keep their own snapshot.
+ */
+val MIGRATION_2_3 = object : Migration(2, 3) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        val json = Json { encodeDefaults = true }
+        listOf(Presets.panWandStaysIn, Presets.gunType).forEach { preset ->
+            db.execSQL(
+                "UPDATE templates SET name = ?, stepsJson = ? WHERE id = ?",
+                arrayOf<Any>(preset.name, json.encodeToString(ListSerializer(Step.serializer()), preset.steps), preset.id),
+            )
+        }
     }
 }

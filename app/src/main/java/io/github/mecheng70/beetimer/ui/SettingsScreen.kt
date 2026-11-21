@@ -1,3 +1,5 @@
+@file:OptIn(androidx.compose.ui.ExperimentalComposeUiApi::class)
+
 package io.github.mecheng70.beetimer.ui
 
 import androidx.compose.foundation.layout.Arrangement
@@ -10,6 +12,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
@@ -40,8 +43,11 @@ import io.github.mecheng70.beetimer.ui.theme.AppIcons
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.testTag
+import io.github.mecheng70.beetimer.DevTools
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.testTagsAsResourceId
 import io.github.mecheng70.beetimer.ui.theme.AppType
 import io.github.mecheng70.beetimer.ui.theme.BeeTheme
 import io.github.mecheng70.beetimer.ui.theme.Dimens
@@ -59,6 +65,7 @@ fun SettingsScreen(onBack: () -> Unit, onAlerts: () -> Unit) {
         ) {
             StepsCard()
             HivesCard()
+            DevTools.DeveloperCard()
             DisplayCard()
             AppCard(Modifier.fillMaxWidth()) {
                 SectionTitle(stringResource(R.string.settings_alerts))
@@ -91,6 +98,10 @@ private fun StepsCard() {
     var draft by remember(active.template) { mutableStateOf(active.template) }
     var editIndex by remember { mutableStateOf<Int?>(null) }
     val issues = TemplateValidator.validate(draft)
+    // The sealed-hold choice is read from the step list's shape, so reordering by hand into
+    // either default shape selects it.
+    val hold = Presets.panWandHoldOf(draft)
+    var confirmHold by remember { mutableStateOf<Presets.PanWandHold?>(null) }
 
     fun persist(t: Template, makeActive: Boolean = false) {
         app.scope.launch {
@@ -111,51 +122,110 @@ private fun StepsCard() {
                 AppButton(
                     text = presetLabel(stored.template.id, stored.template.name),
                     onClick = { persist(stored.template, makeActive = true) },
-                    modifier = Modifier.weight(1f),
+                    modifier = Modifier.weight(1f).testTag("preset-${stored.template.id}"),
                     selected = stored.template.id == active.template.id,
                 )
+            }
+        }
+        if (active.template.id == Presets.PAN_WAND_ID) {
+            Text(stringResource(R.string.hold_title), style = AppType.label, color = c.inkMuted, modifier = Modifier.padding(top = Dimens.ChipPaddingV))
+            Row(horizontalArrangement = Arrangement.spacedBy(Dimens.Gap), modifier = Modifier.padding(vertical = Dimens.Gap)) {
+                listOf(
+                    Presets.PanWandHold.STAYS_IN to R.string.hold_stays_in,
+                    Presets.PanWandHold.COMES_OUT to R.string.hold_comes_out,
+                ).forEach { (choice, label) ->
+                    AppButton(
+                        text = stringResource(label),
+                        onClick = {
+                            if (choice != hold) {
+                                // Confirm only when the steps are not exactly a default list.
+                                val unedited = hold != null && draft == Presets.panWand(hold)
+                                if (unedited) {
+                                    draft = Presets.panWand(choice)
+                                    persist(draft)
+                                } else {
+                                    confirmHold = choice
+                                }
+                            }
+                        },
+                        modifier = Modifier.weight(1f).testTag("hold-${choice.name.lowercase()}"),
+                        selected = choice == hold,
+                    )
+                }
             }
         }
         val steps = draft.steps
         steps.forEachIndexed { i, step ->
             Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                 Column(
-                    Modifier.weight(1f).clickable { editIndex = i }.padding(vertical = Dimens.RowPadding),
+                    Modifier.weight(1f).testTag("step-$i").clickable { editIndex = i }.padding(vertical = Dimens.RowPadding),
                 ) {
                     Text(step.name, style = AppType.body, color = c.ink)
+                    val kind = if (step.kind == StepKind.TIMED) stringResource(R.string.kind_timed, formatDuration(step.durationSeconds ?: 0))
+                    else stringResource(R.string.kind_manual)
+                    val marker = when {
+                        step.takes -> stringResource(R.string.marker_takes_short)
+                        step.releases -> stringResource(R.string.marker_releases_short)
+                        else -> null
+                    }
                     Text(
-                        if (step.kind == StepKind.TIMED) stringResource(R.string.kind_timed, formatDuration(step.durationSeconds ?: 0))
-                        else stringResource(R.string.kind_manual),
+                        if (marker != null) stringResource(R.string.step_sub_marker, kind, marker) else kind,
                         style = AppType.label,
                         color = c.inkMuted,
                     )
                 }
-                val toggleDesc = stringResource(R.string.action_toggle_device, step.name)
+                // Display only: Device/Passive comes from the take and release markers.
                 Chip(
                     text = stringResource(if (step.deviceBound) R.string.pill_device else R.string.pill_passive),
                     tone = if (step.deviceBound) Tone.DEVICE else Tone.PASSIVE,
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(Dimens.SmallCorner))
-                        .clickable { edit(draft.updateStep(i, step.copy(deviceBound = !step.deviceBound))) }
-                        .semantics { contentDescription = toggleDesc },
+                    modifier = Modifier.testTag("step-chip-$i"),
                 )
                 IconAction(AppIcons.ArrowUp, stringResource(R.string.action_move_up, step.name), { edit(draft.moveStep(i, i - 1)) }, enabled = i > 0)
                 IconAction(AppIcons.ArrowDown, stringResource(R.string.action_move_down, step.name), { edit(draft.moveStep(i, i + 1)) }, enabled = i < steps.lastIndex)
             }
-            if (i < steps.lastIndex) RowDivider()
+            if (step.releases) {
+                Row(Modifier.fillMaxWidth().padding(vertical = Dimens.ChipPaddingV), verticalAlignment = Alignment.CenterVertically) {
+                    HorizontalDivider(Modifier.weight(1f), thickness = Dimens.SelectedBorder, color = c.deviceStrong)
+                    Text(
+                        stringResource(R.string.vaporizer_frees_here),
+                        style = AppType.label,
+                        color = c.deviceFg,
+                        modifier = Modifier.padding(horizontal = Dimens.Gap).testTag("frees-here"),
+                    )
+                    HorizontalDivider(Modifier.weight(1f), thickness = Dimens.SelectedBorder, color = c.deviceStrong)
+                }
+            } else if (i < steps.lastIndex) {
+                RowDivider()
+            }
         }
-        if (issues.any { it.error == TemplateError.SPLIT_DEVICE_BLOCK }) {
+        if (issues.any { it.error == TemplateError.RELEASE_BEFORE_TAKE }) {
             Row(Modifier.padding(top = Dimens.Gap), verticalAlignment = Alignment.CenterVertically) {
-                Text(stringResource(R.string.template_split_error), style = AppType.label, color = c.danger, modifier = Modifier.weight(1f))
+                Text(stringResource(R.string.template_release_error), style = AppType.label, color = c.danger, modifier = Modifier.weight(1f).testTag("release-error"))
                 TextAction(stringResource(R.string.action_undo), { draft = active.template })
             }
         }
-        Presets.byId(active.template.id)?.let { preset ->
+        Presets.byId(active.template.id, hold ?: Presets.PanWandHold.STAYS_IN)?.let { preset ->
             VSpace(Dimens.Gap)
             AppButton(stringResource(R.string.template_reset), { draft = preset; persist(preset) }, Modifier.fillMaxWidth())
         }
         VSpace(Dimens.RowPadding)
         Text(stringResource(R.string.template_footer), style = AppType.label, color = c.inkMuted)
+    }
+
+    confirmHold?.let { choice ->
+        AlertDialog(
+            onDismissRequest = { confirmHold = null },
+            title = { Text(stringResource(R.string.hold_confirm_title), style = AppType.title) },
+            text = { Text(stringResource(R.string.hold_confirm_text)) },
+            confirmButton = {
+                TextButton(onClick = {
+                    draft = Presets.panWand(choice)
+                    persist(Presets.panWand(choice))
+                    confirmHold = null
+                }) { Text(stringResource(R.string.hold_confirm_ok)) }
+            },
+            dismissButton = { TextButton(onClick = { confirmHold = null }) { Text(stringResource(R.string.action_cancel)) } },
+        )
     }
 
     editIndex?.let { i ->
@@ -172,6 +242,20 @@ private fun StepsCard() {
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(Dimens.Gap)) {
                     OutlinedTextField(name, { name = it }, label = { Text(stringResource(R.string.step_name)) }, singleLine = true)
+                    Row(horizontalArrangement = Arrangement.spacedBy(Dimens.Gap)) {
+                        AppButton(
+                            stringResource(R.string.marker_takes),
+                            { edit(draft.takeAt(i)); editIndex = null },
+                            Modifier.weight(1f).testTag("marker-takes"),
+                            selected = step.takes,
+                        )
+                        AppButton(
+                            stringResource(R.string.marker_releases),
+                            { edit(draft.releaseAt(i)); editIndex = null },
+                            Modifier.weight(1f).testTag("marker-releases"),
+                            selected = step.releases,
+                        )
+                    }
                     if (timed) {
                         OutlinedTextField(
                             value = secondsText,
@@ -223,7 +307,7 @@ private fun HivesCard() {
             Column {
                 Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                     DragHandle(handle, stringResource(R.string.action_reorder, hive.label))
-                    Column(Modifier.weight(1f).clickable { editing = hive.id }.padding(vertical = Dimens.RowPadding)) {
+                    Column(Modifier.weight(1f).testTag("hive-row-${hive.label}").clickable { editing = hive.id }.padding(vertical = Dimens.RowPadding)) {
                         Text(hive.label, style = AppType.hiveName, color = c.ink)
                         hive.note?.let { Text(it, style = AppType.label, color = c.inkMuted) }
                     }
@@ -236,7 +320,7 @@ private fun HivesCard() {
         if (hives.size < Repository.MAX_HIVES) {
             AppButton(stringResource(R.string.hive_add), {
                 app.scope.launch { app.repo.addHive()?.let { editing = it } }
-            })
+            }, Modifier.testTag("add-hive"))
         } else {
             Text(pluralStringResource(R.plurals.hive_max, Repository.MAX_HIVES, Repository.MAX_HIVES), style = AppType.label, color = c.inkMuted)
         }
@@ -318,7 +402,7 @@ private fun SessionCard() {
     var confirm by remember { mutableStateOf(false) }
     AppCard(Modifier.fillMaxWidth()) {
         SectionTitle(stringResource(R.string.settings_session))
-        AppButton(stringResource(R.string.new_session), { confirm = true }, kind = ButtonKind.DANGER)
+        AppButton(stringResource(R.string.new_session), { confirm = true }, Modifier.testTag("new-session"), kind = ButtonKind.DANGER)
     }
     if (confirm) {
         AlertDialog(
@@ -329,7 +413,7 @@ private fun SessionCard() {
                 TextButton(onClick = {
                     app.send(Event.NewSession)
                     confirm = false
-                }) { Text(stringResource(R.string.new_session), color = c.danger) }
+                }, modifier = Modifier.semantics { testTagsAsResourceId = true }.testTag("confirm-new-session")) { Text(stringResource(R.string.new_session), color = c.danger) }
             },
             dismissButton = { TextButton(onClick = { confirm = false }) { Text(stringResource(R.string.action_cancel)) } },
         )

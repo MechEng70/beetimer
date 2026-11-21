@@ -376,21 +376,70 @@ class SchedulerTest {
     }
 
     @Test
-    fun panWandPreset_sealedHoldKeepsWandAndLastDoneReleasesIt() {
-        val t = Harness(Presets.panWand)
+    fun panWandStaysIn_runsEndToEnd_holdKeepsVaporizerUntilRemoveWand() {
+        val t = Harness(Presets.panWandStaysIn)
         listOf(a, b).forEach { t.send(Start(it)); t.send(Done(it)) }
         t.send(Done(a)) // Load dose
         t.fire(a); t.send(Done(a)) // Heat -> Cool
         t.fire(a); t.send(Done(a)) // Cool -> Keep sealed
         t.assertAt(a, "Keep sealed", RUNNING)
-        assertEquals("the sealed hold keeps the wand", a, t.state.lockHolder)
+        assertEquals("the sealed hold keeps the vaporizer", a, t.state.lockHolder)
         t.fire(a)
-        t.assertAt(a, "Remove wand and unseal", AWAITING_CONFIRM)
-        assertEquals(a, t.state.lockHolder)
+        t.assertAt(a, "Remove wand", AWAITING_CONFIRM)
         val fx = t.send(Done(a))
-        assertEquals(DONE, t.run(a).state)
+        t.assertAt(a, "Unseal", AWAITING_CONFIRM)
         assertNull(t.state.lockHolder)
         assertTrue(fx.contains(NotifyDeviceFree(b)))
+        t.send(Done(a))
+        assertEquals(DONE, t.run(a).state)
+        t.send(Start(b))
+        assertEquals(b, t.state.lockHolder)
+    }
+
+    @Test
+    fun panWandComesOut_runsEndToEnd_handsOffAfterRemoveWandAndHoldsOverlap() {
+        val t = Harness(Presets.panWandComesOut)
+        listOf(a, b).forEach { t.send(Start(it)); t.send(Done(it)) }
+        t.send(Done(a)) // Load dose
+        t.fire(a); t.send(Done(a)) // Heat -> Cool
+        t.fire(a) // Cool ends -> Remove wand (manual, releases)
+        t.assertAt(a, "Remove wand", AWAITING_CONFIRM)
+        assertEquals(a, t.state.lockHolder)
+        val fx = t.send(Done(a))
+        t.assertAt(a, "Keep sealed", RUNNING)
+        assertNull("the sealed hold is passive", t.state.lockHolder)
+        assertTrue(fx.contains(NotifyDeviceFree(b)))
+        t.send(Start(b)); t.send(Done(b))
+        t.assertAt(b, "Heat and vaporize", RUNNING)
+        t.assertAt(a, "Keep sealed", RUNNING) // overlap
+        t.fire(a)
+        t.assertAt(a, "Unseal", AWAITING_CONFIRM)
+        t.send(Done(a))
+        assertEquals(DONE, t.run(a).state)
+        assertEquals(b, t.state.lockHolder)
+    }
+
+    @Test
+    fun activeRunKeepsSnapshotWhenSealedHoldOptionSwitches() {
+        val t = Harness(Presets.panWandStaysIn)
+        t.send(Start(a))
+        t.send(Event.TemplateChanged(Presets.panWandComesOut))
+        assertEquals(Presets.panWandStaysIn.steps, t.run(a).steps)
+        t.send(Start(b))
+        assertEquals(Presets.panWandComesOut.steps, t.run(b).steps)
+    }
+
+    @Test
+    fun timeScale_dividesTimedStepsPlusMinuteAndSnooze() {
+        val t = Harness(Presets.panWandStaysIn)
+        t.send(Event.TimeScaleChanged(60))
+        t.send(Start(a)); t.send(Done(a)); t.send(Done(a))
+        assertEquals(150 * SEC / 60, t.run(a).stepEndsAt)
+        t.send(AddMinute(a))
+        assertEquals(150 * SEC / 60 + 60 * SEC / 60, t.run(a).stepEndsAt)
+        t.fire(a)
+        t.send(Snooze(a))
+        assertEquals(t.now + 30 * SEC / 60, t.alarms[a])
     }
 
     @Test

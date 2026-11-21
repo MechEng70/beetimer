@@ -9,6 +9,9 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.runtime.SideEffect
+import androidx.compose.ui.ExperimentalComposeUiApi
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.testTagsAsResourceId
 import androidx.core.view.WindowCompat
 import io.github.mecheng70.beetimer.ui.theme.BeeTheme
 import androidx.compose.runtime.Composable
@@ -23,6 +26,7 @@ import androidx.compose.ui.platform.LocalView
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.mecheng70.beetimer.ui.theme.BeeTimerTheme
 
+@OptIn(ExperimentalComposeUiApi::class)
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdge()
@@ -39,7 +43,10 @@ class MainActivity : ComponentActivity() {
                         isAppearanceLightNavigationBars = !c.isDark
                     }
                 }
-                Box(Modifier.fillMaxSize().background(c.page).safeDrawingPadding()) { Root() }
+                Box(
+                    Modifier.fillMaxSize().background(c.page).safeDrawingPadding()
+                        .semantics { testTagsAsResourceId = true },
+                ) { Root() }
             }
         }
     }

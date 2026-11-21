@@ -7,8 +7,11 @@ enum class TemplateError {
     /** A TIMED step needs a duration from 1 s to 24 h. */
     DURATION_OUT_OF_RANGE,
 
-    /** Device steps must be next to each other, or another hive could take the vaporizer mid-treatment. */
-    SPLIT_DEVICE_BLOCK,
+    /** The release step is above the take step. */
+    RELEASE_BEFORE_TAKE,
+
+    /** A template needs exactly one take step and one release step. */
+    MISSING_MARKER,
 }
 
 data class ValidationIssue(val error: TemplateError, val stepIndex: Int? = null)
@@ -27,10 +30,14 @@ object TemplateValidator {
                 issues += ValidationIssue(TemplateError.DURATION_OUT_OF_RANGE, i)
             }
         }
-        template.deviceBlock?.let { block ->
-            val gap = block.firstOrNull { !steps[it].deviceBound }
-            if (gap != null) issues += ValidationIssue(TemplateError.SPLIT_DEVICE_BLOCK, gap)
+        val takes = steps.count { it.takes }
+        val releases = steps.count { it.releases }
+        if (takes != 1 || releases != 1) {
+            issues += ValidationIssue(TemplateError.MISSING_MARKER)
+        } else if (template.releaseIndex < template.takeIndex) {
+            issues += ValidationIssue(TemplateError.RELEASE_BEFORE_TAKE, template.releaseIndex)
         }
+        // Device steps are derived from the markers, so a split block cannot happen.
         return issues
     }
 

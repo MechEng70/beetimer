@@ -13,6 +13,9 @@ sealed interface Event {
     data object QueueRemoveHead : Event
     data object NewSession : Event
     data class TemplateChanged(val template: Template) : Event
+
+    /** Debug builds only. 1 in release. */
+    data class TimeScaleChanged(val scale: Int) : Event
 }
 
 /** Work for the platform layer. The scheduler never does I/O itself. */
@@ -69,6 +72,7 @@ class DefaultScheduler : Scheduler {
             Event.QueueRemoveHead -> r.queueRemoveHead()
             Event.NewSession -> r.newSession()
             is Event.TemplateChanged -> r.s = r.s.copy(template = event.template)
+            is Event.TimeScaleChanged -> r.s = r.s.copy(timeScale = event.scale.coerceAtLeast(1))
         }
         return r.finish(state)
     }
@@ -160,14 +164,14 @@ private class Reduction(var s: SchedulerState, val now: Long) {
         when {
             ringing != null -> reopen(run, ringing)
             run.state == RunState.RUNNING && run.stepEndsAt != null ->
-                put(run.copy(stepEndsAt = run.stepEndsAt + SchedulerTiming.ADD_MINUTE_MS))
+                put(run.copy(stepEndsAt = run.stepEndsAt + s.scaled(SchedulerTiming.ADD_MINUTE_MS)))
         }
     }
 
     fun snooze(h: Long) {
         val run = s.runs[h] ?: return
         val ringing = run.ringing ?: return
-        put(run.copy(ringing = ringing.copy(nextRingAt = now + SchedulerTiming.SNOOZE_MS)))
+        put(run.copy(ringing = ringing.copy(nextRingAt = now + s.scaled(SchedulerTiming.SNOOZE_MS))))
         effects += Effect.StopRing(h)
     }
 
@@ -271,7 +275,7 @@ private class Reduction(var s: SchedulerState, val now: Long) {
                 currentStepIndex = idx,
                 state = RunState.RUNNING,
                 stepStartedAt = now,
-                stepEndsAt = now + SchedulerTiming.ADD_MINUTE_MS,
+                stepEndsAt = now + s.scaled(SchedulerTiming.ADD_MINUTE_MS),
                 ringing = null,
                 completedAt = null,
             ),
@@ -315,7 +319,7 @@ private class Reduction(var s: SchedulerState, val now: Long) {
                 currentStepIndex = index,
                 state = RunState.RUNNING,
                 stepStartedAt = now,
-                stepEndsAt = now + step.durationMs,
+                stepEndsAt = now + s.scaled(step.durationMs),
             )
             StepKind.MANUAL -> run.copy(
                 currentStepIndex = index,

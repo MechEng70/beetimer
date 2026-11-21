@@ -14,6 +14,8 @@ import io.github.mecheng70.beetimer.ui.theme.AppIcons
 import java.util.Date
 import kotlinx.coroutines.launch
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.ui.platform.testTag
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -202,9 +204,9 @@ private fun DeviceStatusBar(s: SchedulerState, labels: Map<Long, String>, now: L
         if (holder == null && head != null) {
             VSpace(Dimens.Gap)
             Row(horizontalArrangement = Arrangement.spacedBy(Dimens.Gap)) {
-                AppButton(stringResource(R.string.action_start), { app.send(Event.Start(head)) }, kind = ButtonKind.FILLED)
-                if (s.queue.size > 1) AppButton(stringResource(R.string.action_queue_skip), { app.send(Event.QueueSkipHead) })
-                AppButton(stringResource(R.string.action_queue_remove), { app.send(Event.QueueRemoveHead) })
+                AppButton(stringResource(R.string.action_start), { app.send(Event.Start(head)) }, Modifier.testTag("bar-start"), kind = ButtonKind.FILLED)
+                if (s.queue.size > 1) AppButton(stringResource(R.string.action_queue_skip), { app.send(Event.QueueSkipHead) }, Modifier.testTag("bar-skip"))
+                AppButton(stringResource(R.string.action_queue_remove), { app.send(Event.QueueRemoveHead) }, Modifier.testTag("bar-remove"))
             }
         }
     }
@@ -223,7 +225,14 @@ private fun AllTab(hives: List<Hive>, s: SchedulerState, forecast: Forecast, now
         upcoming.forEach { p ->
             Row(Modifier.fillMaxWidth().padding(vertical = Dimens.ChipPaddingV), horizontalArrangement = Arrangement.spacedBy(Dimens.Gap)) {
                 Text(remaining(p.at, p.estimated, now, stringResource(R.string.time_now)), style = AppType.comingTime, color = c.ink, modifier = Modifier.width(Dimens.ComingTimeWidth))
-                Text(labels[p.hiveId].orEmpty(), style = AppType.section, color = c.ink, maxLines = 1)
+                Text(
+                    labels[p.hiveId].orEmpty(),
+                    style = AppType.section,
+                    color = c.ink,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.width(Dimens.ComingHiveWidth),
+                )
                 Text(p.stepName, style = AppType.body, color = c.inkMuted, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f))
             }
         }
@@ -240,10 +249,10 @@ private fun AllTab(hives: List<Hive>, s: SchedulerState, forecast: Forecast, now
         val plan = forecast.hives[hive.id]
         Column {
             Row(
-                Modifier.fillMaxWidth().clickable { onSelect(hive) }.padding(vertical = Dimens.Gap),
+                Modifier.fillMaxWidth().testTag("row-${hive.label}").clickable { onSelect(hive) }.padding(vertical = Dimens.Gap),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                DragHandle(handle, stringResource(R.string.action_reorder, hive.label))
+                DragHandle(handle.testTag("drag-${hive.label}"), stringResource(R.string.action_reorder, hive.label))
                 Column(Modifier.weight(1f)) {
                     Text(hive.label, style = AppType.hiveName, color = c.ink)
                     Text(subtitle(run), style = AppType.body, color = c.inkMuted, maxLines = 1, overflow = TextOverflow.Ellipsis)
@@ -260,7 +269,9 @@ private fun AllTab(hives: List<Hive>, s: SchedulerState, forecast: Forecast, now
                     }
                     if (second != null) Text(second, style = AppType.label, color = c.inkMuted, maxLines = 1, overflow = TextOverflow.Ellipsis)
                 }
-                RowAction(hive.id, run, s, now, onEvent = { app.send(it) })
+                Box(Modifier.testTag("row-action-${hive.label}")) {
+                    RowAction(hive.id, run, s, now, onEvent = { app.send(it) })
+                }
             }
             if (hive != hives.last()) RowDivider()
         }
@@ -415,13 +426,13 @@ private fun HiveActions(hiveId: Long, run: HiveRun?, s: SchedulerState, onEvent:
     Column(verticalArrangement = Arrangement.spacedBy(Dimens.Gap)) {
         if (run == null || run.isTerminal && run.ringing == null) {
             if (run?.state != RunState.DONE) {
-                AppButton(stringResource(R.string.action_start), { onEvent(Event.Start(hiveId)) }, full, kind = ButtonKind.FILLED)
+                AppButton(stringResource(R.string.action_start), { onEvent(Event.Start(hiveId)) }, full.testTag("hive-start"), kind = ButtonKind.FILLED)
             }
             return@Column
         }
         if (run.state == RunState.WAITING_FOR_DEVICE) {
             val ready = s.lockHolder == null && s.queue.firstOrNull() == hiveId
-            AppButton(stringResource(R.string.action_start), { onEvent(Event.Start(hiveId)) }, full, kind = ButtonKind.FILLED, enabled = ready)
+            AppButton(stringResource(R.string.action_start), { onEvent(Event.Start(hiveId)) }, full.testTag("hive-start"), kind = ButtonKind.FILLED, enabled = ready)
             if (run.ringing != null) AppButton(stringResource(R.string.action_done), { onEvent(Event.Done(hiveId)) }, full)
         } else {
             val ringing = run.ringing != null
@@ -429,10 +440,10 @@ private fun HiveActions(hiveId: Long, run: HiveRun?, s: SchedulerState, onEvent:
             val canExtend = ringing || run.state == RunState.RUNNING
             val canSkip = run.state == RunState.RUNNING || run.state == RunState.AWAITING_CONFIRM
             val buttons = buildList<@Composable (Modifier) -> Unit> {
-                if (canConfirm) add { m -> AppButton(stringResource(R.string.action_done), { onEvent(Event.Done(hiveId)) }, m, ButtonKind.FILLED, minHeight = glove, style = AppType.gloveButton) }
-                if (canExtend) add { m -> AppButton(stringResource(R.string.action_add_minute), { onEvent(Event.AddMinute(hiveId)) }, m, minHeight = glove, style = AppType.gloveButton) }
-                if (ringing) add { m -> AppButton(stringResource(R.string.action_snooze), { onEvent(Event.Snooze(hiveId)) }, m, minHeight = glove, style = AppType.gloveButton) }
-                if (canSkip) add { m -> AppButton(stringResource(R.string.action_skip), { onEvent(Event.Skip(hiveId)) }, m, minHeight = glove, style = AppType.gloveButton) }
+                if (canConfirm) add { m -> AppButton(stringResource(R.string.action_done), { onEvent(Event.Done(hiveId)) }, m.testTag("hive-done"), ButtonKind.FILLED, minHeight = glove, style = AppType.gloveButton) }
+                if (canExtend) add { m -> AppButton(stringResource(R.string.action_add_minute), { onEvent(Event.AddMinute(hiveId)) }, m.testTag("hive-add-minute"), minHeight = glove, style = AppType.gloveButton) }
+                if (ringing) add { m -> AppButton(stringResource(R.string.action_snooze), { onEvent(Event.Snooze(hiveId)) }, m.testTag("hive-snooze"), minHeight = glove, style = AppType.gloveButton) }
+                if (canSkip) add { m -> AppButton(stringResource(R.string.action_skip), { onEvent(Event.Skip(hiveId)) }, m.testTag("hive-skip"), minHeight = glove, style = AppType.gloveButton) }
             }
             buttons.chunked(2).forEach { pair ->
                 Row(horizontalArrangement = Arrangement.spacedBy(Dimens.Gap)) {
@@ -442,7 +453,7 @@ private fun HiveActions(hiveId: Long, run: HiveRun?, s: SchedulerState, onEvent:
             }
         }
         if (!run.isTerminal) {
-            AppButton(stringResource(R.string.action_cancel_run), { onEvent(Event.Cancel(hiveId)) }, full, ButtonKind.DANGER)
+            AppButton(stringResource(R.string.action_cancel_run), { onEvent(Event.Cancel(hiveId)) }, full.testTag("hive-cancel"), ButtonKind.DANGER)
         }
     }
 }

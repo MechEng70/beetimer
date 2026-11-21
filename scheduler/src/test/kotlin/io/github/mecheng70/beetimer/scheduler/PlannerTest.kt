@@ -62,10 +62,58 @@ class PlannerTest {
     @Test
     fun deviceFreeAt_isWhenTheHolderLeavesTheDeviceBlock() {
         val h = Harness(tpl)
-        h.send(Start(a)); h.send(Done(a)); h.send(Done(a)) // Heat 0..100 s, then Hold (passive)
+        h.send(Start(a)); h.send(Done(a)); h.send(Done(a)) // Heat 0..100 s, then Hold (passive) after Done
+        val f = planner.forecast(h.state, h.now)
+        assertEquals(100 * SEC, f.deviceFreeAt)
+        assertFalse("first entry at the running step's end is firm", f.deviceFreeEstimated)
+    }
+
+    @Test
+    fun deviceFreeAt_isFirmWhenTheRunningTimerItselfReleases() {
+        // Heat (device, timed) then Open (passive, manual): the timer end moves on with no tap.
+        val h = Harness(template(manual("Load", device = true), timed("Heat", 100, device = true), manual("Open")))
+        h.send(Start(a)); h.send(Done(a))
         val f = planner.forecast(h.state, h.now)
         assertEquals(100 * SEC, f.deviceFreeAt)
         assertFalse(f.deviceFreeEstimated)
+    }
+
+    @Test
+    fun onlyTheRunningStepsEndIsFirm_everythingAfterItIsEstimated() {
+        val h = Harness(Presets.panWandStaysIn)
+        h.send(Start(a)); h.send(Done(a)); h.send(Done(a)) // Heat running
+        val mine = planner.forecast(h.state, h.now).steps.filter { it.hiveId == a }
+        assertEquals("Cool in hive", mine.first().stepName)
+        assertFalse("end of the running Heat step is firm", mine.first().estimated)
+        assertTrue("Keep sealed and later wait on taps", mine.drop(1).all { it.estimated })
+        assertTrue(Invariants.check(h.state, forecast = planner.forecast(h.state, h.now)).isEmpty())
+    }
+
+    @Test
+    fun runAwaitingDone_hasNoFirmTimes() {
+        // Regression: while Herb was ringing on Heat, "Keep sealed" and "Remove wand" showed as firm.
+        val h = Harness(Presets.panWandStaysIn)
+        h.send(Start(a)); h.send(Done(a)); h.send(Done(a))
+        h.fire(a) // Heat finished, waiting for Done
+        val f = planner.forecast(h.state, h.now)
+        assertTrue(f.steps.isNotEmpty())
+        assertTrue(f.steps.all { it.estimated })
+        assertTrue(Invariants.check(h.state, forecast = f).isEmpty())
+    }
+
+    @Test
+    fun manualStepRun_hasNoFirmTimes() {
+        val h = Harness(Presets.panWandStaysIn)
+        h.send(Start(a)); h.send(Done(a)) // on Load dose
+        assertTrue(planner.forecast(h.state, h.now).steps.all { it.estimated })
+    }
+
+    @Test
+    fun timeScale_dividesEstimates() {
+        val h = Harness(tpl)
+        h.send(Event.TimeScaleChanged(60))
+        h.send(Start(a))
+        assertEquals(MANUAL_STEP_MS / 60, planner.forecast(h.state, h.now).steps.first().at)
     }
 
     @Test

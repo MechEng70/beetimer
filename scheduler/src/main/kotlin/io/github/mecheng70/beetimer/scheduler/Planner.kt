@@ -43,6 +43,11 @@ data class Forecast(
 }
 
 /**
+ * Firm vs estimated: a time is firm only if no tap stands between now and it. Every timed
+ * step waits for Done before the next one starts, so only the first entry for a run whose
+ * timed step is running (not ringing), at that step's end, is firm. Everything after it,
+ * and everything for a run waiting on a tap, is estimated ("~"). [Invariants] checks this.
+ *
  * Projects the started hives forward by running the real scheduler with a simulated person:
  * timers fire on time, a finished timed step is acknowledged at once, manual steps take
  * [PlanningEstimates.MANUAL_STEP_MS], and the queue head starts [PlanningEstimates.HANDOFF_MS]
@@ -68,6 +73,8 @@ class Planner(private val scheduler: Scheduler = DefaultScheduler()) {
         val holder = state.lockHolder
         var freeAt: Long? = null
         var freeEstimated = false
+        // Hive -> end time of its running step, while the step that follows has not been entered yet.
+        val firmPending = mutableMapOf<Long, Long>()
 
         for (i in 0 until MAX_ACTIONS) {
             val action = nextAction(s, t, lockFreedAt) ?: break
@@ -75,12 +82,17 @@ class Planner(private val scheduler: Scheduler = DefaultScheduler()) {
             val before = s
             s = scheduler.reduce(s, action.event, t).state
             if (s == before) break
-            if (action.estimate) estimated += action.hiveId
+            val h = action.hiveId
+            // The running step's own timer end is the only action with no tap before it.
+            val firmTimer = !action.estimate && h !in estimated
+            val pendingAt = firmPending.remove(h)
+            val firmEntry = firmTimer || (pendingAt != null && pendingAt == t)
             if (before.lockHolder != null && s.lockHolder == null) lockFreedAt = t
             if (holder != null && freeAt == null && s.lockHolder != holder) {
                 freeAt = t
-                freeEstimated = holder in estimated
+                freeEstimated = if (h == holder) !firmEntry else holder in estimated
             }
+            var enteredForActor = false
             for ((id, after) in s.runs) {
                 val prior = before.runs[id]
                 if (after.state == RunState.DONE && prior?.state != RunState.DONE) doneAt[id] = t
@@ -89,9 +101,15 @@ class Planner(private val scheduler: Scheduler = DefaultScheduler()) {
                     prior.currentStepIndex != after.currentStepIndex
                 if (entered) {
                     val step = after.steps[after.currentStepIndex]
-                    steps += PlannedStep(id, after.currentStepIndex, step.name, t, id in estimated, step.deviceBound)
+                    val est = if (id == h) !firmEntry else id in estimated
+                    steps += PlannedStep(id, after.currentStepIndex, step.name, t, est, step.deviceBound)
+                    if (id == h) enteredForActor = true
                 }
             }
+            // Timed -> timed: the next step starts on Done at the same moment; that first entry stays firm.
+            if (firmTimer && !enteredForActor) firmPending[h] = t
+            // Whatever follows waits on a tap.
+            estimated += h
         }
 
         val ordered = steps.sortedBy { it.at }
@@ -124,23 +142,23 @@ class Planner(private val scheduler: Scheduler = DefaultScheduler()) {
             when {
                 ringing != null && run.state == RunState.AWAITING_CONFIRM ->
                     if (run.currentStepIndex == ringing.finishedStepIndex) {
-                        candidates += Action(maxOf(t, ringing.since), Event.Done(h), h, estimate = false, rank = 1)
+                        candidates += Action(maxOf(t, ringing.since), Event.Done(h), h, estimate = true, rank = 1)
                     } else {
-                        candidates += Action(maxOf(t, ringing.since + PlanningEstimates.MANUAL_STEP_MS), Event.Done(h), h, estimate = true, rank = 1)
+                        candidates += Action(maxOf(t, ringing.since + s.scaled(PlanningEstimates.MANUAL_STEP_MS)), Event.Done(h), h, estimate = true, rank = 1)
                     }
                 ringing != null -> Unit
                 run.state == RunState.RUNNING && run.stepEndsAt != null ->
                     candidates += Action(maxOf(t, run.stepEndsAt), Event.TimerFired(h), h, estimate = false, rank = 0)
                 run.state == RunState.AWAITING_CONFIRM ->
                     candidates += Action(
-                        maxOf(t, (run.stepStartedAt ?: t) + PlanningEstimates.MANUAL_STEP_MS),
+                        maxOf(t, (run.stepStartedAt ?: t) + s.scaled(PlanningEstimates.MANUAL_STEP_MS)),
                         Event.Done(h), h, estimate = true, rank = 1,
                     )
             }
         }
         val head = s.queue.firstOrNull()
         if (s.lockHolder == null && head != null) {
-            val at = if (lockFreedAt == Long.MIN_VALUE) t else maxOf(t, lockFreedAt + PlanningEstimates.HANDOFF_MS)
+            val at = if (lockFreedAt == Long.MIN_VALUE) t else maxOf(t, lockFreedAt + s.scaled(PlanningEstimates.HANDOFF_MS))
             candidates += Action(at, Event.Start(head), head, estimate = true, rank = 2)
         }
         return candidates.minWithOrNull(compareBy({ it.at }, { it.rank }, { it.hiveId }))

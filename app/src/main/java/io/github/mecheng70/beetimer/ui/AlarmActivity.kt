@@ -21,7 +21,12 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.foundation.layout.Box
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.ui.ExperimentalComposeUiApi
+import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.testTagsAsResourceId
 import androidx.compose.material3.Text
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.runtime.Composable
@@ -44,6 +49,7 @@ import io.github.mecheng70.beetimer.ui.theme.BeeTimerTheme
 import io.github.mecheng70.beetimer.ui.theme.Dimens
 
 /** Full-screen alarm over the lock screen (mockup 3). Dark amber in both themes. */
+@OptIn(ExperimentalComposeUiApi::class)
 class AlarmActivity : ComponentActivity() {
     private var hiveId by mutableLongStateOf(NO_HIVE)
 
@@ -52,7 +58,9 @@ class AlarmActivity : ComponentActivity() {
         setShowWhenLocked(true)
         setTurnScreenOn(true)
         hiveId = intent.getLongExtra(EXTRA_HIVE_ID, NO_HIVE)
-        setContent { BeeTimerTheme { AlarmScreen() } }
+        setContent {
+            BeeTimerTheme { Box(Modifier.semantics { testTagsAsResourceId = true }) { AlarmScreen() } }
+        }
     }
 
     override fun onNewIntent(intent: Intent) {
@@ -108,14 +116,14 @@ class AlarmActivity : ComponentActivity() {
             }
             Button(
                 onClick = { app.send(Event.Done(id)) },
-                modifier = Modifier.fillMaxWidth().heightIn(min = Dimens.AlarmButton),
+                modifier = Modifier.fillMaxWidth().heightIn(min = Dimens.AlarmButton).testTag("alarm-done"),
                 shape = RoundedCornerShape(Dimens.AlarmCorner),
                 colors = ButtonDefaults.buttonColors(containerColor = AlarmColors.Text, contentColor = AlarmColors.Background),
             ) { Text(stringResource(R.string.action_done), style = AppType.alarmButton) }
             Spacer(Modifier.height(Dimens.Gap))
             Row(horizontalArrangement = Arrangement.spacedBy(Dimens.Gap)) {
-                AlarmOutlined(stringResource(R.string.action_add_minute), Modifier.weight(1f)) { app.send(Event.AddMinute(id)) }
-                AlarmOutlined(stringResource(R.string.action_snooze), Modifier.weight(1f)) { app.send(Event.Snooze(id)) }
+                AlarmOutlined(stringResource(R.string.action_add_minute), Modifier.weight(1f).testTag("alarm-add-minute")) { app.send(Event.AddMinute(id)) }
+                AlarmOutlined(stringResource(R.string.action_snooze), Modifier.weight(1f).testTag("alarm-snooze")) { app.send(Event.Snooze(id)) }
             }
         }
     }

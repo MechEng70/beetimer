@@ -9,6 +9,7 @@ import io.github.mecheng70.beetimer.alarms.Notifier
 import io.github.mecheng70.beetimer.alarms.SchedulerEngine
 import io.github.mecheng70.beetimer.data.BeeTimerDb
 import io.github.mecheng70.beetimer.data.MIGRATION_1_2
+import io.github.mecheng70.beetimer.data.MIGRATION_2_3
 import io.github.mecheng70.beetimer.data.Prefs
 import io.github.mecheng70.beetimer.data.Repository
 import kotlinx.coroutines.CoroutineScope
@@ -21,7 +22,7 @@ class BeeTimerApp : Application() {
     val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
 
     val prefs by lazy { Prefs(this) }
-    private val db by lazy { Room.databaseBuilder(this, BeeTimerDb::class.java, "beetimer.db").addMigrations(MIGRATION_1_2).build() }
+    private val db by lazy { Room.databaseBuilder(this, BeeTimerDb::class.java, "beetimer.db").addMigrations(MIGRATION_1_2, MIGRATION_2_3).build() }
     val repo by lazy { Repository(db) { n -> getString(R.string.hive_default_name, n) } }
     val alarms by lazy { AlarmScheduler(this) }
     val engine by lazy { SchedulerEngine(repo, EffectExecutor(this, alarms, Notifier(this))) }

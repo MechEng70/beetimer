@@ -1,0 +1,38 @@
+--------- beginning of main
+         1795286502.414 15267 15282 I BeeTimerE2E: EVENT t=1795286502414 scale=1 Load
+         1795286502.414 15267 15282 I BeeTimerE2E: LOCK t=1795286502414 holder=none queue=[]
+         1795286502.414 15267 15282 I BeeTimerE2E: FORECAST t=1795286502414 done=null dones= 
+         1795286509.588 15267 15282 I BeeTimerE2E: EVENT t=1795286509588 scale=1 TemplateChanged(template=Template(id=oav-pan-wand, name=OAV pan wand, steps=[Step(name=Seal hive, kind=MANUAL, durationSeconds=null, deviceBound=false, instruction=Close entrance and cracks, insert wand., takes=false, releases=false), Step(name=Load dose, kind=MANUAL, durationSeconds=null, deviceBound=true, instruction=Dose per label into the cold pan., takes=true, releases=false), Step(name=Heat and vaporize, kind=TIMED, durationSeconds=150, deviceBound=true, instruction=Power on. Wand in entrance., takes=false, releases=false), Step(name=Cool in hive, kind=TIMED, durationSeconds=120, deviceBound=true, instruction=Power off. Leave the wand in., takes=false, releases=false), Step(name=Keep sealed, kind=TIMED, durationSeconds=600, deviceBound=true, instruction=Wand stays in. Keep hive sealed., takes=false, releases=false), Step(name=Remove wand, kind=MANUAL, durationSeconds=null, deviceBound=true, instruction=Pull the wand and close the entrance., takes=false, releases=true), Step(name=Unseal, kind=MANUAL, durationSeconds=null, deviceBound=false, instruction=Open the entrance., takes=false, releases=false)]))
+         1795286509.588 15267 15282 I BeeTimerE2E: FORECAST t=1795286509588 done=null dones= 
+         1795286516.185 15267 15282 I BeeTimerE2E: EVENT t=1795286516185 scale=60 TimeScaleChanged(scale=60)
+         1795286516.185 15267 15282 I BeeTimerE2E: FORECAST t=1795286516185 done=null dones= 
+         1795286519.722 15267 15282 I BeeTimerE2E: EVENT t=1795286519722 scale=60 Start(hiveId=1)
+         1795286519.723 15267 15282 I BeeTimerE2E: STEP t=1795286519722 hive=Hive 1 idx=0 step=Seal hive device=false
+         1795286519.724 15267 15282 I BeeTimerE2E: FORECAST t=1795286519722 done=1795286538200 dones=Hive 1@1795286538200 Hive 1|Load dose|1795286520700|~;Hive 1|Heat and vaporize|1795286521700|~;Hive 1|Cool in hive|1795286524200|~;Hive 1|Keep sealed|1795286526200|~;Hive 1|Remove wand|1795286536200|~;Hive 1|Unseal|1795286537200|~
+         1795286522.695 15267 15282 I BeeTimerE2E: EVENT t=1795286522695 scale=60 Done(hiveId=1)
+         1795286522.695 15267 15282 I BeeTimerE2E: STEP t=1795286522695 hive=Hive 1 idx=1 step=Load dose device=true
+         1795286522.695 15267 15282 I BeeTimerE2E: LOCK t=1795286522695 holder=Hive 1 queue=[]
+         1795286522.696 15267 15282 I BeeTimerE2E: FORECAST t=1795286522695 done=1795286540181 dones=Hive 1@1795286540181 Hive 1|Heat and vaporize|1795286523681|~;Hive 1|Cool in hive|1795286526181|~;Hive 1|Keep sealed|1795286528181|~;Hive 1|Remove wand|1795286538181|~;Hive 1|Unseal|1795286539181|~
+         1795286525.616 15267 15282 I BeeTimerE2E: EVENT t=1795286525616 scale=60 Done(hiveId=1)
+         1795286525.616 15267 15282 I BeeTimerE2E: STEP t=1795286525616 hive=Hive 1 idx=2 step=Heat and vaporize device=true
+         1795286525.617 15267 15282 I BeeTimerE2E: FORECAST t=1795286525616 done=1795286542110 dones=Hive 1@1795286542110 Hive 1|Cool in hive|1795286528110|=;Hive 1|Keep sealed|1795286530110|~;Hive 1|Remove wand|1795286540110|~;Hive 1|Unseal|1795286541110|~
+         1795286530.632 15267 15282 I BeeTimerE2E: EVENT t=1795286530631 scale=60 TimerFired(hiveId=1)
+         1795286530.632 15267 15282 I BeeTimerE2E: RING t=1795286530631 hive=Hive 1 finished=Heat and vaporize
+         1795286530.632 15267 15282 I BeeTimerE2E: FORECAST t=1795286530631 done=1795286544631 dones=Hive 1@1795286544631 Hive 1|Cool in hive|1795286530631|~;Hive 1|Keep sealed|1795286532631|~;Hive 1|Remove wand|1795286542631|~;Hive 1|Unseal|1795286543631|~
+         1795286533.219 15267 15282 I BeeTimerE2E: EVENT t=1795286533218 scale=60 Done(hiveId=1)
+         1795286533.219 15267 15282 I BeeTimerE2E: STEP t=1795286533218 hive=Hive 1 idx=3 step=Cool in hive device=true
+         1795286533.219 15267 15282 I BeeTimerE2E: FORECAST t=1795286533218 done=1795286547198 dones=Hive 1@1795286547198 Hive 1|Keep sealed|1795286535198|=;Hive 1|Remove wand|1795286545198|~;Hive 1|Unseal|1795286546198|~
+         1795286538.229 15267 15282 I BeeTimerE2E: EVENT t=1795286538229 scale=60 TimerFired(hiveId=1)
+         1795286538.229 15267 15282 I BeeTimerE2E: RING t=1795286538229 hive=Hive 1 finished=Cool in hive
+         1795286538.229 15267 15282 I BeeTimerE2E: FORECAST t=1795286538229 done=1795286550229 dones=Hive 1@1795286550229 Hive 1|Keep sealed|1795286538229|~;Hive 1|Remove wand|1795286548229|~;Hive 1|Unseal|1795286549229|~
+         1795286540.136 15267 15282 I BeeTimerE2E: EVENT t=1795286540136 scale=60 Done(hiveId=1)
+         1795286540.136 15267 15282 I BeeTimerE2E: STEP t=1795286540136 hive=Hive 1 idx=4 step=Keep sealed device=true
+         1795286540.137 15267 15282 I BeeTimerE2E: FORECAST t=1795286540136 done=1795286552112 dones=Hive 1@1795286552112 Hive 1|Remove wand|1795286550112|=;Hive 1|Unseal|1795286551112|~
+         1795286550.134 15267 15282 I BeeTimerE2E: EVENT t=1795286550134 scale=60 TimerFired(hiveId=1)
+         1795286550.134 15267 15282 I BeeTimerE2E: STEP t=1795286550134 hive=Hive 1 idx=5 step=Remove wand device=true
+         1795286550.134 15267 15282 I BeeTimerE2E: RING t=1795286550134 hive=Hive 1 finished=Keep sealed
+         1795286550.134 15267 15282 I BeeTimerE2E: FORECAST t=1795286550134 done=1795286552112 dones=Hive 1@1795286552112 Hive 1|Unseal|1795286551112|~
+         1795286563.055 15267 15282 I BeeTimerE2E: EVENT t=1795286563055 scale=60 Done(hiveId=1)
+         1795286563.056 15267 15282 I BeeTimerE2E: STEP t=1795286563055 hive=Hive 1 idx=6 step=Unseal device=false
+         1795286563.056 15267 15282 I BeeTimerE2E: LOCK t=1795286563055 holder=none queue=[]
+         1795286563.056 15267 15282 I BeeTimerE2E: FORECAST t=1795286563055 done=1795286564031 dones=Hive 1@1795286564031 

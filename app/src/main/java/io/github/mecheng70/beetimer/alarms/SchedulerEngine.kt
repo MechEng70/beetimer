@@ -1,5 +1,6 @@
 package io.github.mecheng70.beetimer.alarms
 
+import io.github.mecheng70.beetimer.DevTools
 import io.github.mecheng70.beetimer.data.Repository
 import io.github.mecheng70.beetimer.scheduler.DefaultScheduler
 import io.github.mecheng70.beetimer.scheduler.Event
@@ -36,14 +37,14 @@ class SchedulerEngine(
         mutex.withLock {
             val wasLoaded = _state.value != null
             val s = loadLocked()
-            if (wasLoaded) commit(scheduler.restore(s, clock()))
+            if (wasLoaded) commit(scheduler.restore(s, clock()), "Restore")
         }
     }
 
     suspend fun dispatch(event: Event) {
         mutex.withLock {
             val s = loadLocked()
-            commit(scheduler.reduce(s, event, clock()))
+            commit(scheduler.reduce(s, event, clock()), event.toString())
         }
     }
 
@@ -54,14 +55,17 @@ class SchedulerEngine(
         val active = repo.activeTemplate()
         val saved = repo.loadState()?.copy(template = active) ?: SchedulerState(template = active)
         val t = scheduler.restore(saved, clock())
-        commit(t)
+        commit(t, "Load")
         return t.state
     }
 
-    private suspend fun commit(t: Transition) {
+    private suspend fun commit(t: Transition, cause: String) {
+        val before = _state.value
         repo.saveState(t.state)
         _state.value = t.state
         val labels = repo.hiveList().associate { it.id to it.label }
         executor.execute(t.effects, t.state, labels)
+        // Debug builds: invariant check and event log. A no-op in release.
+        DevTools.afterCommit(cause, before, t, labels, clock())
     }
 }

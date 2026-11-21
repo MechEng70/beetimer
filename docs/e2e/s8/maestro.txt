@@ -1,0 +1,34 @@
+Running on beetimer-api36
+ > Flow s8a
+Launch app "io.github.mecheng70.beetimer"... COMPLETED
+Tap on (Optional) "Continue"... COMPLETED
+Tap on "Settings"... COMPLETED
+Tap on id: preset-oav-pan-wand... COMPLETED
+Tap on id: hold-comes_out... COMPLETED
+Scrolling DOWN until id: dev-scale-60 is visible with speed 40, visibility percentage 100%, timeout 20000 ms, with centering disabled... COMPLETED
+Tap on id: dev-scale-60... COMPLETED
+Press back... COMPLETED
+Wait for animation to end... COMPLETED
+Tap on id: row-action-Hive 1... COMPLETED
+Assert that "^Seal hive$", Child of: id: row-Hive 1 is visible... COMPLETED
+Tap on id: row-action-Hive 1... COMPLETED
+Assert that "^Load dose$", Child of: id: row-Hive 1 is visible... COMPLETED
+Tap on id: row-action-Hive 1... COMPLETED
+Assert that "^Heat and vaporize finished$", Child of: id: row-Hive 1 is visible... COMPLETED
+Tap on id: row-action-Hive 1... COMPLETED
+Assert that "^Remove wand$", Child of: id: row-Hive 1 is visible... COMPLETED
+Tap on id: row-action-Hive 1... COMPLETED
+Assert that "^Keep sealed$", Child of: id: row-Hive 1 is visible... COMPLETED
+killed by am kill
+pid before: '15873'
+pid after kill: ''
+killed at 1795286619737
+pid after alarm: '16049'
+Running on beetimer-api36
+ > Flow s8b
+Launch app "io.github.mecheng70.beetimer"... COMPLETED
+Wait for animation to end... COMPLETED
+Assert that "^Unseal$", Child of: id: row-Hive 1 is visible... COMPLETED
+Take screenshot s8-01-restored-after-kill... COMPLETED
+Tap on id: row-action-Hive 1... COMPLETED
+Assert that "^Done$", Child of: id: row-Hive 1 is visible... COMPLETED

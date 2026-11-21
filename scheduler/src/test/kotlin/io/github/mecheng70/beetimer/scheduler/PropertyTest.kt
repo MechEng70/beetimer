@@ -20,6 +20,9 @@ class PropertyTest {
     fun lockIsNeverHeldByTwoRuns_gunType() = runSeeds(Presets.gunType)
 
     @Test
+    fun lockIsNeverHeldByTwoRuns_panWandComesOut() = runSeeds(Presets.panWandComesOut)
+
+    @Test
     fun lockIsNeverHeldByTwoRuns_shortTemplate() = runSeeds(
         template(
             timed("Wait", 5),
@@ -105,7 +108,12 @@ class PropertyTest {
             assertEquals("$where: alarm for hive $h", want, t.alarms[h])
         }
 
-        // 5. Running timed steps have an end time; terminal runs have no alarm and no lock.
+        // 5. The shared invariant checker (also run by debug builds after every event) agrees.
+        val forecast = Planner().forecast(s, t.now)
+        val problems = Invariants.check(s, t.alarms, forecast, t.now)
+        assertTrue("$where: ${problems.joinToString()}", problems.isEmpty())
+
+        // 6. Running timed steps have an end time; terminal runs have no alarm and no lock.
         runs.forEach { r ->
             if (r.state == RunState.RUNNING) assertTrue("$where: running without end", r.stepEndsAt != null)
             if (r.isTerminal) assertTrue("$where: terminal ${r.hiveId} holds lock", s.lockHolder != r.hiveId)

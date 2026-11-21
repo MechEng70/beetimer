@@ -29,7 +29,6 @@
     <string name="action_delete_hive">Delete %1$s</string>
     <string name="action_move_up">Move %1$s up</string>
     <string name="action_move_down">Move %1$s down</string>
-    <string name="action_toggle_device">%1$s: tap to switch between device and passive</string>
 
     <!-- Vaporizer status bar -->
     <string name="device_free">Vaporizer: free</string>
@@ -57,7 +56,7 @@
 
     <!-- Hive states -->
     <string name="state_not_started">Not started</string>
-    <string name="state_waiting">Waiting for the vaporizer</string>
+    <string name="state_waiting">Waiting</string>
     <string name="state_queued">Queued</string>
     <string name="state_done">Done</string>
     <string name="state_finished">%1$s finished</string>
@@ -121,7 +120,19 @@
     <string name="preset_short_pan_wand">Pan wand</string>
     <string name="preset_short_gun_type">Gun type</string>
     <string name="template_reset">Reset to defaults</string>
-    <string name="template_split_error">Device steps must be next to each other, or another hive could take the vaporizer mid-treatment. Not saved.</string>
+    <string name="hold_title">During the sealed hold:</string>
+    <string name="hold_stays_in">Wand stays in</string>
+    <string name="hold_comes_out">Wand comes out</string>
+    <string name="hold_confirm_title">Replace your step edits?</string>
+    <string name="hold_confirm_text">Switching replaces the pan wand steps with the default list for this choice. Active runs keep their steps.</string>
+    <string name="hold_confirm_ok">Replace</string>
+    <string name="template_release_error">The release step is above the take step. Not saved.</string>
+    <string name="marker_takes">Takes the vaporizer here</string>
+    <string name="marker_releases">Releases the vaporizer here</string>
+    <string name="marker_takes_short">takes the vaporizer</string>
+    <string name="marker_releases_short">releases the vaporizer</string>
+    <string name="step_sub_marker">%1$s, %2$s</string>
+    <string name="vaporizer_frees_here">Vaporizer frees here</string>
     <string name="template_footer">Defaults are reference values. Follow your product label and vaporizer manual; the label is the legal use spec.</string>
     <string name="duration_seconds">Seconds</string>
     <string name="duration_invalid">Enter 1 to 86400 seconds.</string>

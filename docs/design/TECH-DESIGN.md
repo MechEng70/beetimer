@@ -150,13 +150,22 @@ Rules:
     - Because a TIMED-to-TIMED handoff waits for acknowledgement, missed alarms never cascade through several steps.
 
 
-## 6. Template validation
+## 6. Step model and validation
 
+**Take and release markers** (Jason, 2026-11-21; replaces per-step Device/Passive toggles). Each template has exactly one step marked "takes the vaporizer" and one marked "releases the vaporizer" (`Step.takes`, `Step.releases`). Device-bound steps are derived (`Template.derived()`): every step from the take step through the release step, inclusive, is Device; every other step is Passive. The scheduler still reads `Step.deviceBound`, which is always the derived value. Moving a step carries its markers and duration with it and re-derives Device/Passive; renaming never changes durations.
+
+Validation:
 - At least one step.
 - TIMED steps need a duration from 1 s to 86,400 s.
-- Device-bound steps must form one contiguous block, or there must be none. A split block is refused with the message: "Device steps must be next to each other. A gap would let another hive take the vaporizer mid-treatment."
+- Exactly one take and one release (`MISSING_MARKER`).
+- The release step must not be above the take step (`RELEASE_BEFORE_TAKE`). This is the only invalid arrangement; a split device block can no longer happen.
 
-Presets "OAV pan wand" and "OAV gun type". The pan wand was corrected after alpha review (Jason, 2026-11-21): the wand stays in the entrance through the sealed hold, so Keep sealed is device-bound, and the last step "Remove wand and unseal" releases the wand on Done. Room v2's `MIGRATION_1_2` reseeds the pan wand row on existing installs (`MigrationTest`); the engine always takes the active template from the templates table on load. Gun type is unchanged (its hold stays passive). Both are saved. The alpha UI edits TIMED durations only; the `Template` model already supports add, delete and reorder (pure functions, tested) for the full editor later. The toggle picks which preset is active for new runs, and each has "Reset to defaults".
+**Presets.**
+- OAV pan wand, wand stays in: Seal hive; Load dose (takes); Heat and vaporize 150 s; Cool in hive 120 s; Keep sealed 600 s ("Wand stays in. Keep hive sealed."); Remove wand (releases); Unseal.
+- OAV pan wand, wand comes out: Seal hive; Load dose (takes); Heat and vaporize 150 s; Cool in hive 120 s; Remove wand (releases, "Pull the wand and close the entrance."); Keep sealed 600 s ("Wand is out. Keep hive sealed."); Unseal.
+- OAV gun type: Seal hive; Load cap and inject (takes); Vaporize 20 s; Withdraw (releases); Keep sealed 600 s; Unseal.
+
+The sealed-hold choice in Settings is read from the step list's shape (`Presets.panWandHoldOf`: names, kinds and markers in order), so reordering by hand into either default shape selects it. Choosing applies that default list, with a confirm when the steps are not exactly a default list. Room v3 (`MIGRATION_2_3`) rewrote both preset rows to this model.
 
 ## 7. Persistence (Room)
 
@@ -229,11 +238,20 @@ The mockups are the spec. Side-by-side captures: `docs/screenshots/` (mockup-*.p
 - **Vaporizer free.** When the vaporizer is free for the queue head: "Vaporizer free: Sparky is next" with Start, Skip to back and Remove.
 - **Hive tab.** "Step 3 of 7, heat and vaporize", 52 sp countdown, instruction. Step list with ticks and Device / Passive chips; the current step is tinted with the strong chip. Action grid, then Cancel run.
 - **Settings.** Top app bar with a back arrow (48 dp, "Back"); system back also returns. Cards: Steps, Hives, Display, Alerts, Session.
-- **Step editor.** Tap a step to edit its name and (timed) duration, tap its chip to switch device and passive, arrows to move it. Saved while valid; a split device block shows inline ("Not saved") with Undo. Reset to defaults. Active runs keep their snapshot.
+- **Step editor.** Tap a step to edit its name, (timed) duration, and "Takes the vaporizer here" / "Releases the vaporizer here" (moves the marker). Device/Passive chips are display only. A divider "Vaporizer frees here" follows the release step. Arrows move steps and re-derive Device/Passive live. Release above take shows inline ("Not saved") with Undo. Reset to defaults follows the sealed-hold choice. Active runs keep their snapshot.
 - **Hive list.** Drag handle, tap to rename, trash icon with confirm, "+ Add hive" (adds one and opens its name), at most `Repository.MAX_HIVES` = 5 ("5 hives max per session"). Names persist across sessions (`HivesAndSessionTest`).
 - **Alarm screen.** Hive name 48 sp bold, "Cool in hive finished" 16 sp, divider, "Next" 14 sp, the next step 26 sp (2 lines max), "10:00 timer starts when you tap Done" for a timed next step, vaporizer note 14 sp; spread over the space above Done (64 dp) and +1 min / Snooze 30 s (64 dp).
 - **Heads-up** (unlocked): title is the hive name ("Herb") so it never truncates; body "Heat and vaporize finished. Next: Cool in hive" (BigText); actions Done and +1 min.
 - **Theme.** System, Light or Dark (default System). The alarm screen is dark amber in both. Window themes set `forceDarkAllowed=false`: the app draws its own dark theme, and OxygenOS otherwise recolored the alarm window (found in the screenshot pass).
+
+## 9b. Debug tools and end-to-end verification
+
+Debug builds only (`app/src/debug/.../DevTools.kt`; the release twin in `src/release` is a no-op, so release APKs contain none of it):
+- **Time scale** (Settings, Developer): 1x, 10x or 60x. Stored in `SchedulerState.timeScale`; divides timed steps, +1 min, Snooze and planner estimates. The ring cycle and alarm cap stay real. Note: Android will not fire an app's exact alarm less than about 5 s ahead, so at 60x the 2.5 s heat and 2 s cool steps ring at about 5 s.
+- **Invariant check** after every scheduler commit (`scheduler/Invariants.kt`, shared with the property test): more than one holder; a run in a device step that does not hold the vaporizer; a waiting run not in the queue; an alarm for a run with no timed step or ringing alarm; a planner time shown firm behind a pending tap. Each violation logs `E/BeeTimerInvariant`.
+- **Event log** (`I/BeeTimerE2E`): events, step entries, lock and queue changes, rings, and the forecast after each commit.
+
+End-to-end suite: `scripts/e2e/` (Maestro flows generated by `gen_flows.py`, `run.sh` emulator-only, `analyze.py` writes `docs/e2e/REPORT.md`). See `docs/e2e/README.md`.
 
 ## 10. Known limitations and deferrals (alpha)
 

@@ -23,17 +23,18 @@ Assert that "^Waiting$", Child of: id: row-Hive 3 is visible... COMPLETED
 Take screenshot s1-01-one-holder-two-waiting... COMPLETED
 Assert that "^Load dose$", Child of: id: row-Hive 1 is visible... COMPLETED
 Tap on id: row-action-Hive 1... COMPLETED
-Assert that "^Heat and vaporize finished$", Child of: id: row-Hive 1 is visible... COMPLETED
-Tap on id: row-action-Hive 1... COMPLETED
-Assert that "^Cool in hive finished$", Child of: id: row-Hive 1 is visible... COMPLETED
-Tap on id: row-action-Hive 1... COMPLETED
+Assert that "^Hive 1$", id: alarm-hive is visible... COMPLETED
+Tap on id: alarm-done... COMPLETED
+Wait for animation to end... COMPLETED
+Assert that "^Hive 1$", id: alarm-hive is visible... COMPLETED
+Tap on id: alarm-done... COMPLETED
+Wait for animation to end... COMPLETED
 Assert that "^Keep sealed$", Child of: id: row-Hive 1 is visible... COMPLETED
 Assert that "^Waiting$", Child of: id: row-Hive 2 is visible... COMPLETED
 Assert that "^Waiting$", Child of: id: row-Hive 3 is visible... COMPLETED
-Assert that "^Remove wand$", Child of: id: row-Hive 1 is visible... COMPLETED
-Assert that "^Waiting$", Child of: id: row-Hive 2 is visible... COMPLETED
-Assert that "^Waiting$", Child of: id: row-Hive 3 is visible... COMPLETED
-Tap on id: row-action-Hive 1... COMPLETED
+Assert that "^Hive 1$", id: alarm-hive is visible... COMPLETED
+Tap on id: alarm-done... COMPLETED
+Wait for animation to end... COMPLETED
 Assert that "^Unseal$", Child of: id: row-Hive 1 is visible... COMPLETED
 Tap on id: row-action-Hive 1... COMPLETED
 Assert that "^Done$", Child of: id: row-Hive 1 is visible... COMPLETED
@@ -42,15 +43,17 @@ Assert that "^Start$", Child of: id: row-action-Hive 2 is visible... COMPLETED
 Tap on id: row-action-Hive 2... COMPLETED
 Assert that "^Load dose$", Child of: id: row-Hive 2 is visible... COMPLETED
 Tap on id: row-action-Hive 2... COMPLETED
-Assert that "^Heat and vaporize finished$", Child of: id: row-Hive 2 is visible... COMPLETED
-Tap on id: row-action-Hive 2... COMPLETED
-Assert that "^Cool in hive finished$", Child of: id: row-Hive 2 is visible... COMPLETED
-Tap on id: row-action-Hive 2... COMPLETED
+Assert that "^Hive 2$", id: alarm-hive is visible... COMPLETED
+Tap on id: alarm-done... COMPLETED
+Wait for animation to end... COMPLETED
+Assert that "^Hive 2$", id: alarm-hive is visible... COMPLETED
+Tap on id: alarm-done... COMPLETED
+Wait for animation to end... COMPLETED
 Assert that "^Keep sealed$", Child of: id: row-Hive 2 is visible... COMPLETED
 Assert that "^Waiting$", Child of: id: row-Hive 3 is visible... COMPLETED
-Assert that "^Remove wand$", Child of: id: row-Hive 2 is visible... COMPLETED
-Assert that "^Waiting$", Child of: id: row-Hive 3 is visible... COMPLETED
-Tap on id: row-action-Hive 2... COMPLETED
+Assert that "^Hive 2$", id: alarm-hive is visible... COMPLETED
+Tap on id: alarm-done... COMPLETED
+Wait for animation to end... COMPLETED
 Assert that "^Unseal$", Child of: id: row-Hive 2 is visible... COMPLETED
 Tap on id: row-action-Hive 2... COMPLETED
 Assert that "^Done$", Child of: id: row-Hive 2 is visible... COMPLETED
@@ -58,13 +61,16 @@ Assert that "^Start$", Child of: id: row-action-Hive 3 is visible... COMPLETED
 Tap on id: row-action-Hive 3... COMPLETED
 Assert that "^Load dose$", Child of: id: row-Hive 3 is visible... COMPLETED
 Tap on id: row-action-Hive 3... COMPLETED
-Assert that "^Heat and vaporize finished$", Child of: id: row-Hive 3 is visible... COMPLETED
-Tap on id: row-action-Hive 3... COMPLETED
-Assert that "^Cool in hive finished$", Child of: id: row-Hive 3 is visible... COMPLETED
-Tap on id: row-action-Hive 3... COMPLETED
+Assert that "^Hive 3$", id: alarm-hive is visible... COMPLETED
+Tap on id: alarm-done... COMPLETED
+Wait for animation to end... COMPLETED
+Assert that "^Hive 3$", id: alarm-hive is visible... COMPLETED
+Tap on id: alarm-done... COMPLETED
+Wait for animation to end... COMPLETED
 Assert that "^Keep sealed$", Child of: id: row-Hive 3 is visible... COMPLETED
-Assert that "^Remove wand$", Child of: id: row-Hive 3 is visible... COMPLETED
-Tap on id: row-action-Hive 3... COMPLETED
+Assert that "^Hive 3$", id: alarm-hive is visible... COMPLETED
+Tap on id: alarm-done... COMPLETED
+Wait for animation to end... COMPLETED
 Assert that "^Unseal$", Child of: id: row-Hive 3 is visible... COMPLETED
 Tap on id: row-action-Hive 3... COMPLETED
 Assert that "^Done$", Child of: id: row-Hive 3 is visible... COMPLETED

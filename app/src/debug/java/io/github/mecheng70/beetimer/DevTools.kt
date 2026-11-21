@@ -58,6 +58,9 @@ object DevTools {
         }
     }
 
+    /** The alarm screen is showing [label]'s alarm. */
+    fun alarmShown(label: String) = Log.i(TAG_E2E, "ALARMSCREEN t=${System.currentTimeMillis()} hive=$label")
+
     fun afterCommit(event: String, before: SchedulerState?, t: Transition, labels: Map<Long, String>, now: Long) {
         val s = t.state
         fun name(id: Long) = labels[id] ?: "hive$id"

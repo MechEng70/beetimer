@@ -255,7 +255,7 @@ private fun AllTab(hives: List<Hive>, s: SchedulerState, forecast: Forecast, now
                 DragHandle(handle.testTag("drag-${hive.label}"), stringResource(R.string.action_reorder, hive.label))
                 Column(Modifier.weight(1f)) {
                     Text(hive.label, style = AppType.hiveName, color = c.ink)
-                    Text(subtitle(run), style = AppType.body, color = c.inkMuted, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    Text(subtitle(run), style = AppType.body, color = c.inkMuted, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.testTag("row-sub-${hive.label}"))
                     val second = when {
                         run?.state == RunState.WAITING_FOR_DEVICE -> plan?.deviceStart?.let {
                             if (it.at <= now) stringResource(R.string.hive_starts_now)

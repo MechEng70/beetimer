@@ -71,20 +71,20 @@ appId: io.github.mecheng70.beetimer
     id: row-action-Hive 1
 - extendedWaitUntil:
     visible:
-      text: ^Heat and vaporize finished$
-      childOf:
-        id: row-Hive 1
+      id: alarm-hive
+      text: ^Hive 1$
     timeout: 90000
 - tapOn:
-    id: row-action-Hive 1
+    id: alarm-done
+- waitForAnimationToEnd
 - extendedWaitUntil:
     visible:
-      text: ^Cool in hive finished$
-      childOf:
-        id: row-Hive 1
+      id: alarm-hive
+      text: ^Hive 1$
     timeout: 90000
 - tapOn:
-    id: row-action-Hive 1
+    id: alarm-done
+- waitForAnimationToEnd
 - extendedWaitUntil:
     visible:
       text: ^Keep sealed$
@@ -101,20 +101,12 @@ appId: io.github.mecheng70.beetimer
       id: row-Hive 3
 - extendedWaitUntil:
     visible:
-      text: ^Remove wand$
-      childOf:
-        id: row-Hive 1
+      id: alarm-hive
+      text: ^Hive 1$
     timeout: 90000
-- assertVisible:
-    text: ^Waiting$
-    childOf:
-      id: row-Hive 2
-- assertVisible:
-    text: ^Waiting$
-    childOf:
-      id: row-Hive 3
 - tapOn:
-    id: row-action-Hive 1
+    id: alarm-done
+- waitForAnimationToEnd
 - extendedWaitUntil:
     visible:
       text: ^Unseal$
@@ -148,20 +140,20 @@ appId: io.github.mecheng70.beetimer
     id: row-action-Hive 2
 - extendedWaitUntil:
     visible:
-      text: ^Heat and vaporize finished$
-      childOf:
-        id: row-Hive 2
+      id: alarm-hive
+      text: ^Hive 2$
     timeout: 90000
 - tapOn:
-    id: row-action-Hive 2
+    id: alarm-done
+- waitForAnimationToEnd
 - extendedWaitUntil:
     visible:
-      text: ^Cool in hive finished$
-      childOf:
-        id: row-Hive 2
+      id: alarm-hive
+      text: ^Hive 2$
     timeout: 90000
 - tapOn:
-    id: row-action-Hive 2
+    id: alarm-done
+- waitForAnimationToEnd
 - extendedWaitUntil:
     visible:
       text: ^Keep sealed$
@@ -174,16 +166,12 @@ appId: io.github.mecheng70.beetimer
       id: row-Hive 3
 - extendedWaitUntil:
     visible:
-      text: ^Remove wand$
-      childOf:
-        id: row-Hive 2
+      id: alarm-hive
+      text: ^Hive 2$
     timeout: 90000
-- assertVisible:
-    text: ^Waiting$
-    childOf:
-      id: row-Hive 3
 - tapOn:
-    id: row-action-Hive 2
+    id: alarm-done
+- waitForAnimationToEnd
 - extendedWaitUntil:
     visible:
       text: ^Unseal$
@@ -216,20 +204,20 @@ appId: io.github.mecheng70.beetimer
     id: row-action-Hive 3
 - extendedWaitUntil:
     visible:
-      text: ^Heat and vaporize finished$
-      childOf:
-        id: row-Hive 3
+      id: alarm-hive
+      text: ^Hive 3$
     timeout: 90000
 - tapOn:
-    id: row-action-Hive 3
+    id: alarm-done
+- waitForAnimationToEnd
 - extendedWaitUntil:
     visible:
-      text: ^Cool in hive finished$
-      childOf:
-        id: row-Hive 3
+      id: alarm-hive
+      text: ^Hive 3$
     timeout: 90000
 - tapOn:
-    id: row-action-Hive 3
+    id: alarm-done
+- waitForAnimationToEnd
 - extendedWaitUntil:
     visible:
       text: ^Keep sealed$
@@ -238,12 +226,12 @@ appId: io.github.mecheng70.beetimer
     timeout: 90000
 - extendedWaitUntil:
     visible:
-      text: ^Remove wand$
-      childOf:
-        id: row-Hive 3
+      id: alarm-hive
+      text: ^Hive 3$
     timeout: 90000
 - tapOn:
-    id: row-action-Hive 3
+    id: alarm-done
+- waitForAnimationToEnd
 - extendedWaitUntil:
     visible:
       text: ^Unseal$

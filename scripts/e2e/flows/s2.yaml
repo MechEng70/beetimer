@@ -48,152 +48,92 @@ appId: io.github.mecheng70.beetimer
     timeout: 40000
 - tapOn:
     id: row-action-Hive 3
-- extendedWaitUntil:
-    visible:
-      text: ^Load dose$
-      childOf:
-        id: row-Hive 1
-    timeout: 40000
-- tapOn:
-    id: row-action-Hive 1
-- extendedWaitUntil:
-    visible:
-      text: ^Heat and vaporize finished$
-      childOf:
-        id: row-Hive 1
-    timeout: 40000
-- tapOn:
-    id: row-action-Hive 1
-- extendedWaitUntil:
-    visible:
-      text: ^Remove wand$
-      childOf:
-        id: row-Hive 1
-    timeout: 40000
-- tapOn:
-    id: row-action-Hive 1
-- extendedWaitUntil:
-    visible:
-      text: ^Keep sealed$
-      childOf:
-        id: row-Hive 1
-    timeout: 40000
-- takeScreenshot: s2-01-handoff-after-remove-wand
-- extendedWaitUntil:
-    visible:
-      text: ^Start$
-      childOf:
-        id: row-action-Hive 2
-    timeout: 40000
-- tapOn:
-    id: row-action-Hive 2
-- extendedWaitUntil:
-    visible:
-      text: ^Load dose$
-      childOf:
-        id: row-Hive 2
-    timeout: 40000
-- tapOn:
-    id: row-action-Hive 2
+- takeScreenshot: s2-01-sealed
+- repeat:
+    times: 3000
+    while:
+      notVisible:
+        id: row-sub-Hive 3
+        text: ^Done$
+    commands:
+    - runFlow:
+        when:
+          visible:
+            id: alarm-done
+        commands:
+        - tapOn:
+            id: alarm-done
+        - waitForAnimationToEnd
+    - runFlow:
+        when:
+          visible:
+            text: ^All$
+        commands:
+        - tapOn:
+            text: ^All$
+    - runFlow:
+        when:
+          notVisible:
+            id: row-sub-Hive 1
+            text: ^Done$
+        commands:
+        - runFlow:
+            when:
+              visible:
+                text: ^(Start|Done)$
+                childOf:
+                  id: row-action-Hive 1
+            commands:
+            - tapOn:
+                id: row-action-Hive 1
+            - waitForAnimationToEnd
+    - runFlow:
+        when:
+          notVisible:
+            id: row-sub-Hive 2
+            text: ^Done$
+        commands:
+        - runFlow:
+            when:
+              visible:
+                text: ^(Start|Done)$
+                childOf:
+                  id: row-action-Hive 2
+            commands:
+            - tapOn:
+                id: row-action-Hive 2
+            - waitForAnimationToEnd
+    - runFlow:
+        when:
+          notVisible:
+            id: row-sub-Hive 3
+            text: ^Done$
+        commands:
+        - runFlow:
+            when:
+              visible:
+                text: ^(Start|Done)$
+                childOf:
+                  id: row-action-Hive 3
+            commands:
+            - tapOn:
+                id: row-action-Hive 3
+            - waitForAnimationToEnd
+    - extendedWaitUntil:
+        visible:
+          id: never-present
+        timeout: 500
+        optional: true
 - assertVisible:
-    text: ^Keep sealed$
+    text: ^Done$
     childOf:
       id: row-Hive 1
-- takeScreenshot: s2-02-hold-overlaps-heat
-- extendedWaitUntil:
-    visible:
-      text: ^Heat and vaporize finished$
-      childOf:
-        id: row-Hive 2
-    timeout: 40000
-- tapOn:
-    id: row-action-Hive 2
-- extendedWaitUntil:
-    visible:
-      text: ^Remove wand$
-      childOf:
-        id: row-Hive 2
-    timeout: 40000
-- tapOn:
-    id: row-action-Hive 2
-- extendedWaitUntil:
-    visible:
-      text: ^Unseal$
-      childOf:
-        id: row-Hive 1
-    timeout: 40000
-- tapOn:
-    id: row-action-Hive 1
-- extendedWaitUntil:
-    visible:
-      text: ^Done$
-      childOf:
-        id: row-Hive 1
-    timeout: 40000
-- extendedWaitUntil:
-    visible:
-      text: ^Start$
-      childOf:
-        id: row-action-Hive 3
-    timeout: 40000
-- tapOn:
-    id: row-action-Hive 3
-- extendedWaitUntil:
-    visible:
-      text: ^Load dose$
-      childOf:
-        id: row-Hive 3
-    timeout: 40000
-- tapOn:
-    id: row-action-Hive 3
-- extendedWaitUntil:
-    visible:
-      text: ^Heat and vaporize finished$
-      childOf:
-        id: row-Hive 3
-    timeout: 40000
-- tapOn:
-    id: row-action-Hive 3
-- extendedWaitUntil:
-    visible:
-      text: ^Remove wand$
-      childOf:
-        id: row-Hive 3
-    timeout: 40000
-- tapOn:
-    id: row-action-Hive 3
-- extendedWaitUntil:
-    visible:
-      text: ^Keep sealed$
-      childOf:
-        id: row-Hive 3
-    timeout: 40000
-- extendedWaitUntil:
-    visible:
-      text: ^Unseal$
-      childOf:
-        id: row-Hive 2
-    timeout: 40000
-- tapOn:
-    id: row-action-Hive 2
-- extendedWaitUntil:
-    visible:
-      text: ^Done$
-      childOf:
-        id: row-Hive 2
-    timeout: 40000
-- extendedWaitUntil:
-    visible:
-      text: ^Unseal$
-      childOf:
-        id: row-Hive 3
-    timeout: 40000
-- tapOn:
-    id: row-action-Hive 3
-- extendedWaitUntil:
-    visible:
-      text: ^Done$
-      childOf:
-        id: row-Hive 3
-    timeout: 40000
-- takeScreenshot: s2-03-all-done
+- assertVisible:
+    text: ^Done$
+    childOf:
+      id: row-Hive 2
+- assertVisible:
+    text: ^Done$
+    childOf:
+      id: row-Hive 3
+- takeScreenshot: s2-02-all-done

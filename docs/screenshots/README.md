@@ -12,7 +12,12 @@ Scene: Herb holds the vaporizer (Heat and vaporize, real 1x timing), Sparky is q
 | `app-3-alarm.png` | Alarm screen: Herb, "Heat and vaporize finished", Next "Cool in hive", "2:00 timer starts when you tap Done". |
 | `app-4-template.png` | Step editor, wand stays in: "takes the vaporizer" on Load dose, "releases the vaporizer" on Remove wand, the "Vaporizer frees here" divider, display-only chips. |
 | `app-5-settings-hives.png` | Hives card, the Developer card (debug builds only; absent from release), Display. |
-| `app-6-headsup.png` | Heads-up: title "Herb", body "Heat and vaporize finished. Next: Cool in hive", Done and +1 min. |
+| `app-6-headsup.png` | Heads-up with the app in the background (in the app the alarm screen opens directly instead): title "Herb", body "Heat and vaporize finished. Next: Cool in hive", Done and +1 min. The emulator has themed icons on, so the home screen shows Bee Timer's monochrome icon. |
 | `app-7-sealed-hold-option.png` | "During the sealed hold: Wand comes out" selected: Remove wand releases, the divider sits above Keep sealed, and Keep sealed shows Passive. |
 
 "Wand" appears only in step names and instructions and in the two sealed-hold option labels.
+
+Launcher icon captures are in `docs/icon/launcher/`:
+- `phone-drawer-normal.png`: OnePlus app drawer, squircle mask.
+- `emulator-drawer-themed.png`: Pixel launcher app drawer (full color; the Pixel launcher themes the home screen only).
+- `emulator-home-themed.png`: Pixel launcher home screen with themed icons on (monochrome layer).

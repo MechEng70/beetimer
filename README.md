@@ -1,3 +1,5 @@
+<p align="center"><img src="docs/icon/icon-1024.png" alt="Bee Timer icon: a stopwatch with a bee" width="160"></p>
+
 # Bee Timer
 
 Bee Timer times oxalic acid vaporization (OAV) across several hives when you have one vaporizer. Each hive runs

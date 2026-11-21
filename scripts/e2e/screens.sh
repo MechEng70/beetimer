@@ -28,7 +28,9 @@ m scr-c; cap app-4-template
 m scr-d; cap app-7-sealed-hold-option
 m scr-e; cap app-5-settings-hives
 m scr-f
-# Herb's 150 s heat ends; capture the heads-up, then open the alarm screen from it.
+# In the app, a step end opens the alarm screen directly; the heads-up shows when the app is
+# in the background. Go Home, let Herb's 150 s heat end, capture the heads-up, then open it.
+adb -s "$SERIAL" shell input keyevent KEYCODE_HOME
 adb -s "$SERIAL" shell 'i=0; while [ $i -lt 240 ] && ! dumpsys activity services '"$APP"' | grep -q RingService; do sleep 1; i=$((i+1)); done'
 sleep 2; cap app-6-headsup
 adb -s "$SERIAL" shell input tap 540 200

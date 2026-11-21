@@ -14,15 +14,17 @@ Assert that "^Seal hive$", Child of: id: row-Hive 1 is visible... COMPLETED
 Tap on id: row-action-Hive 1... COMPLETED
 Assert that "^Load dose$", Child of: id: row-Hive 1 is visible... COMPLETED
 Tap on id: row-action-Hive 1... COMPLETED
-Assert that "^Heat and vaporize finished$", Child of: id: row-Hive 1 is visible... COMPLETED
-Tap on id: row-action-Hive 1... COMPLETED
-Assert that "^Cool in hive finished$", Child of: id: row-Hive 1 is visible... COMPLETED
-Tap on id: row-action-Hive 1... COMPLETED
+Assert that "^Hive 1$", id: alarm-hive is visible... COMPLETED
+Tap on id: alarm-done... COMPLETED
+Wait for animation to end... COMPLETED
+Assert that "^Hive 1$", id: alarm-hive is visible... COMPLETED
+Tap on id: alarm-done... COMPLETED
+Wait for animation to end... COMPLETED
 Assert that "^Keep sealed$", Child of: id: row-Hive 1 is visible... COMPLETED
-screen off at 1795286542590
+screen off at 1795298762359
   mWakefulness=Dozing
   mWakefulness=Awake
-  mCurrentFocus=Window{4c2843a u0 io.github.mecheng70.beetimer/io.github.mecheng70.beetimer.ui.AlarmActivity}
+  mCurrentFocus=Window{1c116fc u0 io.github.mecheng70.beetimer/io.github.mecheng70.beetimer.ui.AlarmActivity}
 Running on beetimer-api36
  > Flow s7b
 Assert that id: alarm-done is visible... COMPLETED

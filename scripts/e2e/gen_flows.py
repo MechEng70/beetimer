@@ -83,6 +83,44 @@ def tag(t):
     return [{"tapOn": {"id": t}}]
 
 
+def alarm(hive, timeout=None):
+    """The alarm screen is showing this hive (opened in the app, or switched to it)."""
+    return [{"extendedWaitUntil": {"visible": {"id": "alarm-hive", "text": exact(hive)}, "timeout": timeout or WAIT}}]
+
+
+def ack(hive):
+    """Wait for this hive's alarm screen and tap Done."""
+    return alarm(hive) + [{"tapOn": {"id": "alarm-done"}}, "waitForAnimationToEnd"]
+
+
+def pause(ms):
+    """Maestro has no sleep: wait for an element that never exists, and ignore the timeout."""
+    return [{"extendedWaitUntil": {"visible": {"id": "never-present"}, "timeout": ms, "optional": True}}]
+
+
+def autopilot(hives, last):
+    """Do whatever comes up until the last hive is Done: Done on the alarm screen, Start or Done
+    on rows. The scheduler rules are checked from the event log by analyze.py."""
+    cmds = [
+        {"runFlow": {"when": {"visible": {"id": "alarm-done"}}, "commands": [{"tapOn": {"id": "alarm-done"}}, "waitForAnimationToEnd"]}},
+        # Back to the All tab if a tap opened a hive's tab.
+        {"runFlow": {"when": {"visible": {"text": "^All$"}}, "commands": [{"tapOn": {"text": "^All$"}}]}},
+    ]
+    for h in hives:
+        # Skip finished hives: their "Done" is a status chip, and tapping it opens the hive's tab.
+        cmds.append({"runFlow": {
+            "when": {"notVisible": {"id": f"row-sub-{h}", "text": "^Done$"}},
+            "commands": [{"runFlow": {
+                "when": {"visible": {"text": "^(Start|Done)$", "childOf": {"id": f"row-action-{h}"}}},
+                "commands": [{"tapOn": {"id": f"row-action-{h}"}}, "waitForAnimationToEnd"],
+            }}],
+        }})
+    # A 0.5 s pause per pass keeps the loop from spinning; 3000 passes (about 25 min) is only a
+    # safety cap. (The first version capped at 600 passes, which ran out in about 90 s.)
+    cmds += pause(500)
+    return [{"repeat": {"times": 3000, "while": {"notVisible": {"id": f"row-sub-{last}", "text": "^Done$"}}, "commands": cmds}}]
+
+
 def start_and_seal(hives):
     s = []
     for h in hives:
@@ -93,28 +131,26 @@ def start_and_seal(hives):
 
 
 def pan_stays_in_block(h, others_waiting=()):
-    """Holder h: Load dose -> Heat -> Cool -> Keep sealed (holds) -> Remove wand -> Unseal."""
+    """Holder h: Load dose -> Heat -> Cool -> Keep sealed (holds) -> Remove wand -> Unseal.
+    Each timed step's end opens the alarm screen in the app."""
     s = wait(h, "Load dose") + tap(h)
-    s += wait(h, "Heat and vaporize finished") + tap(h)
-    s += wait(h, "Cool in hive finished") + tap(h)
+    s += ack(h)  # Heat and vaporize finished -> Cool starts on Done
+    s += ack(h)  # Cool in hive finished -> Keep sealed starts on Done
     s += wait(h, "Keep sealed")
     for o in others_waiting:
         s += see(o, "Waiting")  # the hold keeps the vaporizer
-    s += wait(h, "Remove wand")
-    for o in others_waiting:
-        s += see(o, "Waiting")  # still no handoff until Remove wand Done
-    s += tap(h)  # Done on Remove wand: frees the vaporizer
+    s += ack(h)  # Keep sealed finished; Done completes Remove wand and frees the vaporizer
     s += wait(h, "Unseal") + tap(h)
     s += wait(h, "Done")
     return s
 
 
 def pan_comes_out_block(h):
-    """Holder h up to releasing: Load dose -> Heat -> Cool -> Remove wand (Done frees).
-    Cool (timed) is followed by a manual step, so the run moves straight to Remove wand."""
+    """Holder h up to releasing: Load dose -> Heat (alarm) -> Cool (alarm; the run is on
+    Remove wand) -> Done frees the vaporizer -> Keep sealed."""
     s = wait(h, "Load dose") + tap(h)
-    s += wait(h, "Heat and vaporize finished") + tap(h)
-    s += wait(h, "Remove wand") + tap(h)
+    s += ack(h)  # Heat finished -> Cool on Done
+    s += ack(h)  # Cool finished; Done completes Remove wand
     s += wait(h, "Keep sealed")
     return s
 
@@ -154,18 +190,12 @@ def scenario1(scale):
     return s
 
 
-def scenario2():
-    s = setup(hold="comes_out")
-    s += start_and_seal([H1, H2, H3])
-    s += pan_comes_out_block(H1) + shot("s2-01-handoff-after-remove-wand")
-    s += handoff(H2) + wait(H2, "Load dose") + tap(H2)
-    s += see(H1, "Keep sealed") + shot("s2-02-hold-overlaps-heat")
-    s += wait(H2, "Heat and vaporize finished") + tap(H2)
-    s += wait(H2, "Remove wand") + tap(H2)
-    s += finish_unseal(H1)
-    s += handoff(H3) + pan_comes_out_block(H3)
-    s += finish_unseal(H2) + finish_unseal(H3)
-    s += shot("s2-03-all-done")
+def scenario2(scale=60):
+    scaled(scale)
+    s = setup(scale=scale, hold="comes_out")
+    s += start_and_seal([H1, H2, H3]) + shot("s2-01-sealed")
+    s += autopilot([H1, H2, H3], last=H3)
+    s += see(H1, "Done") + see(H2, "Done") + see(H3, "Done") + shot("s2-02-all-done")
     return s
 
 
@@ -174,14 +204,9 @@ def scenario3():
     # so the two holds cannot overlap; at 10x (60 s hold) they do, as at real timing.
     scaled(10)
     s = setup(preset="oav-gun-type", scale=10)
-    s += start_and_seal([H1, H2, H3])
-    s += gun_block(H1) + shot("s3-01-handoff-after-withdraw")
-    s += handoff(H2) + wait(H2, "Load cap and inject") + tap(H2)
-    s += see(H1, "Keep sealed") + shot("s3-02-passive-hold-overlaps-next-hive")
-    s += wait(H2, "Withdraw") + tap(H2) + wait(H2, "Keep sealed")
-    s += handoff(H3) + gun_block(H3)
-    s += finish_unseal(H1) + finish_unseal(H2) + finish_unseal(H3)
-    s += shot("s3-03-all-done")
+    s += start_and_seal([H1, H2, H3]) + shot("s3-01-sealed")
+    s += autopilot([H1, H2, H3], last=H3)
+    s += see(H1, "Done") + see(H2, "Done") + see(H3, "Done") + shot("s3-02-all-done")
     return s
 
 
@@ -221,23 +246,27 @@ def scenario5():
 def scenario6():
     s = setup(hold="comes_out")
     s += start_and_seal([H1, H2, H3])
+    # Hive 1 alone: +1 min on the running hold, then Snooze its alarm, then Done.
     s += pan_comes_out_block(H1)
-    # +1 min on the running hold, then Snooze when it rings.
     s += open_tab(H1) + tag("hive-add-minute") + all_tab()
+    s += alarm(H1) + [{"tapOn": {"id": "alarm-snooze"}}] + pause(7000) + alarm(H1)
+    s += [{"tapOn": {"id": "alarm-done"}}, "waitForAnimationToEnd"] + wait(H1, "Done")
+    # Hive 2 then Hive 3: Hive 2's hold ends while Hive 3 works; Hive 2 is left ringing until
+    # Hive 3 rings too, then both are cleared in turn on the alarm screen.
     s += handoff(H2) + pan_comes_out_block(H2)
-    s += wait(H1, "Unseal") + open_tab(H1) + tag("hive-snooze") + all_tab()
-    s += handoff(H3) + pan_comes_out_block(H3)
-    s += tap(H1) + wait(H1, "Done")
-    # Hive 2 and Hive 3 ring close together; leave both ringing, then clear them in turn.
-    s += wait(H2, "Unseal") + wait(H3, "Unseal") + shot("s6-01-two-alarms-ringing")
-    s += tap(H2) + wait(H2, "Done") + tap(H3) + wait(H3, "Done")
+    s += handoff(H3) + wait(H3, "Load dose") + tap(H3)
+    s += alarm(H3) + [{"tapOn": {"id": "alarm-done"}}]  # Heat finished
+    s += alarm(H3) + [{"tapOn": {"id": "alarm-done"}}]  # Cool finished; completes Remove wand
+    s += alarm(H3) + shot("s6-01-two-alarms-ringing")   # Hive 3's hold ends; Hive 2 still ringing
+    s += [{"tapOn": {"id": "alarm-done"}}] + alarm(H2) + shot("s6-02-second-alarm-shown")
+    s += [{"tapOn": {"id": "alarm-done"}}, "waitForAnimationToEnd"]
+    s += wait(H2, "Done") + wait(H3, "Done")
     return s
 
 
 def scenario7_parts():
     a = setup(hold="stays_in") + start_and_seal([H1])
-    a += wait(H1, "Load dose") + tap(H1) + wait(H1, "Heat and vaporize finished") + tap(H1)
-    a += wait(H1, "Cool in hive finished") + tap(H1) + wait(H1, "Keep sealed")
+    a += wait(H1, "Load dose") + tap(H1) + ack(H1) + ack(H1) + wait(H1, "Keep sealed")
     b = [{"extendedWaitUntil": {"visible": {"id": "alarm-done"}, "timeout": WAIT}}, {"takeScreenshot": "s7-01-alarm-over-lock"}, {"tapOn": {"id": "alarm-done"}}]
     return a, b
 
@@ -289,6 +318,20 @@ def scenario10_parts():
     return a, a2, b
 
 
+def scenario11_parts():
+    """App open and unlocked when steps end: the alarm screen opens in the app, nothing covers
+    the top; Home and lock keep it ringing; the notification and waking bring it back."""
+    a = setup(hold="comes_out") + start_and_seal([H1, H2])
+    a += wait(H1, "Load dose") + tap(H1)
+    b = alarm(H1) + [{"assertVisible": "Heat and vaporize finished"}] + shot("s11-01-alarm-opened-in-app")
+    c = alarm(H1) + [{"tapOn": {"id": "alarm-add-minute"}}, "waitForAnimationToEnd", {"launchApp": {"stopApp": False}}]  # after the notification tap
+    c += alarm(H1) + shot("s11-02-reopened-after-plus-minute") + [{"tapOn": {"id": "alarm-snooze"}}]
+    d = alarm(H1) + [{"tapOn": {"id": "alarm-done"}}, "waitForAnimationToEnd"]  # after waking from lock
+    e = ack(H1)  # Cool finished; Done completes Remove wand and frees the vaporizer
+    e += see_text("Vaporizer free: Hive 2 is next") + shot("s11-03-snackbar-at-bottom")
+    return {"s11a": a, "s11b": b, "s11c": c, "s11d": d, "s11e": e}
+
+
 def rename(old, new):
     return [{"tapOn": {"id": f"hive-row-{old}"}}, {"tapOn": {"text": "Name"}}, {"eraseText": 12}, {"inputText": new}, {"tapOn": "Save"}]
 
@@ -316,9 +359,12 @@ def main():
         flow(name, steps)
     flow("s1x10", scenario1(10))
     flow("s1", scenario1(60))
-    flow("s2", scenario2())
+    flow("s2", scenario2(60))
     flow("s3", scenario3())
+    flow("s2x10", scenario2(10))
     scaled(60)
+    for name, steps in scenario11_parts().items():
+        flow(name, steps)
     flow("s4", scenario4())
     flow("s5", scenario5())
     flow("s6", scenario6())

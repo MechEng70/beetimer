@@ -9,6 +9,20 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.runtime.SideEffect
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Snackbar
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarResult
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.stringResource
+import io.github.mecheng70.beetimer.R
+import io.github.mecheng70.beetimer.scheduler.Event
+import io.github.mecheng70.beetimer.ui.theme.Dimens
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.testTagsAsResourceId
@@ -46,7 +60,10 @@ class MainActivity : ComponentActivity() {
                 Box(
                     Modifier.fillMaxSize().background(c.page).safeDrawingPadding()
                         .semantics { testTagsAsResourceId = true },
-                ) { Root() }
+                ) {
+                    Root()
+                    DeviceFreeSnackbar(Modifier.align(Alignment.BottomCenter))
+                }
             }
         }
     }
@@ -77,4 +94,27 @@ class MainActivity : ComponentActivity() {
     }
 
     private enum class Screen { MAIN, SETTINGS, PERMISSIONS }
+
+    /**
+     * "Vaporizer free: Herb is next" while the app is on screen, at the bottom so it never
+     * covers the top bar or the vaporizer bar's buttons. Start hands the vaporizer over.
+     */
+    @Composable
+    private fun DeviceFreeSnackbar(modifier: Modifier) {
+        val app = app
+        val host = remember { SnackbarHostState() }
+        val message = stringResource(R.string.device_free_next)
+        val start = stringResource(R.string.action_start)
+        LaunchedEffect(Unit) {
+            app.deviceFreeInApp.collect { (id, label) ->
+                host.currentSnackbarData?.dismiss()
+                val result = host.showSnackbar(message.replace("%1\$s", label), actionLabel = start, duration = SnackbarDuration.Long)
+                if (result == SnackbarResult.ActionPerformed) app.send(Event.Start(id))
+            }
+        }
+        val c = BeeTheme.colors
+        SnackbarHost(host, modifier.padding(Dimens.PageMargin).testTag("snackbar-device-free")) { data ->
+            Snackbar(data, containerColor = c.ink, contentColor = c.card, actionColor = c.deviceStrong)
+        }
+    }
 }

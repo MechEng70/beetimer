@@ -38,20 +38,20 @@ appId: io.github.mecheng70.beetimer
     id: row-action-Hive 1
 - extendedWaitUntil:
     visible:
-      text: ^Heat and vaporize finished$
-      childOf:
-        id: row-Hive 1
+      id: alarm-hive
+      text: ^Hive 1$
     timeout: 40000
 - tapOn:
-    id: row-action-Hive 1
+    id: alarm-done
+- waitForAnimationToEnd
 - extendedWaitUntil:
     visible:
-      text: ^Remove wand$
-      childOf:
-        id: row-Hive 1
+      id: alarm-hive
+      text: ^Hive 1$
     timeout: 40000
 - tapOn:
-    id: row-action-Hive 1
+    id: alarm-done
+- waitForAnimationToEnd
 - extendedWaitUntil:
     visible:
       text: ^Keep sealed$

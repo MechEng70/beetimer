@@ -29,6 +29,10 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.testTagsAsResourceId
 import androidx.compose.material3.Text
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
+import kotlinx.coroutines.launch
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -40,6 +44,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import io.github.mecheng70.beetimer.DevTools
 import io.github.mecheng70.beetimer.R
 import io.github.mecheng70.beetimer.alarms.AlarmText
 import io.github.mecheng70.beetimer.scheduler.Event
@@ -53,11 +58,22 @@ import io.github.mecheng70.beetimer.ui.theme.Dimens
 class AlarmActivity : ComponentActivity() {
     private var hiveId by mutableLongStateOf(NO_HIVE)
 
+    /** Set once any open came from the app while it was on screen. */
+    private var returnToApp = false
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setShowWhenLocked(true)
         setTurnScreenOn(true)
         hiveId = intent.getLongExtra(EXTRA_HIVE_ID, NO_HIVE)
+        returnToApp = intent.getBooleanExtra(EXTRA_RETURN_TO_APP, false)
+        // Close when nothing rings any more (watched here rather than in Compose, so it does
+        // not depend on recomposition).
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                app.engine.state.collect { s -> if (s != null && s.runs.values.none { it.ringing != null }) close() }
+            }
+        }
         setContent {
             BeeTimerTheme { Box(Modifier.semantics { testTagsAsResourceId = true }) { AlarmScreen() } }
         }
@@ -67,6 +83,8 @@ class AlarmActivity : ComponentActivity() {
         super.onNewIntent(intent)
         setIntent(intent)
         hiveId = intent.getLongExtra(EXTRA_HIVE_ID, NO_HIVE)
+        // A later in-app open adds return-to-app; a notification tap never takes it away.
+        returnToApp = returnToApp || intent.getBooleanExtra(EXTRA_RETURN_TO_APP, false)
     }
 
     @Composable
@@ -79,12 +97,12 @@ class AlarmActivity : ComponentActivity() {
         // Show this hive while it rings; then any other ringing hive; then close.
         val run = s.runs[hiveId]?.takeIf { it.ringing != null }
             ?: s.runs.values.sortedBy { it.hiveId }.firstOrNull { it.ringing != null }
-        LaunchedEffect(run == null) { if (run == null) finish() }
         if (run == null) return
         val labels = hives.associate { it.id to it.label }
         val id = run.hiveId
 
         val info = AlarmText.info(context, run, s, labels)
+        LaunchedEffect(id, labels[id]) { labels[id]?.let { DevTools.alarmShown(it) } }
         Column(
             Modifier.fillMaxSize().background(AlarmColors.Background).safeDrawingPadding().padding(Dimens.CardPadding),
             horizontalAlignment = Alignment.CenterHorizontally,
@@ -96,7 +114,14 @@ class AlarmActivity : ComponentActivity() {
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text(labels[id].orEmpty(), color = AlarmColors.Text, style = AppType.alarmName, textAlign = TextAlign.Center, maxLines = 2)
+                    Text(
+                        labels[id].orEmpty(),
+                        color = AlarmColors.Text,
+                        style = AppType.alarmName,
+                        textAlign = TextAlign.Center,
+                        maxLines = 2,
+                        modifier = Modifier.testTag("alarm-hive"),
+                    )
                     Text(info.finished, color = AlarmColors.Accent, style = AppType.alarmFinished, textAlign = TextAlign.Center)
                 }
                 HorizontalDivider(thickness = Dimens.Border, color = AlarmColors.Border)
@@ -139,13 +164,32 @@ class AlarmActivity : ComponentActivity() {
         ) { Text(text, style = AppType.alarmButton) }
     }
 
+    /**
+     * Nothing rings any more. Opened by the app while it was on screen: go back to the app
+     * (this activity runs in its own task, so finishing alone can land on the home screen).
+     * Opened from the lock screen or a notification: just finish, as before.
+     */
+    private fun close() {
+        if (isFinishing) return
+        if (returnToApp) {
+            startActivity(
+                Intent(this, MainActivity::class.java)
+                    .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP),
+            )
+        }
+        finish()
+    }
+
     companion object {
+        private const val EXTRA_RETURN_TO_APP = "returnToApp"
         private const val EXTRA_HIVE_ID = "hiveId"
         private const val NO_HIVE = -1L
 
-        fun intent(context: Context, hiveId: Long): Intent =
+        /** [returnToApp]: opened by the app while on screen; closing goes back to the app. */
+        fun intent(context: Context, hiveId: Long, returnToApp: Boolean = false): Intent =
             Intent(context, AlarmActivity::class.java)
                 .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_NO_USER_ACTION)
                 .putExtra(EXTRA_HIVE_ID, hiveId)
+                .putExtra(EXTRA_RETURN_TO_APP, returnToApp)
     }
 }

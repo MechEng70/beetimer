@@ -21,10 +21,11 @@ for s in "$@"; do
   adb -s "$SERIAL" logcat -v epoch -s BeeTimerE2E:I BeeTimerInvariant:E AndroidRuntime:E > "$OUT/log.txt" &
   logpid=$!
   start=$(date +%s)
+  # A stuck flow fails after 25 minutes instead of hanging.
   if [ -x "scripts/e2e/flows/$s.sh" ]; then
-    "scripts/e2e/flows/$s.sh" > "$OUT/maestro.txt" 2>&1
+    timeout 1500 "scripts/e2e/flows/$s.sh" > "$OUT/maestro.txt" 2>&1
   else
-    maestro --device "$SERIAL" test "scripts/e2e/flows/$s.yaml" --test-output-dir "$OUT/maestro" > "$OUT/maestro.txt" 2>&1
+    timeout 1500 maestro --device "$SERIAL" test "scripts/e2e/flows/$s.yaml" --test-output-dir "$OUT/maestro" > "$OUT/maestro.txt" 2>&1
   fi
   echo $? > "$OUT/maestro-exit"
   echo $(( $(date +%s) - start )) > "$OUT/seconds"

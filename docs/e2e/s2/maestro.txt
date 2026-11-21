@@ -18,40 +18,36 @@ Assert that "^Seal hive$", Child of: id: row-Hive 2 is visible... COMPLETED
 Tap on id: row-action-Hive 2... COMPLETED
 Assert that "^Seal hive$", Child of: id: row-Hive 3 is visible... COMPLETED
 Tap on id: row-action-Hive 3... COMPLETED
-Assert that "^Load dose$", Child of: id: row-Hive 1 is visible... COMPLETED
-Tap on id: row-action-Hive 1... COMPLETED
-Assert that "^Heat and vaporize finished$", Child of: id: row-Hive 1 is visible... COMPLETED
-Tap on id: row-action-Hive 1... COMPLETED
-Assert that "^Remove wand$", Child of: id: row-Hive 1 is visible... COMPLETED
-Tap on id: row-action-Hive 1... COMPLETED
-Assert that "^Keep sealed$", Child of: id: row-Hive 1 is visible... COMPLETED
-Take screenshot s2-01-handoff-after-remove-wand... COMPLETED
-Assert that "^Start$", Child of: id: row-action-Hive 2 is visible... COMPLETED
-Tap on id: row-action-Hive 2... COMPLETED
-Assert that "^Load dose$", Child of: id: row-Hive 2 is visible... COMPLETED
-Tap on id: row-action-Hive 2... COMPLETED
-Assert that "^Keep sealed$", Child of: id: row-Hive 1 is visible... COMPLETED
-Take screenshot s2-02-hold-overlaps-heat... COMPLETED
-Assert that "^Heat and vaporize finished$", Child of: id: row-Hive 2 is visible... COMPLETED
-Tap on id: row-action-Hive 2... COMPLETED
-Assert that "^Remove wand$", Child of: id: row-Hive 2 is visible... COMPLETED
-Tap on id: row-action-Hive 2... COMPLETED
-Assert that "^Unseal$", Child of: id: row-Hive 1 is visible... COMPLETED
-Tap on id: row-action-Hive 1... COMPLETED
+Take screenshot s2-01-sealed... COMPLETED
+Repeat while "^Done$", id: row-sub-Hive 3 is not visible (up to 3000 times)...
+  Run flow when id: alarm-done is visible...
+  Run flow when id: alarm-done is visible... SKIPPED
+  Run flow when "^All$" is visible...
+    Tap on "^All$"... COMPLETED
+  Run flow when "^All$" is visible... COMPLETED
+  Run flow when "^Done$", id: row-sub-Hive 1 is not visible...
+    Run flow when "^(Start|Done)$", Child of: id: row-action-Hive 1 is visible...
+      Tap on id: row-action-Hive 1... COMPLETED
+      Wait for animation to end... COMPLETED
+    Run flow when "^(Start|Done)$", Child of: id: row-action-Hive 1 is visible... COMPLETED
+  Run flow when "^Done$", id: row-sub-Hive 1 is not visible... COMPLETED
+  Run flow when "^Done$", id: row-sub-Hive 2 is not visible...
+    Run flow when "^(Start|Done)$", Child of: id: row-action-Hive 2 is visible...
+    Run flow when "^(Start|Done)$", Child of: id: row-action-Hive 2 is visible... SKIPPED
+  Run flow when "^Done$", id: row-sub-Hive 2 is not visible... COMPLETED
+  Run flow when "^Done$", id: row-sub-Hive 3 is not visible...
+    Run flow when "^(Start|Done)$", Child of: id: row-action-Hive 3 is visible...
+    Run flow when "^(Start|Done)$", Child of: id: row-action-Hive 3 is visible... SKIPPED
+  Run flow when "^Done$", id: row-sub-Hive 3 is not visible... COMPLETED
+  Assert that (Optional) id: never-present is visible... WARNED
+    Tap on id: alarm-done... COMPLETED
+    Wait for animation to end... COMPLETED
+      Tap on id: row-action-Hive 2... COMPLETED
+      Wait for animation to end... COMPLETED
+      Tap on id: row-action-Hive 3... COMPLETED
+      Wait for animation to end... COMPLETED
+Repeat while "^Done$", id: row-sub-Hive 3 is not visible (up to 3000 times)... COMPLETED
 Assert that "^Done$", Child of: id: row-Hive 1 is visible... COMPLETED
-Assert that "^Start$", Child of: id: row-action-Hive 3 is visible... COMPLETED
-Tap on id: row-action-Hive 3... COMPLETED
-Assert that "^Load dose$", Child of: id: row-Hive 3 is visible... COMPLETED
-Tap on id: row-action-Hive 3... COMPLETED
-Assert that "^Heat and vaporize finished$", Child of: id: row-Hive 3 is visible... COMPLETED
-Tap on id: row-action-Hive 3... COMPLETED
-Assert that "^Remove wand$", Child of: id: row-Hive 3 is visible... COMPLETED
-Tap on id: row-action-Hive 3... COMPLETED
-Assert that "^Keep sealed$", Child of: id: row-Hive 3 is visible... COMPLETED
-Assert that "^Unseal$", Child of: id: row-Hive 2 is visible... COMPLETED
-Tap on id: row-action-Hive 2... COMPLETED
 Assert that "^Done$", Child of: id: row-Hive 2 is visible... COMPLETED
-Assert that "^Unseal$", Child of: id: row-Hive 3 is visible... COMPLETED
-Tap on id: row-action-Hive 3... COMPLETED
 Assert that "^Done$", Child of: id: row-Hive 3 is visible... COMPLETED
-Take screenshot s2-03-all-done... COMPLETED
+Take screenshot s2-02-all-done... COMPLETED

@@ -24,6 +24,8 @@ NAMES = {
     "s8": "Process death mid-run",
     "s9": "Editing while runs are active",
     "s10": "Hive management: cap, drag order, New session",
+    "s11": "App open: alarm screen in app, Home, lock, snackbar",
+    "s2x10": "Scenario 2 repeated at 10x",
 }
 
 
@@ -105,7 +107,7 @@ def scenario_checks(s, r):
         seals = [first(ev, hive=h, step="Seal hive") for h in ("Hive 1", "Hive 2", "Hive 3")]
         check(all(seals) and l2 is not None and max(seals) < l2, "hives did not all seal before the first handoff", p)
         check(len(steps(ev, kind="DONE")) == 3, "not all three hives finished", p)
-    if s == "s2":
+    if s in ("s2", "s2x10"):
         ks1 = first(ev, hive="Hive 1", step="Keep sealed")
         l2 = first(ev, hive="Hive 2", step="Load dose")
         un1 = first(ev, hive="Hive 1", step="Unseal")
@@ -175,6 +177,21 @@ def scenario_checks(s, r):
             check(any(k == "EVENT" and rest.endswith("Load") for k, t, rest in after), "state was not reloaded after the kill", p)
             check(any(k == "RING" for k, t, rest in after), "no alarm after the kill", p)
         check(first(ev, hive="Hive 1", kind="DONE") is not None, "run did not finish after restore", p)
+    if s == "s6":
+        shown = [kv(rest, "hive") for k, t, rest in ev if k == "ALARMSCREEN"]
+        check(shown[-2:] == ["Hive 3", "Hive 2"], f"the two close alarms were not shown in turn (alarm screen showed {shown[-4:]})", p)
+    if s == "s11":
+        m = r["maestro"]
+        checks = re.findall(r"CHECK (\S+) (PASS|FAIL)", m)
+        check(len(checks) >= 12, f"only {len(checks)} of 12 checks ran", p)
+        for name, res in checks:
+            check(res == "PASS", f"{name} failed", p)
+        for e in ("AddMinute", "Snooze", "Done"):
+            check(bool(events_named(ev, e)), f"no {e} from the alarm screen", p)
+        sn = events_named(ev, "Snooze")
+        if sn:
+            check(any(t > sn[0][0] and "TimerFired(hiveId=1)" in rest for t, rest in events_named(ev, "TimerFired")), "snoozed alarm did not ring again", p)
+        check(len([1 for k, t, rest in ev if k == "ALARMSCREEN"]) >= 3, "alarm screen was not shown each time", p)
     if s == "s9":
         check(len(events_named(ev, "TemplateChanged")) >= 2, "edits were not applied", p)
     return p
@@ -221,8 +238,8 @@ def fmt(t, t0, scale):
 
 
 def main():
-    order = ["s1", "s2", "s3", "s4", "s5", "s6", "s7", "s8", "s9", "s10", "s1x10"]
-    out = ["# End-to-end results", "", "Emulator: beetimer-api36 (Android 16, API 36), debug build, time scale 60x (s1x10 at 10x).", ""]
+    order = ["s1", "s2", "s3", "s4", "s5", "s6", "s7", "s8", "s9", "s10", "s11", "s1x10", "s2x10"]
+    out = ["# End-to-end results", "", "Emulator: beetimer-api36 (Android 16, API 36), debug build, time scale 60x (s3, s1x10 and s2x10 at 10x).", ""]
     out += ["| Scenario | Result | Invariant errors | Maestro | Time | Problems |", "|---|---|---|---|---|---|"]
     total_inv = 0
     results = {}
@@ -247,7 +264,7 @@ def main():
             f"{'ok' if r['exit'] == '0' else 'failed'} | {r['seconds']} s | {'; '.join(problems) or '-'} |"
         )
     out += ["", f"Invariant errors across all runs: **{total_inv}**.", ""]
-    for s in ("s1", "s1x10", "s2"):
+    for s in ("s1", "s1x10", "s2", "s2x10"):
         if s not in results:
             continue
         pva = predicted_vs_actual(s, results[s][0])

@@ -24,7 +24,7 @@ class Notifier(private val context: Context) {
      * Title is the hive name ("Herb"), body "Heat and vaporize finished. Next: Cool in hive"
      * (BigText), actions Done and +1 min. Snooze is on the alarm screen.
      */
-    fun ringNotification(hiveId: Long, title: String, text: String): Notification {
+    fun ringNotification(hiveId: Long, title: String, text: String, quiet: Boolean = false): Notification {
         Channels.ensure(context)
         val fullScreen = PendingIntent.getActivity(
             context,
@@ -32,7 +32,9 @@ class Notifier(private val context: Context) {
             AlarmActivity.intent(context, hiveId),
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
         )
-        return Notification.Builder(context, Channels.ALARMS)
+        // Quiet: the app is on screen and opened the alarm screen itself; the low-importance
+        // channel keeps Android from adding a heads-up on top of it.
+        return Notification.Builder(context, if (quiet) Channels.STATUS else Channels.ALARMS)
             .setSmallIcon(R.drawable.ic_stat_timer)
             .setContentTitle(title)
             .setContentText(text)
@@ -41,7 +43,7 @@ class Notifier(private val context: Context) {
             .setVisibility(Notification.VISIBILITY_PUBLIC)
             .setOngoing(true)
             .setContentIntent(fullScreen)
-            .setFullScreenIntent(fullScreen, true)
+            .apply { if (!quiet) setFullScreenIntent(fullScreen, true) }
             .setForegroundServiceBehavior(Notification.FOREGROUND_SERVICE_IMMEDIATE)
             .addAction(action(hiveId, ActionReceiver.ACTION_DONE, R.string.action_done))
             .addAction(action(hiveId, ActionReceiver.ACTION_ADD_MINUTE, R.string.action_add_minute))

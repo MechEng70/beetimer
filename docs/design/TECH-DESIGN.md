@@ -179,11 +179,15 @@ UI preferences (theme, keep screen on, battery prompt already shown) live in Sha
 
 **Boot and time changes.** `BootReceiver` handles `BOOT_COMPLETED`, `TIME_SET`, `TIMEZONE_CHANGED`, and `MY_PACKAGE_REPLACED`, and calls `restore`.
 
-**Ringing**
-- Channel `alarms`: importance HIGH, alarm sound with `USAGE_ALARM` audio attributes, vibration, bypass DND not requested.
-- The notification uses `FLAG_INSISTENT` so the sound loops until acknowledged, plus a full-screen intent to `AlarmActivity`.
-- The 2-minute cap: a re-ring alarm at +2 min reposts the notification silently, and another at +4 min rings again. This repeats until acknowledged.
-- Notification actions (Done, +1 min, Snooze 30 s) go through `ActionReceiver` to the engine.
+**Ringing (revised after the T1b phone test, OnePlus CPH2583, Android 16)**
+- Findings: (1) OxygenOS replaced the channel's vibration and ignored `FLAG_INSISTENT`, so the phone buzzed once (`OplusVibrationEffectSegment ... repeat=-1`). (2) The system default alarm tone is unset on this phone (`settings get system alarm_alert` is null), so a player set to "default alarm" never started.
+- So the notification no longer makes the noise. `RingService` (a foreground service that runs only while something is ringing) plays the sound and vibration itself through `AlarmSound`.
+- Service type `systemExempted`: Android allows it for apps that hold `USE_EXACT_ALARM` and keep an alarm going in the background. It is started from the exact-alarm receiver, which is exempt from background-start limits. The spec allows a service when testing shows alarms are unreliable without one; this test showed that.
+- Sound: the phone's alarm tone if one is set and plays, otherwise the bundled `res/raw/alarm_beep.wav` (two 880 Hz beeps, looped). It plays at the **ringer** volume (`USAGE_NOTIFICATION_RINGTONE`), Jason's choice (2026-11-21) since he keeps alarm volume low. Trade-off: silent mode and Do Not Disturb mute the sound. Changing one constant in `AlarmSound` switches it to the alarm volume.
+- Vibration: a repeating waveform with alarm usage, so it keeps going on silent and vibrate.
+- Channel `alarms_v2`: importance HIGH, silent, full-screen intent to `AlarmActivity`. `alarms_v1` (channel sound) is deleted at startup.
+- 2-minute cap: the service stops after 2 minutes. T6 schedules the re-ring 2 minutes later, repeating until acknowledged.
+- Notification actions (Done, +1 min, Snooze 30 s) go to the engine; each one stops the service.
 
 **AlarmActivity**
 - `setShowWhenLocked(true)`, `setTurnScreenOn(true)`. Dark amber in both themes.
@@ -192,7 +196,7 @@ UI preferences (theme, keep screen on, battery prompt already shown) live in Sha
 
 **Full-screen intent.** Manifest declares `USE_FULL_SCREEN_INTENT`. Check `NotificationManager.canUseFullScreenIntent()`. If it returns false, show one explanation screen with a button to `ACTION_MANAGE_APP_USE_FULL_SCREEN_INTENT`.
 
-**Ongoing notification** (channel `status`, low importance, silent). It is posted while any run is active and has one line per active hive, e.g. "Emory: Keep sealed, ends 14:32" or "Herb: Load dose, waiting for Done". The header countdown is a chronometer to the soonest end. No foreground service; `setAlarmClock` is reliable in Doze. If on-device testing shows otherwise, add a `specialUse` or `shortService` service and justify it then.
+**Ongoing notification** (channel `status`, low importance, silent). It is posted while any run is active and has one line per active hive, e.g. "Emory: Keep sealed, ends 14:32" or "Herb: Load dose, waiting for Done". The header countdown is a chronometer to the soonest end. The only foreground service is `RingService` (above), and it runs only while ringing.
 
 **First run**
 - Request `POST_NOTIFICATIONS`.

@@ -13,7 +13,7 @@ Status: [ ] todo, [~] in progress, [x] done.
 - Empty MainActivity showing "Bee Timer". `scripts/check.sh` (tests, lint).
 - Done when: `./gradlew :scheduler:test assembleDebug` succeeds.
 
-## T1b [~] Alarm spike (STOP after): built, waiting for the phone test
+## T1b [x] Alarm spike (STOP after): passed on the phone after the RingService fix
 - Minimal APK: one button schedules an exact `setAlarmClock` alarm 60 s out. When it fires, post a high-importance alarm notification with a full-screen intent to a lock-screen activity, with insistent alarm sound and a Stop button.
 - Permissions: `POST_NOTIFICATIONS` request, `USE_EXACT_ALARM`, `USE_FULL_SCREEN_INTENT` check with a settings link.
 - STOP: you test it on the locked phone. This code is reused by T5 and T6.

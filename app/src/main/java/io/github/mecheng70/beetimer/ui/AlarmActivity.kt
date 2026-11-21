@@ -26,7 +26,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import io.github.mecheng70.beetimer.R
-import io.github.mecheng70.beetimer.alarms.RingingNotifier
+import io.github.mecheng70.beetimer.alarms.RingService
 import io.github.mecheng70.beetimer.ui.theme.AlarmColors
 import io.github.mecheng70.beetimer.ui.theme.BeeTimerTheme
 import io.github.mecheng70.beetimer.ui.theme.Dimens
@@ -47,13 +47,12 @@ class AlarmActivity : ComponentActivity() {
     }
 
     private fun render() {
-        val hiveId = intent.getLongExtra(EXTRA_HIVE_ID, 0L)
         val title = intent.getStringExtra(EXTRA_TITLE).orEmpty()
         val text = intent.getStringExtra(EXTRA_TEXT).orEmpty()
         setContent {
             BeeTimerTheme {
                 AlarmScreen(title = title, text = text, onStop = {
-                    RingingNotifier.stop(this, hiveId)
+                    RingService.stop(this)
                     finish()
                 })
             }

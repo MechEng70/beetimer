@@ -9,6 +9,8 @@
     <uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT" />
     <uses-permission android:name="android.permission.VIBRATE" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SYSTEM_EXEMPTED" />
 
     <application
         android:allowBackup="false"
@@ -40,5 +42,12 @@
         <receiver
             android:name=".alarms.AlarmReceiver"
             android:exported="false" />
+
+        <!-- Runs only while an alarm rings. systemExempted: allowed for USE_EXACT_ALARM apps
+             that keep an alarm going in the background. -->
+        <service
+            android:name=".alarms.RingService"
+            android:exported="false"
+            android:foregroundServiceType="systemExempted" />
     </application>
 </manifest>

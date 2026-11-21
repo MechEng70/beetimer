@@ -18,12 +18,12 @@ Status: [ ] todo, [~] in progress, [x] done.
 - Permissions: `POST_NOTIFICATIONS` request, `USE_EXACT_ALARM`, `USE_FULL_SCREEN_INTENT` check with a settings link.
 - STOP: you test it on the locked phone. This code is reused by T5 and T6.
 
-## T2 [ ] Scheduler model, presets, validation
+## T2 [x] Scheduler model, presets, validation
 - `:scheduler` model classes (TECH-DESIGN section 4), `@Serializable`, stdlib only. `Template` add/delete/move step functions with tests.
 - Presets "OAV pan wand" and "OAV gun type" exactly as in the spec. `TemplateValidator` (section 6).
 - Tests: presets validate; empty template rejected; duration bounds; split device block rejected; zero device steps allowed.
 
-## T3 [ ] Scheduler reducer and restore (STOP after)
+## T3 [x] Scheduler reducer and restore (STOP after): 46 tests green
 - `Scheduler` interface and `DefaultScheduler.reduce` / `restore` implementing TECH-DESIGN section 5 rules 1 to 12.
 - Write the tests first: every required test in TECH-DESIGN section 11, plus AddMinute, Snooze, Skip, and the TIMED-to-TIMED acknowledge path.
 - Done when: `./gradlew :scheduler:test` is all green. STOP: summary of coverage for review.

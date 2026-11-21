@@ -118,9 +118,9 @@ Hive labels are free text and are what every message shows ("Device free: Herb i
 
 `Scheduler.reduce(state, event, now): Result(newState, effects)`. No clocks, no I/O. `now` is always passed in.
 
-Events: `Start(hive)`, `Done(hive)`, `TimerFired(hive, stepIndex)`, `Acknowledge(hive)`, `AddMinute(hive)`, `Snooze(hive)`, `Skip(hive)`, `Cancel(hive)`, `QueueSkipHead`, `QueueRemoveHead`, `NewSession(hives)`, `TemplateChanged(template)`.
+Events: `Start(hive)`, `Done(hive)`, `TimerFired(hive)`, `AddMinute(hive)`, `Snooze(hive)`, `Skip(hive)`, `Cancel(hive)`, `QueueSkipHead`, `QueueRemoveHead`, `NewSession`, `TemplateChanged(template)`. Done covers acknowledging too: on a finished timed step it starts the next step, on a manual step it completes it, otherwise it just silences the alarm.
 
-Effects: `ScheduleAlarm(hive, atMs)`, `CancelAlarm(hive)`, `Ring(hive, finishedStep, nextStep, overdue)`, `StopRing(hive)`, `NotifyDeviceFree(hive)`. After every reduce, the engine also refreshes the ongoing notification and the UI.
+Effects: `ScheduleAlarm(hive, atMs)`, `CancelAlarm(hive)`, `Ring(hive, finishedStepIndex, overdue)`, `StopRing(hive)`, `NotifyDeviceFree(hive)`. Alarm effects are derived: each run needs at most one alarm (`ringing.nextRingAt` if ringing, else `stepEndsAt` if RUNNING), and the reducer emits Schedule or Cancel when that changes. A ringing run re-rings every 4 minutes (2 min ringing plus 2 min quiet) until acknowledged; Snooze moves the next ring to now + 30 s. After every reduce, the engine also refreshes the ongoing notification and the UI.
 
 There is one pending alarm per hive (request code = hive id). Scheduling a new one replaces the old one.
 

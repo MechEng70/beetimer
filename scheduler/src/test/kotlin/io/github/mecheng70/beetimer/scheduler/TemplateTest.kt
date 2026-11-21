@@ -11,14 +11,27 @@ class TemplateTest {
         Presets.all.forEach { assertTrue(it.name, TemplateValidator.isValid(it)) }
         assertEquals("OAV pan wand", Presets.panWand.name)
         assertEquals("OAV gun type", Presets.gunType.name)
-        assertEquals(1..4, Presets.panWand.deviceBlock)
+        assertEquals(1..5, Presets.panWand.deviceBlock)
         assertEquals(1..3, Presets.gunType.deviceBlock)
     }
 
     @Test
     fun presetTimesMatchSpec() {
+        assertEquals(
+            listOf("Seal hive", "Load dose", "Heat and vaporize", "Cool in hive", "Keep sealed", "Remove wand and unseal"),
+            Presets.panWand.steps.map { it.name },
+        )
+        assertEquals(listOf(false, true, true, true, true, true), Presets.panWand.steps.map { it.deviceBound })
         assertEquals(listOf(150, 120, 600), Presets.panWand.steps.mapNotNull { it.durationSeconds })
+        assertEquals("Wand stays in. Keep hive sealed.", Presets.panWand.steps[4].instruction)
         assertEquals(listOf(20, 600), Presets.gunType.steps.mapNotNull { it.durationSeconds })
+        assertEquals("gun type hold stays passive", false, Presets.gunType.steps.first { it.name == "Keep sealed" }.deviceBound)
+    }
+
+    @Test
+    fun togglingDeviceOnAMiddleStepSplitsTheBlock() {
+        val t = Presets.panWand.updateStep(3, Presets.panWand.steps[3].copy(deviceBound = false))
+        assertEquals(listOf(ValidationIssue(TemplateError.SPLIT_DEVICE_BLOCK, 3)), TemplateValidator.validate(t))
     }
 
     @Test
@@ -74,7 +87,7 @@ class TemplateTest {
 
     @Test
     fun movingStepsCanSplitTheDeviceBlock() {
-        val moved = Presets.panWand.moveStep(5, 2) // Keep sealed into the middle of the device block
+        val moved = Presets.panWand.moveStep(0, 3) // Seal hive into the middle of the device block
         assertTrue(TemplateValidator.validate(moved).any { it.error == TemplateError.SPLIT_DEVICE_BLOCK })
     }
 }

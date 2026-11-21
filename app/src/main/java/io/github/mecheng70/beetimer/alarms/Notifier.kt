@@ -19,7 +19,11 @@ class Notifier(private val context: Context) {
     private val nm = context.getSystemService(NotificationManager::class.java)
     private val timeFormat = DateFormat.getTimeInstance(DateFormat.SHORT)
 
-    /** Loud alarm notification for one hive: full-screen intent plus Done, +1 min, Snooze. */
+    /**
+     * Alarm notification for one hive: full-screen intent when locked, heads-up when unlocked.
+     * Title "Herb: cool in hive finished", body "Next: remove wand and unseal" (BigText, so
+     * nothing truncates), actions Done and +1 min. Snooze is on the alarm screen.
+     */
     fun ringNotification(hiveId: Long, title: String, text: String): Notification {
         Channels.ensure(context)
         val fullScreen = PendingIntent.getActivity(
@@ -32,7 +36,7 @@ class Notifier(private val context: Context) {
             .setSmallIcon(R.drawable.ic_stat_timer)
             .setContentTitle(title)
             .setContentText(text)
-            .setStyle(Notification.BigTextStyle().bigText(text))
+            .setStyle(Notification.BigTextStyle().setBigContentTitle(title).bigText(text))
             .setCategory(Notification.CATEGORY_ALARM)
             .setVisibility(Notification.VISIBILITY_PUBLIC)
             .setOngoing(true)
@@ -41,7 +45,6 @@ class Notifier(private val context: Context) {
             .setForegroundServiceBehavior(Notification.FOREGROUND_SERVICE_IMMEDIATE)
             .addAction(action(hiveId, ActionReceiver.ACTION_DONE, R.string.action_done))
             .addAction(action(hiveId, ActionReceiver.ACTION_ADD_MINUTE, R.string.action_add_minute))
-            .addAction(action(hiveId, ActionReceiver.ACTION_SNOOZE, R.string.action_snooze))
             .build()
     }
 

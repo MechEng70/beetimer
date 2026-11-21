@@ -1,5 +1,18 @@
 package io.github.mecheng70.beetimer.ui
 
+import android.content.Intent
+import android.media.AudioManager
+import android.provider.Settings
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.lifecycle.compose.LifecycleResumeEffect
+import io.github.mecheng70.beetimer.scheduler.Forecast
+import io.github.mecheng70.beetimer.scheduler.Planner
+import io.github.mecheng70.beetimer.ui.theme.AppIcons
+import java.util.Date
+import kotlinx.coroutines.launch
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -43,22 +56,30 @@ import io.github.mecheng70.beetimer.ui.theme.Dimens
 
 /** Placeholder swapped for the bold countdown in the status line. */
 private const val COUNTDOWN_MARK = "\u0001"
+private const val HALF = 0.5f
 
 @Composable
 fun MainScreen(onSettings: () -> Unit) {
-    val app = LocalContext.current.app
+    val context = LocalContext.current
+    val app = context.app
     val state by app.engine.state.collectAsStateWithLifecycle()
     val hives by app.repo.hives.collectAsStateWithLifecycle(emptyList())
     val now by rememberNow()
     var tab by rememberSaveable { mutableIntStateOf(0) }
+    val planner = remember { Planner() }
     val s = state
 
     Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
-        ScreenHeader(stringResource(R.string.app_name), action = stringResource(R.string.action_settings), onAction = onSettings)
+        AppTopBar(stringResource(R.string.app_name)) {
+            IconAction(AppIcons.Settings, stringResource(R.string.action_settings), onSettings)
+        }
+        if (s == null) return@Column
+        val order = hives.map { it.id }
+        val anyActive = s.runs.values.any { it.isActive }
+        if (anyActive) VolumeBanner()
         AppCard(Modifier.fillMaxWidth().padding(horizontal = Dimens.PageMargin).padding(bottom = Dimens.PageMargin)) {
-            if (s == null) return@AppCard
             val labels = hives.associate { it.id to it.label }
-            DeviceStatusBar(s, labels, now)
+            DeviceStatusBar(s, labels, now, planner.nextUp(s, order))
             if (hives.isEmpty()) {
                 VSpace(Dimens.SectionGap)
                 Text(stringResource(R.string.no_hives), style = AppType.body, color = BeeTheme.colors.inkMuted)
@@ -72,7 +93,10 @@ fun MainScreen(onSettings: () -> Unit) {
                 modifier = Modifier.padding(vertical = Dimens.RowPadding),
             )
             if (selected == 0) {
-                AllTab(hives, s, now, onSelect = { tab = hives.indexOf(it) + 1 })
+                // Recomputed only when the state changes (taps, step ends, queue changes), never
+                // on clock ticks, so estimates hold still; passed times show "Now".
+                val forecast = remember(s) { planner.forecast(s, System.currentTimeMillis()) }
+                AllTab(hives, s, forecast, now, onSelect = { tab = hives.indexOf(it) + 1 })
             } else {
                 HiveTab(hives[selected - 1], s, now)
             }
@@ -80,26 +104,60 @@ fun MainScreen(onSettings: () -> Unit) {
     }
 }
 
-/** App name (or Back) on the left, one text action on the right, on the page background. */
+/** Shown while a run is active and the alarm stream is under half volume. */
 @Composable
-fun ScreenHeader(title: String, action: String? = null, onAction: () -> Unit = {}, onBack: (() -> Unit)? = null) {
+private fun VolumeBanner() {
+    val context = LocalContext.current
+    val audio = remember { context.getSystemService(AudioManager::class.java) }
+    var low by remember { mutableStateOf(false) }
+    LifecycleResumeEffect(Unit) {
+        val max = audio.getStreamMaxVolume(AudioManager.STREAM_ALARM).coerceAtLeast(1)
+        low = audio.getStreamVolume(AudioManager.STREAM_ALARM).toFloat() / max < HALF
+        onPauseOrDispose { }
+    }
+    if (!low) return
+    val (bg, fg) = toneColors(Tone.DEVICE)
     Row(
-        Modifier.fillMaxWidth().padding(horizontal = Dimens.PageMargin),
+        Modifier.fillMaxWidth().padding(horizontal = Dimens.PageMargin).padding(bottom = Dimens.Gap)
+            .background(bg, RoundedCornerShape(Dimens.SmallCorner))
+            .padding(horizontal = Dimens.StatusPaddingH, vertical = Dimens.Gap),
         verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(Dimens.Gap),
     ) {
-        if (onBack != null) TextAction(stringResource(R.string.action_back), onBack)
-        Text(
-            title,
-            style = AppType.title,
-            color = BeeTheme.colors.ink,
-            modifier = Modifier.weight(1f).padding(horizontal = if (onBack == null) Dimens.Gap else 0.dp),
+        Text(stringResource(R.string.volume_low), style = AppType.label, color = fg, modifier = Modifier.weight(1f))
+        AppButton(stringResource(R.string.volume_open), {
+            runCatching { context.startActivity(Intent(Settings.ACTION_SOUND_SETTINGS)) }
+            // Re-checked on resume.
+        })
+    }
+}
+
+/** "1:05 PM" for the footer; "12:14" (locale 12 or 24 hour, no AM/PM) for lists. */
+@Composable
+private fun rememberClock(): Pair<(Long) -> String, (Long) -> String> {
+    val context = LocalContext.current
+    return remember {
+        val full = android.text.format.DateFormat.getTimeFormat(context)
+        val skeleton = if (android.text.format.DateFormat.is24HourFormat(context)) "Hm" else "hm"
+        val compact = java.text.SimpleDateFormat(
+            android.text.format.DateFormat.getBestDateTimePattern(java.util.Locale.getDefault(), skeleton).replace("a", "").trim(),
+            java.util.Locale.getDefault(),
         )
-        if (action != null) TextAction(action, onAction)
+        Pair({ ms: Long -> full.format(Date(ms)) }, { ms: Long -> compact.format(Date(ms)) })
     }
 }
 
 @Composable
-private fun DeviceStatusBar(s: SchedulerState, labels: Map<Long, String>, now: Long) {
+private fun estimate(text: String, estimated: Boolean): String =
+    if (estimated) stringResource(R.string.estimate_prefix) + text else text
+
+/** A projected time: "~12:20" (or "12:20" when firm), or [nowText] once it has passed. */
+@Composable
+private fun projected(at: Long, estimated: Boolean, now: Long, clock: (Long) -> String, nowText: String): String =
+    if (at <= now) nowText else estimate(clock(at), estimated)
+
+@Composable
+private fun DeviceStatusBar(s: SchedulerState, labels: Map<Long, String>, now: Long, nextUp: Long?) {
     val app = LocalContext.current.app
     val holder = s.lockHolder?.let { s.runs[it] }
     val head = s.queue.firstOrNull()
@@ -112,28 +170,23 @@ private fun DeviceStatusBar(s: SchedulerState, labels: Map<Long, String>, now: L
         val ends = holder?.stepEndsAt
         val line = when {
             holder != null && holder.state == RunState.RUNNING && ends != null -> {
-                val template = stringResource(
-                    R.string.device_busy_timed,
-                    labels[holder.hiveId].orEmpty(),
-                    holder.currentStep?.name.orEmpty().midSentence(),
-                    COUNTDOWN_MARK,
-                )
+                val template = stringResource(R.string.device_busy_timed, labels[holder.hiveId].orEmpty(), COUNTDOWN_MARK)
                 buildAnnotatedString {
                     append(template.substringBefore(COUNTDOWN_MARK))
                     withStyle(SpanStyle(fontWeight = FontWeight.Bold)) { append(formatCountdown(ends - now)) }
                     append(template.substringAfter(COUNTDOWN_MARK))
                 }
             }
-            holder != null -> buildAnnotatedString {
-                append(stringResource(R.string.device_busy, labels[holder.hiveId].orEmpty(), holder.currentStep?.name.orEmpty().midSentence()))
-            }
-            head != null -> buildAnnotatedString { append(stringResource(R.string.device_free_next, labels[head].orEmpty())) }
-            else -> buildAnnotatedString { append(stringResource(R.string.device_free)) }
+            holder != null -> AnnotatedString(
+                stringResource(R.string.device_busy, labels[holder.hiveId].orEmpty(), holder.currentStep?.name.orEmpty().midSentence()),
+            )
+            head != null -> AnnotatedString(stringResource(R.string.device_free_next, labels[head].orEmpty()))
+            else -> AnnotatedString(stringResource(R.string.device_free))
         }
-        Text(line, style = AppType.status, color = fg)
-        val waiting = if (holder != null) s.queue else s.queue.drop(1)
-        if (waiting.isNotEmpty()) {
-            Text(stringResource(R.string.device_next, waiting.joinToString(", ") { labels[it].orEmpty() }), style = AppType.statusSub, color = fg)
+        Text(line, style = AppType.status, color = fg, maxLines = 1, overflow = TextOverflow.Ellipsis)
+        val showNext = nextUp != null && nextUp != holder?.hiveId && !(holder == null && head != null)
+        if (showNext) {
+            Text(stringResource(R.string.device_next, labels[nextUp].orEmpty()), style = AppType.statusSub, color = fg, maxLines = 1)
         }
         if (holder == null && head != null) {
             VSpace(Dimens.Gap)
@@ -147,24 +200,69 @@ private fun DeviceStatusBar(s: SchedulerState, labels: Map<Long, String>, now: L
 }
 
 @Composable
-private fun AllTab(hives: List<Hive>, s: SchedulerState, now: Long, onSelect: (Hive) -> Unit) {
+private fun AllTab(hives: List<Hive>, s: SchedulerState, forecast: Forecast, now: Long, onSelect: (Hive) -> Unit) {
     val app = LocalContext.current.app
     val c = BeeTheme.colors
-    Column(Modifier.fillMaxWidth()) {
-        hives.forEachIndexed { i, hive ->
-            val run = s.runs[hive.id]
+    val (fullClock, clock) = rememberClock()
+    val labels = hives.associate { it.id to it.label }
+
+    val upcoming = forecast.comingUp()
+    if (upcoming.isNotEmpty()) {
+        Text(stringResource(R.string.coming_up), style = AppType.section, color = c.ink, modifier = Modifier.padding(bottom = Dimens.ChipPaddingV))
+        upcoming.forEach { p ->
+            Row(Modifier.fillMaxWidth().padding(vertical = Dimens.ChipPaddingV), horizontalArrangement = Arrangement.spacedBy(Dimens.Gap)) {
+                Text(projected(p.at, p.estimated, now, clock, stringResource(R.string.time_now)), style = AppType.comingTime, color = c.ink, modifier = Modifier.width(Dimens.ComingTimeWidth))
+                Text(labels[p.hiveId].orEmpty(), style = AppType.section, color = c.ink, maxLines = 1)
+                Text(p.stepName, style = AppType.body, color = c.inkMuted, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f))
+            }
+        }
+        VSpace(Dimens.Gap)
+        RowDivider()
+    }
+
+    ReorderableColumn(
+        items = hives,
+        key = { it.id },
+        onMove = { moved -> app.scope.launch { app.repo.reorderHives(moved.map { it.id }) } },
+    ) { hive, handle, _ ->
+        val run = s.runs[hive.id]
+        val plan = forecast.hives[hive.id]
+        Column {
             Row(
-                Modifier.fillMaxWidth().clickable { onSelect(hive) }.padding(vertical = Dimens.RowPadding),
+                Modifier.fillMaxWidth().clickable { onSelect(hive) }.padding(vertical = Dimens.Gap),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
+                DragHandle(handle, stringResource(R.string.action_reorder, hive.label))
                 Column(Modifier.weight(1f)) {
                     Text(hive.label, style = AppType.hiveName, color = c.ink)
-                    Text(subtitle(run), style = AppType.body, color = c.inkMuted)
+                    Text(subtitle(run), style = AppType.body, color = c.inkMuted, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    val second = when {
+                        run?.state == RunState.WAITING_FOR_DEVICE -> plan?.deviceStart?.let {
+                            if (it.at <= now) stringResource(R.string.hive_starts_now)
+                            else estimate(stringResource(R.string.hive_starts_at, clock(it.at)), it.estimated)
+                        }
+                        run != null && run.isActive -> plan?.next?.let {
+                            stringResource(R.string.hive_next_at, it.stepName, projected(it.at, it.estimated, now, clock, stringResource(R.string.time_now_inline)))
+                        }
+                        else -> null
+                    }
+                    if (second != null) Text(second, style = AppType.label, color = c.inkMuted, maxLines = 1, overflow = TextOverflow.Ellipsis)
                 }
                 RowAction(hive.id, run, s, now, onEvent = { app.send(it) })
             }
-            if (i < hives.lastIndex) RowDivider()
+            if (hive != hives.last()) RowDivider()
         }
+    }
+
+    forecast.allDoneAt?.let {
+        VSpace(Dimens.Gap)
+        RowDivider()
+        Text(
+            stringResource(R.string.all_done_at, projected(it, forecast.allDoneEstimated, now, fullClock, stringResource(R.string.time_now_inline))),
+            style = AppType.label,
+            color = c.inkMuted,
+            modifier = Modifier.padding(top = Dimens.RowPadding),
+        )
     }
 }
 
@@ -195,7 +293,7 @@ private fun RowAction(hiveId: Long, run: HiveRun?, s: SchedulerState, now: Long,
         run.state == RunState.WAITING_FOR_DEVICE && headReady ->
             AppButton(stringResource(R.string.action_start), { onEvent(Event.Start(hiveId)) })
         run.state == RunState.WAITING_FOR_DEVICE -> Chip(stringResource(R.string.state_queued), Tone.IDLE)
-        run.state == RunState.RUNNING && ends != null -> Chip(formatCountdown(ends - now), toneOf(run))
+        run.state == RunState.RUNNING && ends != null -> Chip(formatCountdown(ends - now), toneOf(run), kind = ChipKind.TIME)
         run.state == RunState.DONE -> Chip(stringResource(R.string.state_done), Tone.IDLE)
     }
 }

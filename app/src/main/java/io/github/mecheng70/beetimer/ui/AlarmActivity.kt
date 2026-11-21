@@ -21,7 +21,9 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Text
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -74,24 +76,36 @@ class AlarmActivity : ComponentActivity() {
         val labels = hives.associate { it.id to it.label }
         val id = run.hiveId
 
+        val info = AlarmText.info(context, run, s, labels)
         Column(
             Modifier.fillMaxSize().background(AlarmColors.Background).safeDrawingPadding().padding(Dimens.CardPadding),
-            verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            Text(labels[id].orEmpty(), color = AlarmColors.Text, style = AppType.alarmName, textAlign = TextAlign.Center)
-            Text(AlarmText.finished(context, run), color = AlarmColors.Accent, style = AppType.alarmFinished, textAlign = TextAlign.Center)
-            Text(
-                AlarmText.next(context, run),
-                color = AlarmColors.Text,
-                style = AppType.alarmNext,
-                textAlign = TextAlign.Center,
-                modifier = Modifier.padding(top = Dimens.SectionGap),
-            )
-            AlarmText.deviceHint(context, run, s, labels)?.let {
-                Text(it, color = AlarmColors.Accent, style = AppType.alarmHint, textAlign = TextAlign.Center, modifier = Modifier.padding(top = Dimens.ChipPaddingH))
+            // Information fills the space above the buttons, spread evenly.
+            Column(
+                Modifier.weight(1f).fillMaxWidth(),
+                verticalArrangement = Arrangement.SpaceEvenly,
+                horizontalAlignment = Alignment.CenterHorizontally,
+            ) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text(labels[id].orEmpty(), color = AlarmColors.Text, style = AppType.alarmName, textAlign = TextAlign.Center, maxLines = 2)
+                    Text(info.finished, color = AlarmColors.Accent, style = AppType.alarmFinished, textAlign = TextAlign.Center)
+                }
+                HorizontalDivider(thickness = Dimens.Border, color = AlarmColors.Border)
+                Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(Dimens.Gap)) {
+                    Text(stringResource(R.string.alarm_next_label), color = AlarmColors.Accent, style = AppType.alarmLabel)
+                    Text(
+                        info.nextAction,
+                        color = AlarmColors.Text,
+                        style = AppType.alarmNext,
+                        textAlign = TextAlign.Center,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                    info.timerLine?.let { Text(it, color = AlarmColors.Text, style = AppType.alarmTimer, textAlign = TextAlign.Center) }
+                    info.deviceNote?.let { Text(it, color = AlarmColors.Accent, style = AppType.alarmNote, textAlign = TextAlign.Center) }
+                }
             }
-            Spacer(Modifier.height(Dimens.CardPadding * 2))
             Button(
                 onClick = { app.send(Event.Done(id)) },
                 modifier = Modifier.fillMaxWidth().heightIn(min = Dimens.AlarmButton),

@@ -28,6 +28,10 @@ android {
         unitTests.isIncludeAndroidResources = true
     }
 
+    // Exported Room schemas feed MigrationTestHelper. Robolectric reads the variant's merged
+    // assets, not test assets, so they go in debug assets (a few KB; release unaffected).
+    sourceSets.getByName("debug").assets.directories.add("$projectDir/schemas")
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_21
         targetCompatibility = JavaVersion.VERSION_21
@@ -62,4 +66,5 @@ dependencies {
     testImplementation(libs.junit)
     testImplementation(libs.robolectric)
     testImplementation(libs.androidx.test.core)
+    testImplementation(libs.room.testing)
 }

@@ -18,7 +18,7 @@ import kotlinx.coroutines.sync.withLock
  */
 class SchedulerEngine(
     private val repo: Repository,
-    private val executor: EffectExecutor,
+    private val executor: EffectRunner,
     private val scheduler: Scheduler = DefaultScheduler(),
     private val clock: () -> Long = System::currentTimeMillis,
 ) {
@@ -49,7 +49,10 @@ class SchedulerEngine(
 
     private suspend fun loadLocked(): SchedulerState {
         _state.value?.let { return it }
-        val saved = repo.loadState() ?: SchedulerState(template = repo.activeTemplate())
+        // The templates table is the source of truth for the next Start (a migration may have
+        // reseeded a preset); active runs keep their own snapshot.
+        val active = repo.activeTemplate()
+        val saved = repo.loadState()?.copy(template = active) ?: SchedulerState(template = active)
         val t = scheduler.restore(saved, clock())
         commit(t)
         return t.state

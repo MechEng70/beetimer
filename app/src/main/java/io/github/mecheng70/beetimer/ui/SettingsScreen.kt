@@ -17,13 +17,13 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -33,7 +33,15 @@ import io.github.mecheng70.beetimer.scheduler.Hive
 import io.github.mecheng70.beetimer.scheduler.Presets
 import io.github.mecheng70.beetimer.scheduler.StepKind
 import io.github.mecheng70.beetimer.scheduler.Template
+import io.github.mecheng70.beetimer.scheduler.TemplateError
 import io.github.mecheng70.beetimer.scheduler.TemplateValidator
+import io.github.mecheng70.beetimer.data.Repository
+import io.github.mecheng70.beetimer.ui.theme.AppIcons
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import io.github.mecheng70.beetimer.ui.theme.AppType
 import io.github.mecheng70.beetimer.ui.theme.BeeTheme
 import io.github.mecheng70.beetimer.ui.theme.Dimens
@@ -43,7 +51,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun SettingsScreen(onBack: () -> Unit, onAlerts: () -> Unit) {
     Column(Modifier.fillMaxSize()) {
-        ScreenHeader(stringResource(R.string.settings_title), onBack = onBack)
+        AppTopBar(stringResource(R.string.settings_title), onBack = onBack, backDescription = stringResource(R.string.action_back))
         Column(
             Modifier.fillMaxSize().verticalScroll(rememberScrollState())
                 .padding(horizontal = Dimens.PageMargin).padding(bottom = Dimens.PageMargin),
@@ -69,17 +77,22 @@ private fun SectionTitle(text: String) {
     Text(text, style = AppType.section, color = BeeTheme.colors.ink, modifier = Modifier.padding(bottom = Dimens.Gap))
 }
 
-/** Template editor (mockup 4). Alpha: preset toggle and TIMED durations only. */
+/**
+ * Template editor (mockup 4): preset toggle; per step, tap to edit name and duration, tap the
+ * chip to switch device and passive, arrows to reorder. Saved only while valid; a split
+ * device block shows inline and is not saved. Active runs keep their snapshot.
+ */
 @Composable
 private fun StepsCard() {
     val app = LocalContext.current.app
     val c = BeeTheme.colors
     val templates by app.repo.templates.collectAsStateWithLifecycle(emptyList())
     val active = templates.firstOrNull { it.isActive } ?: templates.firstOrNull() ?: return
+    var draft by remember(active.template) { mutableStateOf(active.template) }
     var editIndex by remember { mutableStateOf<Int?>(null) }
+    val issues = TemplateValidator.validate(draft)
 
-    fun save(t: Template, makeActive: Boolean = false) {
-        if (!TemplateValidator.isValid(t)) return
+    fun persist(t: Template, makeActive: Boolean = false) {
         app.scope.launch {
             app.repo.saveTemplate(t)
             if (makeActive) app.repo.setActiveTemplate(t.id)
@@ -87,65 +100,94 @@ private fun StepsCard() {
         }
     }
 
+    fun edit(t: Template) {
+        draft = t
+        if (TemplateValidator.isValid(t)) persist(t)
+    }
+
     AppCard(Modifier.fillMaxWidth()) {
         Row(horizontalArrangement = Arrangement.spacedBy(Dimens.Gap), modifier = Modifier.padding(bottom = Dimens.Gap)) {
             templates.sortedBy { st -> Presets.all.indexOfFirst { it.id == st.template.id } }.forEach { stored ->
                 AppButton(
                     text = presetLabel(stored.template.id, stored.template.name),
-                    onClick = { save(stored.template, makeActive = true) },
+                    onClick = { persist(stored.template, makeActive = true) },
                     modifier = Modifier.weight(1f),
                     selected = stored.template.id == active.template.id,
                 )
             }
         }
-        val steps = active.template.steps
+        val steps = draft.steps
         steps.forEachIndexed { i, step ->
-            Row(Modifier.fillMaxWidth().padding(vertical = Dimens.RowPadding), verticalAlignment = Alignment.CenterVertically) {
-                Column(Modifier.weight(1f)) {
+            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                Column(
+                    Modifier.weight(1f).clickable { editIndex = i }.padding(vertical = Dimens.RowPadding),
+                ) {
                     Text(step.name, style = AppType.body, color = c.ink)
                     Text(
-                        if (step.kind == StepKind.TIMED) stringResource(R.string.kind_timed, step.durationSeconds ?: 0)
+                        if (step.kind == StepKind.TIMED) stringResource(R.string.kind_timed, formatDuration(step.durationSeconds ?: 0))
                         else stringResource(R.string.kind_manual),
-                        style = AppType.chip,
+                        style = AppType.label,
                         color = c.inkMuted,
                     )
                 }
-                if (step.deviceBound) Chip(stringResource(R.string.pill_device), Tone.DEVICE)
-                else if (step.kind == StepKind.TIMED) Chip(stringResource(R.string.pill_passive), Tone.PASSIVE)
-                if (step.kind == StepKind.TIMED) TextAction(stringResource(R.string.action_edit), { editIndex = i })
+                val toggleDesc = stringResource(R.string.action_toggle_device, step.name)
+                Chip(
+                    text = stringResource(if (step.deviceBound) R.string.pill_device else R.string.pill_passive),
+                    tone = if (step.deviceBound) Tone.DEVICE else Tone.PASSIVE,
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(Dimens.SmallCorner))
+                        .clickable { edit(draft.updateStep(i, step.copy(deviceBound = !step.deviceBound))) }
+                        .semantics { contentDescription = toggleDesc },
+                )
+                IconAction(AppIcons.ArrowUp, stringResource(R.string.action_move_up, step.name), { edit(draft.moveStep(i, i - 1)) }, enabled = i > 0)
+                IconAction(AppIcons.ArrowDown, stringResource(R.string.action_move_down, step.name), { edit(draft.moveStep(i, i + 1)) }, enabled = i < steps.lastIndex)
             }
             if (i < steps.lastIndex) RowDivider()
         }
+        if (issues.any { it.error == TemplateError.SPLIT_DEVICE_BLOCK }) {
+            Row(Modifier.padding(top = Dimens.Gap), verticalAlignment = Alignment.CenterVertically) {
+                Text(stringResource(R.string.template_split_error), style = AppType.label, color = c.danger, modifier = Modifier.weight(1f))
+                TextAction(stringResource(R.string.action_undo), { draft = active.template })
+            }
+        }
         Presets.byId(active.template.id)?.let { preset ->
             VSpace(Dimens.Gap)
-            AppButton(stringResource(R.string.template_reset), { save(preset) }, Modifier.fillMaxWidth())
+            AppButton(stringResource(R.string.template_reset), { draft = preset; persist(preset) }, Modifier.fillMaxWidth())
         }
         VSpace(Dimens.RowPadding)
-        Text(stringResource(R.string.template_footer), style = AppType.chip, color = c.inkMuted)
+        Text(stringResource(R.string.template_footer), style = AppType.label, color = c.inkMuted)
     }
 
     editIndex?.let { i ->
-        val step = active.template.steps[i]
-        var text by remember(i, active.template.id) { mutableStateOf((step.durationSeconds ?: 0).toString()) }
-        val seconds = text.toIntOrNull()
-        val valid = seconds != null && seconds in TemplateValidator.MIN_DURATION_S..TemplateValidator.MAX_DURATION_S
+        val step = draft.steps.getOrNull(i) ?: return@let
+        var name by remember(i, draft) { mutableStateOf(step.name) }
+        var secondsText by remember(i, draft) { mutableStateOf((step.durationSeconds ?: 0).toString()) }
+        val timed = step.kind == StepKind.TIMED
+        val seconds = secondsText.toIntOrNull()
+        val durationOk = !timed || (seconds != null && seconds in TemplateValidator.MIN_DURATION_S..TemplateValidator.MAX_DURATION_S)
+        val valid = name.isNotBlank() && durationOk
         AlertDialog(
             onDismissRequest = { editIndex = null },
-            title = { Text(step.name, style = AppType.title) },
+            title = { Text(stringResource(R.string.step_edit_title), style = AppType.title) },
             text = {
-                OutlinedTextField(
-                    value = text,
-                    onValueChange = { v -> text = v.filter { it.isDigit() }.take(DIGITS) },
-                    label = { Text(stringResource(R.string.duration_seconds)) },
-                    singleLine = true,
-                    isError = !valid,
-                    supportingText = { if (!valid) Text(stringResource(R.string.duration_invalid)) },
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                )
+                Column(verticalArrangement = Arrangement.spacedBy(Dimens.Gap)) {
+                    OutlinedTextField(name, { name = it }, label = { Text(stringResource(R.string.step_name)) }, singleLine = true)
+                    if (timed) {
+                        OutlinedTextField(
+                            value = secondsText,
+                            onValueChange = { v -> secondsText = v.filter { it.isDigit() }.take(DIGITS) },
+                            label = { Text(stringResource(R.string.duration_seconds)) },
+                            singleLine = true,
+                            isError = !durationOk,
+                            supportingText = { if (!durationOk) Text(stringResource(R.string.duration_invalid)) },
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        )
+                    }
+                }
             },
             confirmButton = {
                 TextButton(enabled = valid, onClick = {
-                    save(active.template.withDuration(i, seconds!!))
+                    edit(draft.updateStep(i, step.copy(name = name.trim(), durationSeconds = if (timed) seconds else step.durationSeconds)))
                     editIndex = null
                 }) { Text(stringResource(R.string.action_save)) }
             },
@@ -162,39 +204,45 @@ private fun presetLabel(id: String, name: String): String = when (id) {
     else -> name
 }
 
+/** Hive list: drag handle, tap to rename, trash with confirm, "+ Add hive" up to [Repository.MAX_HIVES]. */
 @Composable
 private fun HivesCard() {
     val app = LocalContext.current.app
     val c = BeeTheme.colors
     val hives by app.repo.hives.collectAsStateWithLifecycle(emptyList())
-    var addCount by remember { mutableIntStateOf(1) }
-    var editing by remember { mutableStateOf<Hive?>(null) }
+    var editing by remember { mutableStateOf<Long?>(null) }
     var deleting by remember { mutableStateOf<Hive?>(null) }
 
     AppCard(Modifier.fillMaxWidth()) {
         SectionTitle(stringResource(R.string.settings_hives))
-        hives.forEachIndexed { i, hive ->
-            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                Column(Modifier.weight(1f).padding(vertical = Dimens.RowPadding)) {
-                    Text(hive.label, style = AppType.hiveName, color = c.ink)
-                    hive.note?.let { Text(it, style = AppType.label, color = c.inkMuted) }
+        ReorderableColumn(
+            items = hives,
+            key = { it.id },
+            onMove = { moved -> app.scope.launch { app.repo.reorderHives(moved.map { it.id }) } },
+        ) { hive, handle, _ ->
+            Column {
+                Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                    DragHandle(handle, stringResource(R.string.action_reorder, hive.label))
+                    Column(Modifier.weight(1f).clickable { editing = hive.id }.padding(vertical = Dimens.RowPadding)) {
+                        Text(hive.label, style = AppType.hiveName, color = c.ink)
+                        hive.note?.let { Text(it, style = AppType.label, color = c.inkMuted) }
+                    }
+                    IconAction(AppIcons.Delete, stringResource(R.string.action_delete_hive, hive.label), { deleting = hive }, tint = c.danger)
                 }
-                TextAction(stringResource(R.string.move_up), { app.scope.launch { app.repo.moveHive(hive.id, -1) } }, enabled = i > 0)
-                TextAction(stringResource(R.string.move_down), { app.scope.launch { app.repo.moveHive(hive.id, 1) } }, enabled = i < hives.lastIndex)
-                TextAction(stringResource(R.string.action_edit), { editing = hive })
-                TextAction(stringResource(R.string.action_delete), { deleting = hive }, color = c.danger)
+                if (hive != hives.last()) RowDivider()
             }
-            RowDivider()
         }
         VSpace(Dimens.Gap)
-        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Dimens.Gap)) {
-            AppButton(stringResource(R.string.count_minus), { addCount = (addCount - 1).coerceAtLeast(1) })
-            AppButton(stringResource(R.string.settings_add_hives, addCount), { app.scope.launch { app.repo.addHives(addCount) } })
-            AppButton(stringResource(R.string.count_plus), { addCount = (addCount + 1).coerceAtMost(MAX_ADD) })
+        if (hives.size < Repository.MAX_HIVES) {
+            AppButton(stringResource(R.string.hive_add), {
+                app.scope.launch { app.repo.addHive()?.let { editing = it } }
+            })
+        } else {
+            Text(pluralStringResource(R.plurals.hive_max, Repository.MAX_HIVES, Repository.MAX_HIVES), style = AppType.label, color = c.inkMuted)
         }
     }
 
-    editing?.let { hive ->
+    hives.firstOrNull { it.id == editing }?.let { hive ->
         var name by remember(hive.id) { mutableStateOf(hive.label) }
         var note by remember(hive.id) { mutableStateOf(hive.note.orEmpty()) }
         AlertDialog(
@@ -288,5 +336,4 @@ private fun SessionCard() {
     }
 }
 
-private const val MAX_ADD = 20
 private const val DIGITS = 5

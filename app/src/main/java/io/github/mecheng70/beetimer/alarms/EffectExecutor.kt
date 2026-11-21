@@ -4,13 +4,18 @@ import android.content.Context
 import io.github.mecheng70.beetimer.scheduler.Effect
 import io.github.mecheng70.beetimer.scheduler.SchedulerState
 
-/** Carries out scheduler effects on Android. The platform boundary (AlarmKit on iOS later). */
+/** Runs scheduler effects. The platform boundary (AlarmManager here, AlarmKit on iOS later). */
+fun interface EffectRunner {
+    fun execute(effects: List<Effect>, state: SchedulerState, labels: Map<Long, String>)
+}
+
+/** Carries out scheduler effects on Android. */
 class EffectExecutor(
     private val context: Context,
     private val alarms: AlarmScheduler,
     private val notifier: Notifier,
-) {
-    fun execute(effects: List<Effect>, state: SchedulerState, labels: Map<Long, String>) {
+) : EffectRunner {
+    override fun execute(effects: List<Effect>, state: SchedulerState, labels: Map<Long, String>) {
         for (effect in effects) {
             when (effect) {
                 is Effect.ScheduleAlarm ->
@@ -23,7 +28,13 @@ class EffectExecutor(
                 is Effect.Ring -> {
                     val run = state.runs[effect.hiveId] ?: continue
                     val label = labels[effect.hiveId] ?: continue
-                    RingService.ring(context, effect.hiveId, label, AlarmText.body(context, run))
+                    val info = AlarmText.info(context, run, state, labels)
+                    RingService.ring(
+                        context,
+                        effect.hiveId,
+                        AlarmText.notificationTitle(context, label, info),
+                        AlarmText.notificationBody(context, info),
+                    )
                 }
                 is Effect.StopRing -> RingService.stop(context, effect.hiveId)
                 is Effect.NotifyDeviceFree -> labels[effect.hiveId]?.let { notifier.deviceFree(effect.hiveId, it) }

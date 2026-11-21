@@ -6,8 +6,8 @@
     <string name="channel_alarms_desc">Rings when a timed step ends</string>
     <string name="channel_status_name">Active hives</string>
     <string name="channel_status_desc">Shows each active hive and its next step</string>
-    <string name="channel_device_name">Device free</string>
-    <string name="channel_device_desc">Tells you which hive gets the vaporizer next</string>
+    <string name="channel_device_name">Wand free</string>
+    <string name="channel_device_desc">Tells you which hive gets the wand next</string>
 
     <!-- Actions -->
     <string name="action_start">Start</string>
@@ -21,20 +21,41 @@
     <string name="action_cancel">Cancel</string>
     <string name="action_save">Save</string>
     <string name="action_delete">Delete</string>
+    <string name="action_open">Open</string>
+    <string name="action_undo">Undo</string>
     <string name="action_queue_skip">Skip to back</string>
     <string name="action_queue_remove">Remove</string>
+    <string name="action_reorder">Drag to reorder %1$s</string>
+    <string name="action_delete_hive">Delete %1$s</string>
+    <string name="action_move_up">Move %1$s up</string>
+    <string name="action_move_down">Move %1$s down</string>
+    <string name="action_toggle_device">%1$s: tap to switch between device and passive</string>
 
-    <!-- Device status bar -->
-    <string name="device_free">Device: free</string>
-    <string name="device_busy_timed">Device: %1$s, %2$s, %3$s left</string>
-    <string name="device_busy">Device: %1$s, %2$s</string>
+    <!-- Wand status bar -->
+    <string name="device_free">Wand: free</string>
+    <string name="device_busy_timed">Wand: %1$s, %2$s left</string>
+    <string name="device_busy">Wand: %1$s, %2$s</string>
     <string name="device_next">Next: %1$s</string>
-    <string name="device_free_next">Device free: %1$s is next</string>
+    <string name="device_free_next">Wand free: %1$s is next</string>
+
+    <!-- Low alarm volume -->
+    <string name="volume_low">Alarm volume is low. Raise it so you can hear alarms outdoors.</string>
+    <string name="volume_open">Sound settings</string>
+
+    <!-- Planning (All tab) -->
+    <string name="tab_all">All</string>
+    <string name="coming_up">Coming up</string>
+    <string name="estimate_prefix">~</string>
+    <string name="hive_next_at">Next: %1$s %2$s</string>
+    <string name="hive_starts_at">Starts %1$s</string>
+    <string name="all_done_at">Started hives done %1$s</string>
+    <string name="hive_starts_now">Starts now</string>
+    <string name="time_now">Now</string>
+    <string name="time_now_inline">now</string>
 
     <!-- Hive states -->
-    <string name="tab_all">All</string>
     <string name="state_not_started">Not started</string>
-    <string name="state_waiting">Waiting for device</string>
+    <string name="state_waiting">Waiting for the wand</string>
     <string name="state_queued">Queued</string>
     <string name="state_done">Done</string>
     <string name="state_cancelled">Cancelled</string>
@@ -47,21 +68,23 @@
     <!-- Hive tab -->
     <string name="hive_step_of">Step %1$d of %2$d, %3$s</string>
     <string name="hive_tap_done">Tap Done when finished</string>
-    <string name="hive_waiting_head">Device free. Tap Start when the vaporizer is on this hive.</string>
-    <string name="hive_waiting">Waiting for the device</string>
+    <string name="hive_waiting_head">Wand free. Tap Start when the wand is on this hive.</string>
+    <string name="hive_waiting">Waiting for the wand</string>
     <string name="hive_ready">Ready to start</string>
     <string name="hive_all_done">All steps done</string>
     <string name="step_with_duration">%1$s, %2$s</string>
 
-    <!-- Alarm -->
+    <!-- Alarm screen and notification -->
     <string name="alarm_finished">%1$s finished</string>
     <string name="alarm_finished_overdue">%1$s finished (overdue)</string>
-    <string name="alarm_next">Next: %1$s</string>
-    <string name="alarm_next_timed">Next: %1$s. Starts when you tap Done.</string>
-    <string name="alarm_next_waiting">Next: %1$s. Waiting for the device.</string>
-    <string name="alarm_all_done">All steps done.</string>
-    <string name="alarm_device_frees">Device frees when you tap Done.</string>
-    <string name="alarm_device_frees_next">Device frees when you tap Done. %1$s is next.</string>
+    <string name="alarm_next_label">Next</string>
+    <string name="alarm_waiting">%1$s, waiting for the wand</string>
+    <string name="alarm_all_done">All steps done</string>
+    <string name="alarm_timer_starts">%1$s timer starts when you tap Done</string>
+    <string name="alarm_device_frees">Wand frees when you tap Done.</string>
+    <string name="alarm_device_frees_next">Wand frees when you tap Done. %1$s is next.</string>
+    <string name="alarm_notif_title">%1$s: %2$s finished</string>
+    <string name="alarm_notif_body">Next: %1$s</string>
 
     <!-- Status notification -->
     <plurals name="status_title">
@@ -70,34 +93,35 @@
     </plurals>
     <string name="status_line_ends">%1$s: %2$s, ends %3$s</string>
     <string name="status_line_done">%1$s: %2$s, tap Done</string>
-    <string name="status_line_waiting">%1$s: waiting for device</string>
+    <string name="status_line_waiting">%1$s: waiting for the wand</string>
     <string name="status_line_ringing">%1$s: %2$s finished</string>
 
-    <!-- Device free notification -->
-    <string name="device_notif_title">Device free: %1$s is next</string>
-    <string name="device_notif_text">Move the vaporizer, then tap Start.</string>
+    <!-- Wand free notification -->
+    <string name="device_notif_title">Wand free: %1$s is next</string>
+    <string name="device_notif_text">Move the wand, then tap Start.</string>
 
     <!-- Settings -->
     <string name="settings_title">Settings</string>
     <string name="settings_hives">Hives</string>
-    <string name="settings_add_hives">Add %1$d</string>
+    <string name="hive_add">+ Add hive</string>
+    <plurals name="hive_max">
+        <item quantity="one">%1$d hive max per session</item>
+        <item quantity="other">%1$d hives max per session</item>
+    </plurals>
     <string name="hive_default_name">Hive %1$d</string>
     <string name="hive_edit_title">Hive</string>
     <string name="hive_name">Name</string>
     <string name="hive_note">Note</string>
     <string name="hive_delete_title">Delete %1$s?</string>
     <string name="hive_delete_text">Its run is cancelled.</string>
-    <string name="move_up">Up</string>
-    <string name="move_down">Down</string>
-    <string name="action_edit">Edit</string>
-    <string name="action_open">Open</string>
-    <string name="count_minus">−</string>
-    <string name="count_plus">+</string>
+    <string name="step_edit_title">Step</string>
+    <string name="step_name">Name</string>
+    <string name="kind_timed">Timed, %1$s</string>
+    <string name="kind_manual">Manual</string>
     <string name="preset_short_pan_wand">Pan wand</string>
     <string name="preset_short_gun_type">Gun type</string>
-    <string name="kind_timed">Timed, %1$d s</string>
-    <string name="kind_manual">Manual</string>
     <string name="template_reset">Reset to defaults</string>
+    <string name="template_split_error">Device steps must be next to each other, or another hive could take the wand mid-treatment. Not saved.</string>
     <string name="template_footer">Defaults are reference values. Follow your product label and vaporizer manual; the label is the legal use spec.</string>
     <string name="duration_seconds">Seconds</string>
     <string name="duration_invalid">Enter 1 to 86400 seconds.</string>
@@ -110,7 +134,7 @@
     <string name="settings_session">Session</string>
     <string name="new_session">New session</string>
     <string name="new_session_title">Start a new session?</string>
-    <string name="new_session_text">This clears every hive\'s run.</string>
+    <string name="new_session_text">This clears every hive\'s run. Hive names stay.</string>
 
     <!-- Permissions -->
     <string name="perms_title">Make sure alarms get through</string>

@@ -8,8 +8,26 @@ fun template(vararg steps: Step) = Template("test", "Test", steps.toList())
 
 const val SEC = 1000L
 
+/**
+ * The original pan wand order (hold passive after the wand comes out). Frozen here so the
+ * scheduler scenario tests keep exercising a device block followed by a passive timed step,
+ * independent of preset edits.
+ */
+val legacyPanWand = Template(
+    "legacy", "Legacy pan wand",
+    listOf(
+        Step("Seal hive", StepKind.MANUAL, deviceBound = false),
+        Step("Load dose", StepKind.MANUAL, deviceBound = true),
+        Step("Heat and vaporize", StepKind.TIMED, 150, deviceBound = true),
+        Step("Cool in hive", StepKind.TIMED, 120, deviceBound = true),
+        Step("Remove wand", StepKind.MANUAL, deviceBound = true),
+        Step("Keep sealed", StepKind.TIMED, 600, deviceBound = false),
+        Step("Unseal", StepKind.MANUAL, deviceBound = false),
+    ),
+)
+
 /** Drives the scheduler like the app would, and tracks the platform alarm per hive. */
-class Harness(template: Template = Presets.panWand) {
+class Harness(template: Template = legacyPanWand) {
     val scheduler: Scheduler = DefaultScheduler()
     var state = SchedulerState(template = template)
     var now = 0L

@@ -322,10 +322,10 @@ class SchedulerTest {
 
     @Test
     fun templateEditWhileActive_runsKeepTheirSnapshot() {
-        val t = Harness(Presets.panWand)
+        val t = Harness(legacyPanWand)
         t.send(Start(a))
         t.send(Event.TemplateChanged(Presets.gunType))
-        assertEquals(Presets.panWand.steps, t.run(a).steps)
+        assertEquals(legacyPanWand.steps, t.run(a).steps)
         t.send(Done(a))
         t.assertAt(a, "Load dose", AWAITING_CONFIRM)
         t.send(Start(b))
@@ -353,6 +353,24 @@ class SchedulerTest {
         assertTrue(t.state.queue.isEmpty())
         assertNull(t.state.lockHolder)
         assertTrue(t.alarms.isEmpty())
+    }
+
+    @Test
+    fun panWandPreset_sealedHoldKeepsWandAndLastDoneReleasesIt() {
+        val t = Harness(Presets.panWand)
+        listOf(a, b).forEach { t.send(Start(it)); t.send(Done(it)) }
+        t.send(Done(a)) // Load dose
+        t.fire(a); t.send(Done(a)) // Heat -> Cool
+        t.fire(a); t.send(Done(a)) // Cool -> Keep sealed
+        t.assertAt(a, "Keep sealed", RUNNING)
+        assertEquals("the sealed hold keeps the wand", a, t.state.lockHolder)
+        t.fire(a)
+        t.assertAt(a, "Remove wand and unseal", AWAITING_CONFIRM)
+        assertEquals(a, t.state.lockHolder)
+        val fx = t.send(Done(a))
+        assertEquals(DONE, t.run(a).state)
+        assertNull(t.state.lockHolder)
+        assertTrue(fx.contains(NotifyDeviceFree(b)))
     }
 
     @Test

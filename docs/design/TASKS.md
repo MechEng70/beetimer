@@ -70,3 +70,9 @@ Status: [ ] todo, [~] in progress, [x] done.
 - Signing config reads `keystore.properties` from outside the repo or from environment variables.
 - `docs/DEVELOPING.md`: how to generate it, where it lives, and how to back it up (keystore file plus passwords, kept somewhere other than GitHub). Losing it means users must uninstall to update.
 - Must be done before the first public GitHub Release; the alpha APK is debug-signed.
+
+## Backlog (not scheduled; do not build yet)
+
+- **B1 Overlap timeline chart** on the All tab, Pitplanner style: one lane per hive across time, device-bound spans in amber, passive in teal, from the planner forecast.
+- **B2 Number of vaporizers** setting: the device lock becomes a count (N runs may be in device steps at once); queue and planner follow.
+- **B3 Dark theme for the main screens**: tokens exist in `Theme.kt`; needs a visual pass against the mockup semantics and its own screenshots.

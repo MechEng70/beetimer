@@ -6,35 +6,56 @@ import io.github.mecheng70.beetimer.scheduler.HiveRun
 import io.github.mecheng70.beetimer.scheduler.RunState
 import io.github.mecheng70.beetimer.scheduler.SchedulerState
 import io.github.mecheng70.beetimer.scheduler.StepKind
+import io.github.mecheng70.beetimer.ui.formatDuration
 
-/** Alarm wording shared by the ringing notification and the alarm screen. */
+/** What an alarm says, shared by the alarm screen and the ringing notification. */
+data class AlarmInfo(
+    /** "Cool in hive finished" (with "(overdue)" when late). */
+    val finished: String,
+    val finishedStep: String,
+    /** The next thing to do, on its own line: a step name. */
+    val nextAction: String,
+    /** "10:00 timer starts when you tap Done" when the next step is timed and waits for Done. */
+    val timerLine: String?,
+    /** "Wand frees when you tap Done. Sparky is next." when Done releases the wand. */
+    val deviceNote: String?,
+)
+
 object AlarmText {
-    fun finished(context: Context, run: HiveRun): String {
-        val ringing = run.ringing ?: return ""
-        val name = run.steps.getOrNull(ringing.finishedStepIndex)?.name.orEmpty()
-        val res = if (ringing.overdue) R.string.alarm_finished_overdue else R.string.alarm_finished
-        return context.getString(res, name)
-    }
-
-    fun next(context: Context, run: HiveRun): String {
+    fun info(context: Context, run: HiveRun, state: SchedulerState, labels: Map<Long, String>): AlarmInfo {
         val ringing = run.ringing
+        val finishedStep = ringing?.let { run.steps.getOrNull(it.finishedStepIndex)?.name }.orEmpty()
+        val finished = context.getString(
+            if (ringing?.overdue == true) R.string.alarm_finished_overdue else R.string.alarm_finished,
+            finishedStep,
+        )
         val current = run.currentStep
-        return when {
+        var timerLine: String? = null
+        val nextAction = when {
             run.state == RunState.DONE -> context.getString(R.string.alarm_all_done)
-            run.state == RunState.WAITING_FOR_DEVICE && current != null ->
-                context.getString(R.string.alarm_next_waiting, current.name.replaceFirstChar { it.lowercaseChar() })
+            run.state == RunState.WAITING_FOR_DEVICE && current != null -> context.getString(R.string.alarm_waiting, current.name)
             ringing != null && run.currentStepIndex == ringing.finishedStepIndex -> {
-                val nextStep = run.steps.getOrNull(run.currentStepIndex + 1)
-                if (nextStep == null) context.getString(R.string.alarm_all_done)
-                else context.getString(R.string.alarm_next_timed, nextStep.name.replaceFirstChar { it.lowercaseChar() })
+                val next = run.steps.getOrNull(run.currentStepIndex + 1)
+                if (next?.kind == StepKind.TIMED) {
+                    timerLine = context.getString(R.string.alarm_timer_starts, formatDuration(next.durationSeconds ?: 0))
+                }
+                next?.name ?: context.getString(R.string.alarm_all_done)
             }
-            current != null -> context.getString(R.string.alarm_next, current.instruction.ifBlank { current.name }.trimEnd('.').replaceFirstChar { it.lowercaseChar() })
+            current != null -> current.name
             else -> ""
         }
+        return AlarmInfo(finished, finishedStep, nextAction, timerLine, deviceNote(context, run, state, labels))
     }
 
-    /** "Device frees when you tap Done. Herb is next." when Done on this step releases the device. */
-    fun deviceHint(context: Context, run: HiveRun, state: SchedulerState, labels: Map<Long, String>): String? {
+    /** Heads-up title: "Herb: cool in hive finished". */
+    fun notificationTitle(context: Context, label: String, info: AlarmInfo): String =
+        context.getString(R.string.alarm_notif_title, label, info.finishedStep.lowerFirst())
+
+    /** Heads-up body: "Next: remove wand and unseal". */
+    fun notificationBody(context: Context, info: AlarmInfo): String =
+        context.getString(R.string.alarm_notif_body, info.nextAction.lowerFirst())
+
+    private fun deviceNote(context: Context, run: HiveRun, state: SchedulerState, labels: Map<Long, String>): String? {
         val step = run.currentStep ?: return null
         val lastDevice = run.steps.indexOfLast { it.deviceBound }
         val doneReleases = run.state == RunState.AWAITING_CONFIRM && step.deviceBound &&
@@ -45,7 +66,5 @@ object AlarmText {
         else context.getString(R.string.alarm_device_frees)
     }
 
-    fun body(context: Context, run: HiveRun): String = listOf(finished(context, run), next(context, run))
-        .filter { it.isNotBlank() }
-        .joinToString(". ") { it.trimEnd('.') } + "."
+    private fun String.lowerFirst() = replaceFirstChar { it.lowercaseChar() }
 }

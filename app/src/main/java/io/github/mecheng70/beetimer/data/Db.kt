@@ -9,7 +9,13 @@ import androidx.room.Query
 import androidx.room.RoomDatabase
 import androidx.room.Update
 import androidx.room.Upsert
+import androidx.room.migration.Migration
+import androidx.sqlite.db.SupportSQLiteDatabase
+import io.github.mecheng70.beetimer.scheduler.Presets
+import io.github.mecheng70.beetimer.scheduler.Step
 import kotlinx.coroutines.flow.Flow
+import kotlinx.serialization.builtins.ListSerializer
+import kotlinx.serialization.json.Json
 
 @Entity(tableName = "hives")
 data class HiveEntity(
@@ -79,11 +85,26 @@ interface StateDao {
 
 @Database(
     entities = [HiveEntity::class, TemplateEntity::class, StateEntity::class],
-    version = 1,
+    version = 2,
     exportSchema = true,
 )
 abstract class BeeTimerDb : RoomDatabase() {
     abstract fun hives(): HiveDao
     abstract fun templates(): TemplateDao
     abstract fun state(): StateDao
+}
+
+/**
+ * v1 -> v2: no table changes. Reseeds the pan wand preset with the corrected order
+ * (the wand stays in through the sealed hold, so the hold holds the device). The gun type
+ * preset and hives are untouched. Active runs keep their own snapshot in scheduler_state.
+ */
+val MIGRATION_1_2 = object : Migration(1, 2) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        val steps = Json.encodeToString(ListSerializer(Step.serializer()), Presets.panWand.steps)
+        db.execSQL(
+            "UPDATE templates SET name = ?, stepsJson = ? WHERE id = ?",
+            arrayOf<Any>(Presets.panWand.name, steps, Presets.PAN_WAND_ID),
+        )
+    }
 }

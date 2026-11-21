@@ -8,6 +8,7 @@ object Presets {
     const val PAN_WAND_ID = "oav-pan-wand"
     const val GUN_TYPE_ID = "oav-gun-type"
 
+    /** The wand stays in the entrance through the sealed hold, so the hold keeps the device. */
     val panWand: Template = Template(
         id = PAN_WAND_ID,
         name = "OAV pan wand",
@@ -16,9 +17,8 @@ object Presets {
             Step("Load dose", StepKind.MANUAL, deviceBound = true, instruction = "Dose per label into the cold pan."),
             Step("Heat and vaporize", StepKind.TIMED, 150, deviceBound = true, instruction = "Power on. Wand in entrance."),
             Step("Cool in hive", StepKind.TIMED, 120, deviceBound = true, instruction = "Power off. Leave the wand in."),
-            Step("Remove wand", StepKind.MANUAL, deviceBound = true, instruction = "Remove wand and reseal the entrance."),
-            Step("Keep sealed", StepKind.TIMED, 600, deviceBound = false, instruction = "Leave the hive sealed."),
-            Step("Unseal", StepKind.MANUAL, deviceBound = false, instruction = "Open the entrance."),
+            Step("Keep sealed", StepKind.TIMED, 600, deviceBound = true, instruction = "Wand stays in. Keep hive sealed."),
+            Step("Remove wand and unseal", StepKind.MANUAL, deviceBound = true, instruction = "Remove the wand and open the entrance. Done frees the wand."),
         ),
     )
 

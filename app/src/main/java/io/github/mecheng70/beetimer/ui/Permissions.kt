@@ -71,7 +71,7 @@ fun PermissionsScreen(onContinue: () -> Unit) {
     refresh // re-read the checks below on every resume
 
     Column(Modifier.fillMaxSize()) {
-        ScreenHeader(stringResource(R.string.app_name))
+        AppTopBar(stringResource(R.string.app_name))
         Column(
             Modifier.fillMaxSize().verticalScroll(rememberScrollState())
                 .padding(horizontal = Dimens.PageMargin).padding(bottom = Dimens.PageMargin),

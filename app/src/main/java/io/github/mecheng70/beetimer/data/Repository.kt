@@ -43,6 +43,8 @@ class Repository(
 
     suspend fun hiveList(): List<Hive> = db.hives().all().map { it.toHive() }
 
+    suspend fun allTemplates(): List<StoredTemplate> = db.templates().all().map { it.toStored() }
+
     suspend fun activeTemplate(): Template {
         seedIfNeeded()
         val all = db.templates().all()
@@ -56,21 +58,31 @@ class Repository(
         db.state().put(StateEntity(json = json.encodeToString(SchedulerState.serializer(), state)))
     }
 
-    suspend fun addHives(count: Int) {
-        db.withTransaction { insertHives(count) }
+    /** Adds one default-named hive and returns its id, or null at [MAX_HIVES]. */
+    suspend fun addHive(): Long? = db.withTransaction {
+        if (db.hives().all().size >= MAX_HIVES) null else insertHives(1).firstOrNull()
     }
 
-    /** Call inside a transaction. */
-    private suspend fun insertHives(count: Int) {
+    /** Saves the list order, which is also the treatment order. */
+    suspend fun reorderHives(ids: List<Long>) {
+        db.withTransaction {
+            val byId = db.hives().all().associateBy { it.id }
+            db.hives().update(ids.mapIndexedNotNull { i, id -> byId[id]?.copy(position = i) })
+        }
+    }
+
+    /** Call inside a transaction. Returns the new ids. */
+    private suspend fun insertHives(count: Int): List<Long> {
         val existing = db.hives().all()
         var position = (existing.maxOfOrNull { it.position } ?: -1) + 1
         var number = existing.size + 1
         val names = existing.map { it.label }.toSet()
-        repeat(count) {
+        return List(count) {
             while (defaultHiveName(number) in names) number++
-            db.hives().insert(HiveEntity(label = defaultHiveName(number), note = null, position = position))
+            val id = db.hives().insert(HiveEntity(label = defaultHiveName(number), note = null, position = position))
             position++
             number++
+            id
         }
     }
 
@@ -78,17 +90,6 @@ class Repository(
         val all = db.hives().all()
         val hive = all.firstOrNull { it.id == id } ?: return
         db.hives().update(listOf(hive.copy(label = label.trim().ifEmpty { hive.label }, note = note?.trim()?.ifEmpty { null })))
-    }
-
-    suspend fun moveHive(id: Long, delta: Int) {
-        db.withTransaction {
-            val list = db.hives().all().toMutableList()
-            val i = list.indexOfFirst { it.id == id }
-            val j = i + delta
-            if (i < 0 || j !in list.indices) return@withTransaction
-            list.add(j, list.removeAt(i))
-            db.hives().update(list.mapIndexed { index, h -> h.copy(position = index) })
-        }
     }
 
     suspend fun deleteHive(id: Long) = db.hives().delete(id)
@@ -114,7 +115,10 @@ class Repository(
         isActive = isActive,
     )
 
-    private companion object {
+    companion object {
         const val DEFAULT_HIVES = 3
+
+        /** Hives per session (one vaporizer; Jason, 2026-11-21). */
+        const val MAX_HIVES = 5
     }
 }

@@ -12,7 +12,10 @@ import androidx.compose.runtime.ReadOnlyComposable
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.Font
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import io.github.mecheng70.beetimer.R
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
@@ -101,30 +104,43 @@ object AlarmColors {
     val Border = Color(0xFFBA7517)
 }
 
-/**
- * Text styles. System font. Only the countdown and the alarm hive name are large.
- * Bold, not SemiBold: the test phone's system font has no 600 weight and falls back to
- * regular, while the mockup shows these as bold.
- */
+/** Inter, bundled in res/font (SIL OFL 1.1, assets/licenses/Inter-OFL.txt) so weights render the same on every phone. */
+val Inter = FontFamily(
+    Font(R.font.inter_regular, FontWeight.Normal),
+    Font(R.font.inter_medium, FontWeight.Medium),
+    Font(R.font.inter_semibold, FontWeight.SemiBold),
+    Font(R.font.inter_bold, FontWeight.Bold),
+)
+
+private fun inter(size: Int, line: Int, weight: FontWeight = FontWeight.Normal) =
+    TextStyle(fontFamily = Inter, fontSize = size.sp, lineHeight = line.sp, fontWeight = weight)
+
+/** Text styles. Only the Hive tab countdown and the alarm hive name are large. */
 object AppType {
-    val body = TextStyle(fontSize = 14.sp, lineHeight = 20.sp)
-    val label = TextStyle(fontSize = 13.sp, lineHeight = 18.sp)
-    val chip = TextStyle(fontSize = 12.sp, lineHeight = 16.sp)
-    val hiveName = TextStyle(fontSize = 15.sp, lineHeight = 20.sp, fontWeight = FontWeight.Bold)
-    val status = TextStyle(fontSize = 14.sp, lineHeight = 20.sp)
-    val statusSub = TextStyle(fontSize = 12.sp, lineHeight = 16.sp)
-    val tab = TextStyle(fontSize = 14.sp, lineHeight = 20.sp)
-    val button = TextStyle(fontSize = 14.sp, lineHeight = 20.sp)
-    val gloveButton = TextStyle(fontSize = 16.sp, lineHeight = 22.sp)
-    val title = TextStyle(fontSize = 16.sp, lineHeight = 22.sp, fontWeight = FontWeight.Bold)
-    val section = TextStyle(fontSize = 14.sp, lineHeight = 20.sp, fontWeight = FontWeight.Bold)
-    val stateLine = TextStyle(fontSize = 16.sp, lineHeight = 22.sp, fontWeight = FontWeight.Bold)
-    val countdown = TextStyle(fontSize = 52.sp, lineHeight = 1.2.em, fontWeight = FontWeight.Bold)
-    val alarmName = TextStyle(fontSize = 48.sp, lineHeight = 1.2.em, fontWeight = FontWeight.Bold)
-    val alarmFinished = TextStyle(fontSize = 16.sp, lineHeight = 22.sp)
-    val alarmNext = TextStyle(fontSize = 19.sp, lineHeight = 26.sp)
-    val alarmHint = TextStyle(fontSize = 13.sp, lineHeight = 18.sp)
-    val alarmButton = TextStyle(fontSize = 17.sp, lineHeight = 22.sp, fontWeight = FontWeight.Bold)
+    val body = inter(14, 20)
+    val label = inter(13, 18)
+    val hiveName = inter(15, 20, FontWeight.SemiBold)
+    val status = inter(14, 20, FontWeight.Medium)
+    val statusSub = inter(13, 18)
+    val tab = inter(14, 20, FontWeight.Medium)
+    val button = inter(14, 20, FontWeight.Medium)
+    val gloveButton = inter(16, 22, FontWeight.SemiBold)
+    val title = inter(18, 24, FontWeight.SemiBold)
+    val section = inter(14, 20, FontWeight.SemiBold)
+    val stateLine = inter(16, 22, FontWeight.SemiBold)
+    /** Countdown and clock-time chips: read at a glance in sun. */
+    val timeChip = inter(15, 20, FontWeight.Bold)
+    /** Device, Passive, Queued chips. */
+    val stateChip = inter(14, 18, FontWeight.Medium)
+    val comingTime = inter(14, 20, FontWeight.Bold)
+    val countdown = TextStyle(fontFamily = Inter, fontSize = 52.sp, lineHeight = 1.2.em, fontWeight = FontWeight.Bold)
+    val alarmName = TextStyle(fontFamily = Inter, fontSize = 48.sp, lineHeight = 1.15.em, fontWeight = FontWeight.Bold)
+    val alarmFinished = inter(16, 22)
+    val alarmLabel = inter(14, 20)
+    val alarmNext = inter(26, 32, FontWeight.SemiBold)
+    val alarmTimer = inter(16, 22, FontWeight.Medium)
+    val alarmNote = inter(14, 20)
+    val alarmButton = inter(17, 22, FontWeight.Bold)
 }
 
 /** Sizes shared by every screen. */
@@ -148,11 +164,17 @@ object Dimens {
     val TabGap = 14.dp
     val TabUnderline = 2.dp
     val TabPadding = 8.dp
-    val ChipPaddingH = 8.dp
-    val ChipPaddingV = 2.dp
+    val ChipPaddingH = 10.dp
+    val ChipPaddingV = 4.dp
+    val ChipMinHeight = 28.dp
+    val IconTouch = 48.dp
+    val TopBarHeight = 56.dp
+    val Icon = 24.dp
+    val StepIconButton = 44.dp
     val StatusPaddingH = 12.dp
     val StatusPaddingV = 10.dp
     val StepIcon = 20.dp
+    val ComingTimeWidth = 64.dp
 }
 
 val LocalAppColors = staticCompositionLocalOf { Light }
@@ -196,7 +218,7 @@ private val MaterialTypography = Typography(
     bodySmall = AppType.label,
     labelLarge = AppType.button,
     labelMedium = AppType.label,
-    labelSmall = AppType.chip,
+    labelSmall = AppType.label,
 )
 
 @Composable

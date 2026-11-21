@@ -156,7 +156,7 @@ Rules:
 - TIMED steps need a duration from 1 s to 86,400 s.
 - Device-bound steps must form one contiguous block, or there must be none. A split block is refused with the message: "Device steps must be next to each other. A gap would let another hive take the vaporizer mid-treatment."
 
-Presets "OAV pan wand" and "OAV gun type" are seeded exactly as in the spec. Both are saved. The alpha UI edits TIMED durations only; the `Template` model already supports add, delete and reorder (pure functions, tested) for the full editor later. The toggle picks which preset is active for new runs, and each has "Reset to defaults".
+Presets "OAV pan wand" and "OAV gun type". The pan wand was corrected after alpha review (Jason, 2026-11-21): the wand stays in the entrance through the sealed hold, so Keep sealed is device-bound, and the last step "Remove wand and unseal" releases the wand on Done. Room v2's `MIGRATION_1_2` reseeds the pan wand row on existing installs (`MigrationTest`); the engine always takes the active template from the templates table on load. Gun type is unchanged (its hold stays passive). Both are saved. The alpha UI edits TIMED durations only; the `Template` model already supports add, delete and reorder (pure functions, tested) for the full editor later. The toggle picks which preset is active for new runs, and each has "Reset to defaults".
 
 ## 7. Persistence (Room)
 
@@ -171,7 +171,7 @@ UI preferences (theme, keep screen on, battery prompt already shown) live in Sha
 
 **Wiring.** `BeeTimerApp` builds the graph by hand (no DI library): Room `BeeTimerDb`, `Repository`, `Prefs`, `AlarmScheduler`, `Notifier`, `EffectExecutor`, `SchedulerEngine`. Startup seeds once and loads state, which runs `restore`. Seeding runs in one Room transaction and only when the templates table is empty, so presets and the 3 default hives go in together or not at all, and a second caller sees them (regression: two callers raced and seeded 6 hives; `SeedingTest`).
 
-**SchedulerEngine** (app singleton) is the only place events are dispatched. It does mutex, load state, `reduce(now = System.currentTimeMillis())`, persist, then execute effects. It exposes a `StateFlow<SchedulerState>` for the UI.
+**SchedulerEngine** (app singleton) is the only place events are dispatched. It talks to the platform through `EffectRunner` (Android: `EffectExecutor`), so tests can run it with a no-op runner. It does mutex, load state, `reduce(now = System.currentTimeMillis())`, persist, then execute effects. It exposes a `StateFlow<SchedulerState>` for the UI.
 
 **Alarms**
 - Step ends use `AlarmManager.setAlarmClock()`. The show intent opens MainActivity.
@@ -218,11 +218,19 @@ The mockups are the spec. Side-by-side captures: `docs/screenshots/` (mockup-*.p
 - **Type.** System font. Body 14 sp, labels 13, chips 12, hive names 15 bold, status bar 14 (sub line 12). Only the Hive tab countdown (52 sp) and the alarm hive name (48 sp) are large. Bold rather than semibold because the phone's system font has no 600 weight.
 - **Sizes.** Buttons 44 dp tall and as wide as their text (`AppButton`). 56 dp for the Hive tab action grid (+1 min, Skip, and Done or Snooze when shown there). 64 dp only for the alarm screen's Done, +1 min and Snooze.
 - **Components** (`ui/Common.kt`): `AppCard`, `Chip`, `AppButton` (outlined, filled, danger), `TextAction`, `TabStrip` (underlined, scrollable), `RowDivider`.
-- **Main screen.** Header (app name, Settings) on the page background, then one white card that wraps its content: device status bar (tinted card, countdown in bold), tab strip, and the All list or a Hive tab. The page scrolls.
-- **Device status bar.** "Device: free", or "Device: Herb, heat and vaporize, 1:42 left" (step names lower-case mid-sentence, as in the mockup), and "Next: Sparky, Emory". When the device is free for the queue head: "Device free: Sparky is next" with Start, Skip to back and Remove.
-- **All tab.** Compact rows with dividers: name, current step or state, and the one action you can take (Start, Done) or a chip (countdown in the step's color, Queued, Done).
+- **Font.** Inter (regular, medium, semibold, bold) bundled in `res/font`, licence in `assets/licenses/Inter-OFL.txt`, used for every text style so weights render the same on OnePlus and other phones.
+- **Chips.** Countdown and clock-time chips 15 sp bold, 10 x 4 dp padding, at least 28 dp tall; state chips (Device, Passive, Queued) 14 sp.
+- **Main screen.** Top bar: "Bee Timer" and a gear icon (48 dp, "Settings"). Low alarm volume banner while a run is active and the alarm stream is under 50%, with a Sound settings button. Then one white card: wand bar, tab strip, and the All tab or a Hive tab. The page scrolls.
+- **All tab = planning view.** Wand bar on one line ("Wand: Herb, 0:36 left", ellipsized, never wraps) with "Next: Sparky" under it (queue head, else the next not-started hive in list order). "Coming up": the next 5 step starts across hives from `Planner.forecast` ("12:14  Emory  Remove wand and unseal"); times after a manual step or a queued start are estimates, prefixed "~". Hive rows have a drag handle (long-press), name, current step with countdown chip, and "Next: <step> ~12:20" ("~Starts 12:30" when queued). Footer "All hives done ~1:05 PM". Recomputed on every tick, event and tap.
+- **Planner** (`scheduler/Planner.kt`, pure): runs the real reducer forward with a simulated person (timers on time, timed-to-timed acknowledged at once, manual steps 1 min, handoff 1 min, not-started hives started in list order when the wand is free, the queue empty and nobody is heading for it). Tested in `PlannerTest`.
+- **Hive order** is the treatment order: drag on the All tab or in Settings, saved as `position` in Room.
+- **Wand free.** When the wand is free for the queue head: "Wand free: Sparky is next" with Start, Skip to back and Remove.
 - **Hive tab.** "Step 3 of 7, heat and vaporize", 52 sp countdown, instruction. Step list with ticks and Device / Passive chips; the current step is tinted with the strong chip. Action grid, then Cancel run.
-- **Settings.** Cards: Steps (template editor, mockup 4), Hives, Display (theme, keep screen on), Alerts, Session.
+- **Settings.** Top app bar with a back arrow (48 dp, "Back"); system back also returns. Cards: Steps, Hives, Display, Alerts, Session.
+- **Step editor.** Tap a step to edit its name and (timed) duration, tap its chip to switch device and passive, arrows to move it. Saved while valid; a split device block shows inline ("Not saved") with Undo. Reset to defaults. Active runs keep their snapshot.
+- **Hive list.** Drag handle, tap to rename, trash icon with confirm, "+ Add hive" (adds one and opens its name), at most `Repository.MAX_HIVES` = 5 ("5 hives max per session"). Names persist across sessions (`HivesAndSessionTest`).
+- **Alarm screen.** Hive name 48 sp bold, "Cool in hive finished" 16 sp, divider, "Next" 14 sp, the next step 26 sp (2 lines max), "10:00 timer starts when you tap Done" for a timed next step, wand note 14 sp; spread over the space above Done (64 dp) and +1 min / Snooze 30 s (64 dp).
+- **Heads-up** (unlocked): "Herb: cool in hive finished", "Next: remove wand and unseal", BigText, actions Done and +1 min.
 - **Theme.** System, Light or Dark (default System). The alarm screen is dark amber in both. Window themes set `forceDarkAllowed=false`: the app draws its own dark theme, and OxygenOS otherwise recolored the alarm window (found in the screenshot pass).
 
 ## 10. Known limitations and deferrals (alpha)

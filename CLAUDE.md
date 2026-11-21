@@ -24,6 +24,8 @@
 
 # Plan
 
+- `HANDOFF.md`: where things stand, open items and gotchas. Read it first in a new session, and update it
+  at the end of each round.
 - `docs/design/TECH-DESIGN.md` (architecture, scheduler rules, alarms), `docs/design/TASKS.md` (T1...),
   `docs/design/WBS.md`. Work one task at a time, commit with the task ID, update its status line when done,
   and stop at each STOP task.

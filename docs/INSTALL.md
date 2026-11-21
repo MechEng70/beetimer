@@ -9,7 +9,7 @@ The wording of Android's own questions differs a little from phone to phone. The
 
 1. On your phone, open this page in your browser:
    https://github.com/MechEng70/beetimer/releases/latest
-2. Under "Assets", tap the file that ends in `.apk` (for example `beetimer-0.1.0.apk`). If the browser
+2. Under "Assets", tap the file that ends in `.apk` (for example `beetimer-0.1.0-alpha.apk`). If the browser
    warns that the file might be harmful, choose to download it anyway.
 3. When the download is done, tap "Open" (or tap the file in your notifications or your Downloads).
 4. The first time, Android says your browser is not allowed to install apps. Tap "Settings", turn on
@@ -27,6 +27,9 @@ lets that happen if you allow it.
 - **Alarms and reminders:** rings at the exact time, not "around then".
 - **Full-screen alerts:** shows the alarm over the lock screen. Some phones turn this off for sideloaded apps.
 - **No battery limits:** keeps alarms from being delayed. The app asks once.
+
+Alarms ring at your **alarm volume**, so they work on silent and in Do Not Disturb. If your alarm volume is
+low, Bee Timer shows "Alarm volume is low" with a Raise button while a hive is running.
 
 If alarms come late or not at all, check the battery settings for Bee Timer in your phone's settings.
 

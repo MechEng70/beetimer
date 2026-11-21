@@ -17,21 +17,26 @@ Where section 1 and the original brief (section 2) disagree, section 1 wins.
 |---|---|
 | Name | Bee Timer. |
 | Platform | Android first: native Kotlin, Jetpack Compose (Material 3), Room, AlarmManager. iOS later: the scheduler stays Kotlin stdlib only so it can move to Kotlin Multiplatform; the alarm layer is the platform boundary (AlarmManager on Android, AlarmKit on iOS 26+). KMP is not set up now. |
-| Distribution | App ID io.github.mecheng70.beetimer (permanent). APK on GitHub Releases (MechEng70/beetimer). Alpha ships a debug-signed APK. |
+| Distribution | App ID io.github.mecheng70.beetimer (permanent). APK on GitHub Releases (MechEng70/beetimer). Alpha ships a debug-signed APK. A release keystore (T11) comes before the first public release. |
 | Accounts / backend | None. No network, analytics or ads. All data on the phone. |
 | SDK levels | minSdk 31, targetSdk 36, compileSdk 36. JDK 21. |
-| Presets | "OAV pan wand" and "OAV gun type", steps and times as in section 2. Durations are reference defaults; the product label governs. |
-| Template editing (alpha UI) | Durations of TIMED steps on the two presets only. The model supports add, delete and reorder for later. Reset to defaults. |
+| Presets | "OAV pan wand" and "OAV gun type". Durations are reference defaults; the product label governs. The pan wand has a sealed-hold choice: "Wand stays in" (the vaporizer is held through Keep sealed) or "Wand comes out" (Remove wand moves above Keep sealed and frees the vaporizer for the next hive). Switching applies that default step list, with a confirm when the steps were edited. |
+| Step model | Replaces the per-step deviceBound flag in the brief. Each template has one step that takes the vaporizer and one that releases it. Every step from take through release is Device; the rest are Passive. The only invalid arrangement is release above take, so a split device block can't happen. |
+| Template editing (alpha UI) | Tap a step to rename it, change its time (timed steps), or move the take or release marker there. Arrows move steps. Reset to defaults. Add and delete steps are in the model, not the UI. Active runs keep the steps they started with. |
 | History | Deferred past alpha. |
-| Hive names | Free text (for example Emory, Herb, Sparky). Every message uses the name. Quick-add makes "Hive N" names you can rename. |
+| Hive names | Free text (for example Emory, Herb, Sparky). Every message uses the name. "+ Add hive" makes a "Hive N" name you can rename. At most 5 hives. List order is treatment order; drag to reorder on the All tab or in Settings. |
+| Wording | UI copy says "Vaporizer" (the gun type has no wand). Step names and instructions keep "wand". |
 | Timed step end | Next step MANUAL: the run moves to it right away and the alarm rings; Done on the alarm completes that manual step. Next step TIMED: the run waits on the finished step until you acknowledge, so the next timer starts when you tap (for example Cool starts after you switch power off). |
 | Alarm buttons | Done, +1 min (reopens the finished step for 60 s), Snooze 30 s (silence, ring again in 30 s, no state change). |
-| Alarm sound | Rings up to 2 minutes, silent 2 minutes, rings again, until acknowledged. |
-| Queue | FIFO. Handoff is manual: the head is told "Device free: Herb is next" and waits for Start. Skip to back of queue is kept. Remove from queue resets that hive's run. |
-| Status bar copy | "Device: free" or "Device: Herb, Heat and vaporize, 1:42 left", and "Next: Sparky, Emory". |
-| All tab | Each row shows only the action you can take now (Start, Done) or a countdown or status pill. |
-| Theme | System, Light or Dark (default System). Alarm screen is dark amber in both. |
-| Quality gate (alpha) | Unit tests plus Android lint. Semgrep, Snyk, ktlint and detekt are deferred. |
+| Alarm sound | Plays on the alarm stream (alarm volume), so it rings on silent and in Do Not Disturb. The phone's alarm tone if set, else a bundled beep. Rings up to 2 minutes, silent 2 minutes, rings again, until acknowledged. A banner on the main screen says "Alarm volume is low" with Raise while a run is active and the alarm volume is under half. |
+| App in the foreground | A timed step's end opens the alarm screen directly (no heads-up). "Vaporizer free" is a snackbar at the bottom with Start, not a notification. If you leave the app while it rings, the normal lock-screen alarm comes back. |
+| Queue | FIFO. Handoff is manual: the head is told "Vaporizer free: Herb is next" and waits for Start. Skip to back of queue is kept. Remove from queue resets that hive's run. |
+| Cancel | Cancel run returns the hive to Not started with a Start button (no Cancelled state). |
+| Vaporizer bar | "Vaporizer: free" or "Vaporizer: Herb, free in ~15:09", and "Next: Sparky". |
+| All tab | Planning view. "Coming up" lists the next 5 step starts across hives as countdowns. "~" means the time depends on a manual tap; a passed time shows "Now". Each row shows the action you can take now (Start, Done) or a countdown or status chip, and "Next: <step> in <time>". Not-started hives are not projected. Footer "Started hives done ~1:05 PM" in the phone's 12/24-hour format. Projections are recomputed only when something happens; countdowns tick from them. |
+| Theme | System, Light or Dark (default System). Alarm screen is dark amber in both. Inter font bundled. |
+| App icon | Stopwatch bee, adaptive icon with a monochrome layer for themed icons (`docs/icon/`). |
+| Quality gate (alpha) | Unit tests plus Android lint (`scripts/check.sh`), plus the emulator E2E suite for behavior changes. Semgrep, Snyk, ktlint and detekt are deferred. |
 
 ## 2. Original brief
 

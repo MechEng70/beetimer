@@ -1,6 +1,6 @@
 # Bee Timer: technical design (alpha)
 
-Status: draft for review. Phase: alpha proof of concept, target a working sideloadable APK in about a day of agent time, not days.
+Status: alpha built and on the phone (0.1.0-alpha). This doc describes the code as it is; where it and the code disagree, fix one of them. Current state and open items: `HANDOFF.md`.
 
 Source of truth for requirements: `SPEC.md` (section 1 Decisions wins over the original brief). Approved screens: `docs/mockups/varroa-timer-mockups.html`. This doc records decisions and the answers to open questions, so a fresh session can pick up any task in `TASKS.md` cold.
 
@@ -9,17 +9,18 @@ Source of truth for requirements: `SPEC.md` (section 1 Decisions wins over the o
 Offline Android app that times oxalic acid vaporization across several hives sharing one vaporizer. One shared, editable step template. The vaporizer is a lock: only one hive may be in a device-bound step at a time.
 
 Alpha must demo, on the phone:
-- Hives with user-chosen names (e.g. Emory, Herb, Sparky): add, rename, reorder, delete.
-- Start several hives, device queue, manual handoff ("Device free: Herb is next"), passive overlap.
+- Hives with user-chosen names (e.g. Emory, Herb, Sparky): add, rename, reorder, delete, at most 5.
+- Start several hives, vaporizer queue, manual handoff ("Vaporizer free: Herb is next"), passive overlap.
 - Loud alarms that fire with the screen off and show over the lock screen.
 - State survives app kill and reboot.
-- Template editor with the two presets and validation.
+- Step editor with the two presets, take and release markers, and validation.
+- A planning view (All tab) with countdowns from the planner.
 
 Alpha cuts (deliberate; see section 10):
-- No release build or keystore (debug APK only).
+- No release build or keystore (debug APK only; T11).
 - No ktlint, detekt, Semgrep, or Snyk yet.
-- The template editor UI edits durations of TIMED steps on the two presets only. The model supports add, delete and reorder.
-- No history list. Hive reordering uses up/down buttons.
+- The step editor renames, retimes, moves steps and moves markers. No add or delete of steps in the UI (the model supports both).
+- No history list.
 - Ongoing notification shows end clock times per hive plus one live countdown to the next event, not a ticking countdown per line.
 
 ## 2. Toolchain (verified 2026-11-21)
@@ -44,7 +45,11 @@ Pinned versions (checked against Google Maven, Maven Central, the Gradle plugin 
 | core-ktx | 1.18.0 | 1.19+ needs compileSdk 37 |
 | kotlinx-coroutines | 1.11.0 | `:app` only |
 | kotlinx-serialization-json | 1.13.0 | Multiplatform; used by `:scheduler` |
+| lifecycle-process | 2.10.0 | `ProcessLifecycleOwner` for the foreground check |
 | JUnit | 4.13.2 | |
+| Robolectric | 4.18.1 | `:app` unit tests (Room, migrations, alarm screen close, icon render) |
+| androidx.test core-ktx | 1.7.0 | |
+| room-testing | 2.8.5 | `MigrationTest` |
 
 SDK levels: `minSdk 31`, `targetSdk 36`, `compileSdk 36`. compileSdk only affects the build; moving it to 37 later unlocks the newer libraries without changing behaviour on the phone.
 
@@ -60,16 +65,22 @@ Build commands:
 ```
 settings.gradle.kts, gradle/libs.versions.toml, gradle/wrapper/
 scheduler/   (kotlin-jvm today, KMP-ready; package io.github.mecheng70.beetimer.scheduler)
-  Model.kt        Step, StepKind, Template (add/delete/move ops), Hive, HiveRun, RunState, SchedulerState
-  Presets.kt      "OAV pan wand", "OAV gun type"
+  Model.kt        Step, StepKind, Template (derive, add/delete/move/update ops), HiveRun, Ringing, RunState, SchedulerState
+  Presets.kt      pan wand (stays in, comes out), gun type, panWandHoldOf
   Validation.kt   TemplateValidator
-  Scheduler.kt    interface Scheduler { reduce; restore }, Event, Effect, DefaultScheduler
-  test/           SchedulerTest, PropertyTest, RestoreTest, ValidatorTest, MultiplatformGuardTest
+  Scheduler.kt    interface Scheduler { reduce; restore }, Event, Effect, DefaultScheduler, SchedulerTiming
+  Planner.kt      forecast, nextUp, deviceFreeAt (All tab)
+  Invariants.kt   shared by PropertyTest and the debug app
+  test/           SchedulerTest, RestoreTest, TemplateTest, PlannerTest, PropertyTest, MultiplatformGuardTest
 app/         (Android; package io.github.mecheng70.beetimer, by layer)
-  data/       Room db, DAOs, entities, Repository
-  alarms/     AlarmScheduler (AlarmManager), receivers, Channels, RingingNotifier, OngoingNotifier, SchedulerEngine
-  ui/         MainActivity, AlarmActivity, screens, ui/theme/Theme.kt (all colors, type, sizes)
+  BeeTimerApp.kt  hand-built object graph, foreground observer
+  data/       Db (Room v3, migrations), Repository, Prefs
+  alarms/     SchedulerEngine, EffectExecutor, Delivery, AlarmScheduler, Receivers, RingService, AlarmSound,
+              Notifier, AlarmText, Channels
+  ui/         MainActivity, MainScreen, SettingsScreen, AlarmActivity, Permissions, Common, theme/ (Theme.kt, Icons.kt)
+  src/debug/  DevTools (time scale, invariant and E2E logging); src/release/ has a no-op twin
   res/values/strings.xml   every UI string
+scripts/     check.sh (gate), build-apk.sh, e2e/ (Maestro suite), icon/ (SVG to VectorDrawable, pixel compare)
 ```
 
 **KMP-ready scheduler (iOS later).** KMP is not set up now, but `:scheduler` is written so it can become a multiplatform `commonMain` with no code changes:
@@ -85,11 +96,11 @@ app/         (Android; package io.github.mecheng70.beetimer, by layer)
 
 ```kotlin
 enum class StepKind { TIMED, MANUAL }
-data class Step(val name: String, val kind: StepKind, val durationSeconds: Int?, val deviceBound: Boolean, val instruction: String)
+data class Step(val name: String, val kind: StepKind, val durationSeconds: Int?, val deviceBound: Boolean,
+                val instruction: String, val takes: Boolean, val releases: Boolean)  // deviceBound derived from markers
 data class Template(val id: String, val name: String, val steps: List<Step>)
-data class Hive(val id: Long, val label: String, val note: String?, val position: Int)
 
-enum class RunState { NOT_STARTED, WAITING_FOR_DEVICE, RUNNING, AWAITING_CONFIRM, DONE, CANCELLED }
+enum class RunState { NOT_STARTED, WAITING_FOR_DEVICE, RUNNING, AWAITING_CONFIRM, DONE, CANCELLED }  // CANCELLED: old saved state only
 
 data class HiveRun(
   val hiveId: Long,
@@ -102,25 +113,26 @@ data class HiveRun(
   val startedAt: Long?,
   val completedAt: Long?,
 )
-data class Ringing(val finishedStepIndex: Int, val since: Long, val overdue: Boolean)
+data class Ringing(val finishedStepIndex: Int, val since: Long, val overdue: Boolean, val nextRingAt: Long)
 
 data class SchedulerState(
-  val runs: Map<Long, HiveRun>,
+  val runs: Map<Long, HiveRun>,   // a hive with no run is NOT_STARTED
   val lockHolder: Long?,          // hive in a device-bound step
   val queue: List<Long>,          // FIFO of hives waiting for the device
-  val activeTemplate: Template,
+  val template: Template,         // used by the next Start
+  val timeScale: Int = 1,         // debug only; scaled(ms) divides timed durations, +1 min, Snooze
 )
 ```
 
-Hive labels are free text and are what every message shows ("Device free: Herb is next"). Quick-add creates "Hive N" defaults, which you can rename.
+Hives (id, label, note, position) live in Room, not in the scheduler. Hive labels are free text and are what every message shows ("Vaporizer free: Herb is next"). "+ Add hive" creates a "Hive N" default, which you can rename.
 
 ## 5. Scheduler rules (pure reducer)
 
 `Scheduler.reduce(state, event, now): Result(newState, effects)`. No clocks, no I/O. `now` is always passed in.
 
-Events: `Start(hive)`, `Done(hive)`, `TimerFired(hive)`, `AddMinute(hive)`, `Snooze(hive)`, `Skip(hive)`, `Cancel(hive)`, `QueueSkipHead`, `QueueRemoveHead`, `NewSession`, `TemplateChanged(template)`. Done covers acknowledging too: on a finished timed step it starts the next step, on a manual step it completes it, otherwise it just silences the alarm.
+Events: `Start(hive)`, `Done(hive)`, `TimerFired(hive)`, `AddMinute(hive)`, `Snooze(hive)`, `Skip(hive)`, `Cancel(hive)`, `QueueSkipHead`, `QueueRemoveHead`, `NewSession`, `TemplateChanged(template)`, `TimeScaleChanged(scale)` (debug). Done covers acknowledging too: on a finished timed step it starts the next step, on a manual step it completes it, otherwise it just silences the alarm.
 
-Effects: `ScheduleAlarm(hive, atMs)`, `CancelAlarm(hive)`, `Ring(hive, finishedStepIndex, overdue)`, `StopRing(hive)`, `NotifyDeviceFree(hive)`. Alarm effects are derived: each run needs at most one alarm (`ringing.nextRingAt` if ringing, else `stepEndsAt` if RUNNING), and the reducer emits Schedule or Cancel when that changes. A ringing run re-rings every 4 minutes (2 min ringing plus 2 min quiet) until acknowledged; Snooze moves the next ring to now + 30 s. After every reduce, the engine also refreshes the ongoing notification and the UI.
+Effects: `ScheduleAlarm(hive, atMs)`, `CancelAlarm(hive)`, `Ring(hive, finishedStepIndex, overdue)`, `StopRing(hive)`, `NotifyDeviceFree(hive)`. Alarm effects are derived: each run needs at most one alarm (`ringing.nextRingAt` if ringing, else `stepEndsAt` if RUNNING), and the reducer emits Schedule or Cancel when that changes. A ringing run re-rings every 4 minutes (2 min ringing plus 2 min quiet) until acknowledged; Snooze moves the next ring to now + 30 s. Snooze and +1 min are divided by `timeScale`; the ring cycle is not. After every reduce, the engine also refreshes the ongoing notification and the UI.
 
 There is one pending alarm per hive (request code = hive id). Scheduling a new one replaces the old one.
 
@@ -140,13 +152,15 @@ Rules:
    - While ringing: reopen the finished step with `stepEndsAt = now + 60 s`, go back to RUNNING, and `StopRing`. If we had already advanced to a MANUAL step, step back.
 7. **Snooze.** `StopRing` now and `ScheduleAlarm(now + 30 s)`. When it fires it rings again with no state change.
 8. **Skip.** Behaves like the step finishing, with no ring. Lock rules apply, so skipping the last device step releases the lock.
-9. **Cancel.** `CancelAlarm`, `StopRing`, release the lock if held (then rule 4), remove from the queue if queued (lock untouched), set `CANCELLED`.
-10. **Template edits.** These change `activeTemplate` only. Runs keep their snapshot.
+9. **Cancel.** `CancelAlarm`, `StopRing`, release the lock if held (then rule 4), remove from the queue if queued (lock untouched), and remove the run, so the hive is NOT_STARTED again (Jason, 2026-11-21).
+10. **Template edits.** These change `template` only. Runs keep their snapshot.
 11. **NewSession.** Clears all runs and the queue. Hives keep their names.
 12. **Restore(state, now).** Used on app start, boot, and time change.
     - For each RUNNING TIMED run with `stepEndsAt <= now`: apply rule 5 as if it fired at `stepEndsAt`, with `overdue = true` (the alarm shows "overdue", nothing is silently skipped).
     - For future ends: `ScheduleAlarm`.
-    - Ringing runs ring again.
+    - Ringing runs ring again only when `nextRingAt` is due, so a snooze survives process death.
+    - An alarm that fires within 60 s of its time is not overdue (same grace as a live alarm).
+    - Old saved `CANCELLED` runs are dropped.
     - Because a TIMED-to-TIMED handoff waits for acknowledgement, missed alarms never cascade through several steps.
 
 
@@ -176,6 +190,12 @@ To keep it simple and atomic:
 
 UI preferences (theme, keep screen on, battery prompt already shown) live in SharedPreferences.
 
+Schema versions (JSON committed in `app/schemas/`; never edit a committed one):
+- v1: first release of the tables.
+- v2 (`MIGRATION_1_2`): reseeds the pan wand preset (fixed step list).
+- v3 (`MIGRATION_2_3`): rewrites both preset rows to the take/release marker model.
+`MigrationTest` runs both migrations.
+
 ## 8. Android layer
 
 **Wiring.** `BeeTimerApp` builds the graph by hand (no DI library): Room `BeeTimerDb`, `Repository`, `Prefs`, `AlarmScheduler`, `Notifier`, `EffectExecutor`, `SchedulerEngine`. Startup seeds once and loads state, which runs `restore`. Seeding runs in one Room transaction and only when the templates table is empty, so presets and the 3 default hives go in together or not at all, and a second caller sees them (regression: two callers raced and seeded 6 hives; `SeedingTest`).
@@ -192,7 +212,7 @@ UI preferences (theme, keep screen on, battery prompt already shown) live in Sha
 
 **Multiple hives ringing.** `RingService` keeps one sound loop for all ringing hives, one notification per hive (the newest is the foreground one), and stops when the last is acknowledged. `AlarmActivity` shows the hive it was opened for, then any other ringing hive, then closes.
 
-**Device free.** Channel `device_v1` (high importance, default notification sound): "Device free: Herb is next" with a Start button. Cleared when the device is taken or the queue empties.
+**Vaporizer free.** Channel `device_v1` (high importance, default notification sound): "Vaporizer free: Herb is next", "Move the vaporizer, then tap Start.", with a Start button. Cleared when the vaporizer is taken or the queue empties. Only posted when the app is in the background; in the foreground it is a snackbar (section 9).
 
 **Ringing (revised after the T1b phone test, OnePlus CPH2583, Android 16)**
 - Findings: (1) OxygenOS replaced the channel's vibration and ignored `FLAG_INSISTENT`, so the phone buzzed once (`OplusVibrationEffectSegment ... repeat=-1`). (2) The system default alarm tone is unset on this phone (`settings get system alarm_alert` is null), so a player set to "default alarm" never started.
@@ -206,7 +226,8 @@ UI preferences (theme, keep screen on, battery prompt already shown) live in Sha
 
 **AlarmActivity**
 - `setShowWhenLocked(true)`, `setTurnScreenOn(true)`. Dark amber in both themes.
-- Shows the hive label huge, "<step> finished", "Next: <instruction>", and the device hint ("Device frees when you tap Done. Herb is next.").
+- Shows the hive label huge, "<step> finished", "Next" and the next step, and the vaporizer hint ("Vaporizer frees when you tap Done. Herb is next.").
+- Closes when nothing is ringing. The close logic runs in `lifecycleScope` (not Compose). When the app opened it (`returnToApp`), closing goes back to MainActivity instead of the launcher (regression: `AlarmActivityCloseTest`).
 - Buttons Done / +1 min / Snooze 30 s, each at least 64 dp.
 
 **Full-screen intent.** Manifest declares `USE_FULL_SCREEN_INTENT`. Check `NotificationManager.canUseFullScreenIntent()`. If it returns false, show one explanation screen with a button to `ACTION_MANAGE_APP_USE_FULL_SCREEN_INTENT`.
@@ -224,18 +245,18 @@ The mockups are the spec. Side-by-side captures: `docs/screenshots/` (mockup-*.p
 
 - **Tokens.** Everything visual lives in `ui/theme/Theme.kt`: `AppColors` (light and dark), `AlarmColors`, `AppType`, `Dimens`. No dynamic color; the Material scheme is built from the same tokens so dialogs and text fields match. All text in `strings.xml`.
 - **Colors (light).** Page #F4F4F2, cards white with a 1 dp #D3D1C7 border and 16 dp corners, text #1F1F1D and #5F5E5A. Device-bound #FAEEDA / #633806 (strong chip #FAC775), passive #E1F5EE / #085041, queued or not started #F1EFE8 / #5F5E5A, danger #A32D2D. Alarm #412402 with #FAEEDA, #FAC775 and #BA7517 in both themes.
-- **Type.** System font. Body 14 sp, labels 13, chips 12, hive names 15 bold, status bar 14 (sub line 12). Only the Hive tab countdown (52 sp) and the alarm hive name (48 sp) are large. Bold rather than semibold because the phone's system font has no 600 weight.
+- **Type.** Inter (below). Body 14 sp, labels 13, chips 12, hive names 15 bold, status bar 14 (sub line 12). Only the Hive tab countdown (52 sp) and the alarm hive name (48 sp) are large.
 - **Sizes.** Buttons 44 dp tall and as wide as their text (`AppButton`). 56 dp for the Hive tab action grid (+1 min, Skip, and Done or Snooze when shown there). 64 dp only for the alarm screen's Done, +1 min and Snooze.
 - **Components** (`ui/Common.kt`): `AppCard`, `Chip`, `AppButton` (outlined, filled, danger), `TextAction`, `TabStrip` (underlined, scrollable), `RowDivider`.
 - **Font.** Inter (regular, medium, semibold, bold) bundled in `res/font`, licence in `assets/licenses/Inter-OFL.txt`, used for every text style so weights render the same on OnePlus and other phones.
 - **Chips.** Countdown and clock-time chips 15 sp bold, 10 x 4 dp padding, at least 28 dp tall; state chips (Device, Passive, Queued) 14 sp.
-- **Main screen.** Top bar: "Bee Timer" and a gear icon (48 dp, "Settings"). Low alarm volume banner ("Alarm volume is low", one line, with a Raise button to sound settings) while a run is active and the alarm stream is under 50%. Then one white card: wand bar, tab strip, and the All tab or a Hive tab. The page scrolls.
-- **All tab = planning view.** Vaporizer bar on one line (ellipsized, never wraps) with "Next: Sparky" under it (queue head, else the next not-started hive in list order). "Coming up": the next 5 step starts across hives from `Planner.forecast` ("12:14  Emory  Remove wand and unseal"); times after a manual step or a queued start are estimates, prefixed "~". Hive rows have a drag handle (long-press), name, current step with countdown chip, and "Next: <step> ~12:20" ("~Starts 12:30" when queued). Coming up and the row lines show time remaining ("2:10", "~14:09", "Next: Cool in hive in 2:10", "Starts in ~15:09"); the vaporizer bar shows "Vaporizer: Herb, free in ~15:09". "~" means it depends on a manual tap. Projected times are computed only when the state changes; the countdowns tick from them, and a passed one shows "now". Only the footer is a clock time, "Started hives done ~1:05 PM", in the phone's 12/24-hour format. Not-started hives are not projected.
-- **Planner** (`scheduler/Planner.kt`, pure): runs the real reducer forward with a simulated person (timers on time, timed-to-timed acknowledged at once, manual steps 1 min, handoff 1 min, not-started hives are not projected). Tested in `PlannerTest`.
+- **Main screen.** Top bar: "Bee Timer" and a gear icon (48 dp, "Settings"). Low alarm volume banner ("Alarm volume is low", one line, with a Raise button to sound settings) while a run is active and the alarm stream is under 50%. Then one white card: vaporizer bar, tab strip, and the All tab or a Hive tab. The page scrolls. Compose test tags are exposed as resource IDs for Maestro (`row-<id>`, `row-action-<id>`, `row-sub-<id>`, `drag-<id>`, `alarm-done` and so on).
+- **All tab = planning view.** Vaporizer bar on one line (ellipsized, never wraps) with "Next: Sparky" under it (queue head, else the next not-started hive in list order). "Coming up": the next 5 step starts across hives from `Planner.forecast` Only the first entry, at the end of a running (not ringing) timed step, is firm; everything after it is an estimate, prefixed "~". Hive rows have a drag handle (long-press), a fixed-width name column, current step with countdown chip, and a "Next" line ("Waiting" and "Starts in ~16:24" when queued). Coming up and the row lines show time remaining ("2:10", "~14:09", "Next: Cool in hive in 2:10", "Starts in ~15:09"); the vaporizer bar shows "Vaporizer: Herb, free in ~15:09". "~" means it depends on a manual tap. Projected times are computed only when the state changes; the countdowns tick from them, and a passed one shows "now". Only the footer is a clock time, "Started hives done ~1:05 PM", in the phone's 12/24-hour format. Not-started hives are not projected.
+- **Planner** (`scheduler/Planner.kt`, pure): runs the real reducer forward with a simulated person (timers on time, timed-to-timed acknowledged at once, manual steps 1 min, handoff 1 min, both divided by `timeScale`; not-started hives are not projected). Exposes `deviceFreeAt` for the vaporizer bar. Tested in `PlannerTest`; the firm rule is also checked by `Invariants` on every commit in debug builds.
 - **Wording.** UI copy says "Vaporizer" (the gun type has no wand); preset step names keep "wand".
 - **Cancel** removes the run, so the hive is Not started with a Start button again (no Cancelled state).
 - **Hive order** is the treatment order: drag on the All tab or in Settings, saved as `position` in Room.
-- **Vaporizer free.** When the vaporizer is free for the queue head: "Vaporizer free: Sparky is next" with Start, Skip to back and Remove.
+- **Vaporizer free.** When the vaporizer is free for the queue head, the bar shows "Vaporizer free: Sparky is next" with Start, Skip to back and Remove.
 - **Hive tab.** "Step 3 of 7, heat and vaporize", 52 sp countdown, instruction. Step list with ticks and Device / Passive chips; the current step is tinted with the strong chip. Action grid, then Cancel run.
 - **Settings.** Top app bar with a back arrow (48 dp, "Back"); system back also returns. Cards: Steps, Hives, Display, Alerts, Session.
 - **Step editor.** Tap a step to edit its name, (timed) duration, and "Takes the vaporizer here" / "Releases the vaporizer here" (moves the marker). Device/Passive chips are display only. A divider "Vaporizer frees here" follows the release step. Arrows move steps and re-derive Device/Passive live. Release above take shows inline ("Not saved") with Undo. Reset to defaults follows the sealed-hold choice. Active runs keep their snapshot.
@@ -260,29 +281,35 @@ End-to-end suite: `scripts/e2e/` (Maestro flows generated by `gen_flows.py`, `ru
 
 ## 10. Known limitations and deferrals (alpha)
 
-- Debug build only, debug-signed. No release keystore yet.
+- Debug build only, debug-signed. No release keystore yet (T11).
 - After a reboot, alarms come back only after the first unlock (state lives in credential-protected storage). An alarm due before you unlock rings right after unlocking, marked overdue.
-- Alarm sound uses the alarm volume. If the alarm volume is turned down (it was 1 of 16 on the test phone), the alarm is quiet; the permissions screen reminds you to check it.
+- Alarm sound uses the alarm volume. If the alarm volume is turned down (it was 1 of 16 on the test phone), the alarm is quiet; the main screen banner and the permissions screen remind you.
 - The alarm tone is the phone's alarm tone if one is set, otherwise the bundled beep. No tone picker.
 - The ongoing notification shows end times per hive plus one countdown to the next end, not a ticking countdown per line.
-- Template editing in the UI is limited to TIMED durations on the two presets. The model supports add, delete and reorder.
+- The step editor can't add or delete steps, or change a step between timed and manual. The model supports add and delete.
 - No session history. No ktlint, detekt, Semgrep or Snyk yet.
-- No instrumented or UI tests. The Android layer (seeding, ringing, receivers) is checked with the manual phone script (`docs/MANUAL-TEST.md`).
+- Main screens are designed for light; the dark theme works but has not had a visual pass (backlog B3).
 - compileSdk 36 holds Compose, core-ktx and lifecycle at older versions (section 2).
-- Text follows the phone's font size setting (the test phone is at 1.15), so long status lines can wrap where the mockup fits on one line.
+- Text follows the phone's font size setting (the test phone is at 1.15); checked at 1.3 in `docs/screenshots/app-1-all-large.png`.
 - Removing a hive from the queue resets its run (approved).
+- Android won't fire an exact alarm less than about 5 s ahead. Real steps are much longer, so this only matters for the debug 60x time scale.
+- Themed icons are verified on the emulator's Pixel launcher, not yet on the OnePlus (themed icons are off there).
 
 ## 11. Testing
 
-`:scheduler` unit tests (JUnit 4) cover every required test in the spec:
-- Two hives started together.
-- Passive overlap.
-- 1,000-event randomized property test over 6 hives with a seeded RNG. Invariants: at most one lock holder; the holder is in a device-bound step; queued runs are WAITING_FOR_DEVICE; no run is both queued and holding the lock.
-- Cancel while holding the lock, and cancel while queued.
-- Restore at an arbitrary `now`, including overdue.
-- Template snapshot isolation.
-- Rejection of a split device block.
+Gate: `scripts/check.sh` (`./gradlew test lint`), 91 tests at the icon round.
 
-Plus tests for AddMinute, Snooze, Skip, and the TIMED-to-TIMED acknowledge path.
+`:scheduler` (JUnit 4, pure):
+- `SchedulerTest`: every required test in the spec (two hives started together, passive overlap, cancel while holding and while queued, snapshot isolation), plus AddMinute, Snooze, Skip, TIMED-to-TIMED acknowledge, re-ring cycle, cancel returns to Not started, old CANCELLED runs dropped, both pan wand hold options end to end, time scale.
+- `RestoreTest`: restore at an arbitrary `now`, overdue, no cascade through several steps, snooze surviving process death, the 60 s grace.
+- `TemplateTest`: presets match the spec, markers derive Device/Passive, swapping Keep sealed and Remove wand flips the hold choice, renames keep durations and markers, release above take and missing markers rejected, duration bounds.
+- `PlannerTest`: forecasts, the firm rule, deviceFreeAt, not-started hives.
+- `PropertyTest`: 4 templates x 20 seeds x 1,000 random events over 6 hives, checking `Invariants` after every event.
+- `MultiplatformGuardTest`: no JVM or Android APIs in `scheduler/src/main`.
 
-Manual phone script (about 10 minutes, delivered in T10). It uses a 10 s test template with Emory, Herb, and Sparky and covers overlap, queue handoff, cancel, a locked screen, and a reboot mid-run.
+`:app` (Robolectric):
+- `SeedingTest` (regression: duplicate seeding), `HivesAndSessionTest` (cap of 5, reorder, names survive New session), `MigrationTest` (1 to 2, 2 to 3), `DeliveryTest` (foreground vs background), `AlarmActivityCloseTest` (regression: in-app alarm closed to the launcher), `IconRenderTest` (renders the launcher layers for `scripts/icon/compare.py`).
+
+End to end: 13 Maestro runs on the emulator with real alarms (`docs/e2e/README.md`, results in `docs/e2e/REPORT.md`, fixes in `docs/e2e/FIXES.md`).
+
+Manual phone script: `docs/MANUAL-TEST.md` (about 10 minutes).

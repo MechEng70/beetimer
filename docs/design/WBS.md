@@ -23,6 +23,19 @@ Bee Timer alpha
                                           Total ~ 8.5 h
 ```
 
+After T10 (done; see TASKS.md R1 to R6):
+```
+6. Review rounds
+   6.1 R1 UI rework to mockups, alarm stream
+   6.2 R2 Planning view, step editor, Inter, hive drag
+   6.3 R3 Countdowns and copy
+   6.4 R4 Cancel to Not started, Vaporizer wording
+   6.5 R5 Take/release markers, planner fix, E2E suite
+   6.6 R6 Foreground alarms, snackbar, icon
+7. Before first public release
+   7.1 T11 Release keystore
+```
+
 Dependencies: T1 -> T1b -> T2 -> T3 -> T4 -> T5 -> T6 -> T7 -> T8 -> T9 -> T10. T9 can run alongside T7/T8.
 
 Spec checkpoints map to: step 1 plan = this set of docs (STOP now); step 2 = T3 STOP; steps 3 and 4 = T4 to T9; step 5 = T10 STOP.

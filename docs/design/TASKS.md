@@ -49,7 +49,7 @@ Status: [ ] todo, [~] in progress, [x] done.
 - Device status bar, scrollable tabs (All + one per hive), All tab (mockup 1), Hive tab (mockup 2). Contextual actions, and Skip/Remove on the queue head.
 - Keep screen on while any run is active (when the setting is on).
 
-## T8 [x] Settings
+## T8 [x] Settings (later reworked in R2 and R5: drag reorder, max 5, full step editor with markers)
 - Hives: quick-add N, rename (free text, e.g. Emory, Herb, Sparky), note, up/down reorder, delete with confirmation.
 - Template editor (mockup 4), alpha: preset toggle (Pan wand / Gun type) and duration edits on TIMED steps only. No add, delete, or reorder of steps. Reset to defaults. Footer text.
 - Theme picker, keep-screen-on toggle, New session with confirmation. History is deferred.
@@ -63,6 +63,28 @@ Status: [ ] todo, [~] in progress, [x] done.
 - `docs/MANUAL-TEST.md`: a 10-minute phone script with a 10 s template and Emory, Herb, and Sparky.
 - Known limitations, plus proposed features list. STOP for review with install steps.
 
+## Review rounds after T10 (all done, on the phone)
+
+Each round was a review from Jason with an explicit list. TECH-DESIGN and SPEC section 1 describe the result.
+
+## R1 [x] UI rework to the mockups (a6a203a)
+- Alarm sound on the alarm stream (USAGE_ALARM). Seeding in one transaction (regression: 6 hives). UI matched to the mockups with screenshot comparison.
+
+## R2 [x] Planning view, step editor, pan wand fix, Inter (0f40d86)
+- All tab planning view from `Planner`. Full step editor. Pan wand preset fix plus `MIGRATION_1_2`. Inter bundled. Hive drag, add and remove, max 5. Alarm screen and heads-up layout. Volume banner. Top bar icons. Backlog B1 to B3.
+
+## R3 [x] Countdowns and copy (022ea21)
+- All tab shows time remaining, "Now" for passed times, footer clock in the phone's 12/24-hour format. Heads-up title is the hive name. "Alarm volume is low" with Raise.
+
+## R4 [x] Cancel and wording (0dc7c89)
+- Cancel returns the hive to Not started. "Wand" became "Vaporizer" in UI copy (step names keep "wand").
+
+## R5 [x] Take/release markers, planner firm fix, E2E suite (4350039)
+- Marker step model replaces Device/Passive toggles, `MIGRATION_2_3`. Sealed-hold option for the pan wand. Planner firm rule fixed. Debug DevTools (time scale, invariants, E2E log). Maestro suite s1 to s10 on the emulator.
+
+## R6 [x] Foreground alarms, snackbar, icon (7c6bc8e)
+- App in the foreground: alarm screen opens directly, "Vaporizer free" is a snackbar. Scenario 11 (Home and lock while ringing). s2 at 10x with predicted vs actual. Fixed: in-app alarm screen closed to the launcher (`AlarmActivityCloseTest`). Stopwatch bee adaptive icon with monochrome layer, pixel-checked against the SVGs.
+
 ## After alpha
 
 ## T11 [ ] Release keystore before the first public GitHub Release
@@ -71,8 +93,14 @@ Status: [ ] todo, [~] in progress, [x] done.
 - `docs/DEVELOPING.md`: how to generate it, where it lives, and how to back it up (keystore file plus passwords, kept somewhere other than GitHub). Losing it means users must uninstall to update.
 - Must be done before the first public GitHub Release; the alpha APK is debug-signed.
 
+## Open checks (need Jason)
+- Themed icons on the OnePlus: Settings, Wallpapers & style, Icons, Themed icons, then look at Bee Timer on the home screen.
+- After the first push: upload `docs/icon/icon-1024.png` as the GitHub social preview (no API).
+
 ## Backlog (not scheduled; do not build yet)
 
 - **B1 Overlap timeline chart** on the All tab, Pitplanner style: one lane per hive across time, device-bound spans in amber, passive in teal, from the planner forecast.
 - **B2 Number of vaporizers** setting: the device lock becomes a count (N runs may be in device steps at once); queue and planner follow.
 - **B3 Dark theme for the main screens**: tokens exist in `Theme.kt`; needs a visual pass against the mockup semantics and its own screenshots.
+- **B4 Add and delete steps in the step editor**: the model has `addStep` and `removeStep`; needs UI that isn't in the mockups, so ask first.
+- **B5 Session history**: deferred from the brief.

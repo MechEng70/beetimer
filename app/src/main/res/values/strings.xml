@@ -1,0 +1,28 @@
+<resources>
+    <string name="app_name">Bee Timer</string>
+
+    <!-- Notification channels -->
+    <string name="channel_alarms_name">Step alarms</string>
+    <string name="channel_alarms_desc">Rings when a timed step ends</string>
+    <string name="channel_status_name">Active hives</string>
+    <string name="channel_status_desc">Shows each active hive and its next step</string>
+
+    <!-- Alarm -->
+    <string name="alarm_stop">Stop</string>
+
+    <!-- T1b alarm spike (replaced by the real UI in T7) -->
+    <string name="spike_title">Alarm test</string>
+    <string name="spike_hive_label">Test hive</string>
+    <string name="spike_alarm_text">Test alarm finished. Tap Stop.</string>
+    <string name="perm_allowed">allowed</string>
+    <string name="perm_not_allowed">NOT allowed</string>
+    <string name="perm_notifications">Notifications: %1$s</string>
+    <string name="perm_exact">Exact alarms: %1$s</string>
+    <string name="perm_fsi">Full-screen alarms: %1$s</string>
+    <string name="perm_allow_notifications">Allow notifications</string>
+    <string name="perm_open_exact">Open exact alarm setting</string>
+    <string name="perm_fsi_explain">Full-screen alarms let the alarm show over the lock screen. Turn it on in the next screen.</string>
+    <string name="perm_open_fsi">Open full-screen setting</string>
+    <string name="spike_test_in">Test alarm in %1$d s</string>
+    <string name="spike_set_for">Alarm set for %1$s. Lock the phone now.</string>
+</resources>

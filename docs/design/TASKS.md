@@ -1,28 +1,36 @@
 # Tasks (alpha)
 
+Target: a field-usable APK today.
+
 Each task is sized to pick up cold: read `CLAUDE.md`, `docs/design/TECH-DESIGN.md`, and the task below. Commit with the task ID. Stop after each STOP task for review.
 
 Status: [ ] todo, [~] in progress, [x] done.
 
-## T1 [ ] Scaffold the build
+## T1 [x] Scaffold the build
 - Gradle wrapper 9.6.0 (bootstrap from the cached Gradle 9.4.1: `~/.gradle/wrapper/dists/gradle-9.4.1-bin/*/gradle-9.4.1/bin/gradle wrapper --gradle-version 9.6.0`).
-- `settings.gradle.kts` with `:core` (kotlin-jvm) and `:app` (AGP 9.5.2, built-in Kotlin, Compose compiler plugin, KSP, kotlinx-serialization).
+- `settings.gradle.kts` with `:scheduler` (kotlin-jvm, KMP-ready) and `:app` (AGP 9.5.2, built-in Kotlin, Compose compiler plugin, KSP, kotlinx-serialization).
 - `gradle/libs.versions.toml` with the versions pinned in TECH-DESIGN section 2.
-- Empty MainActivity showing "Varroa OAV Timer". `scripts/check.sh` (tests, lint, Semgrep, Snyk).
-- Done when: `./gradlew :core:test assembleDebug` succeeds.
+- Empty MainActivity showing "Bee Timer". `scripts/check.sh` (tests, lint).
+- Done when: `./gradlew :scheduler:test assembleDebug` succeeds.
 
-## T2 [ ] Core model, presets, validation
-- `:core` model classes (TECH-DESIGN section 4), `@Serializable`.
-- Presets A and B exactly as in the spec. `TemplateValidator` (section 6).
+## T1b [~] Alarm spike (STOP after): built, waiting for the phone test
+- Minimal APK: one button schedules an exact `setAlarmClock` alarm 60 s out. When it fires, post a high-importance alarm notification with a full-screen intent to a lock-screen activity, with insistent alarm sound and a Stop button.
+- Permissions: `POST_NOTIFICATIONS` request, `USE_EXACT_ALARM`, `USE_FULL_SCREEN_INTENT` check with a settings link.
+- STOP: you test it on the locked phone. This code is reused by T5 and T6.
+
+## T2 [ ] Scheduler model, presets, validation
+- `:scheduler` model classes (TECH-DESIGN section 4), `@Serializable`, stdlib only. `Template` add/delete/move step functions with tests.
+- Presets "OAV pan wand" and "OAV gun type" exactly as in the spec. `TemplateValidator` (section 6).
 - Tests: presets validate; empty template rejected; duration bounds; split device block rejected; zero device steps allowed.
 
 ## T3 [ ] Scheduler reducer and restore (STOP after)
-- `Scheduler.reduce` and `Scheduler.restore` implementing TECH-DESIGN section 5 rules 1 to 12.
+- `Scheduler` interface and `DefaultScheduler.reduce` / `restore` implementing TECH-DESIGN section 5 rules 1 to 12.
 - Write the tests first: every required test in TECH-DESIGN section 11, plus AddMinute, Snooze, Skip, and the TIMED-to-TIMED acknowledge path.
-- Done when: `./gradlew :core:test` is all green. STOP: summary of coverage for review.
+- Done when: `./gradlew :scheduler:test` is all green. STOP: summary of coverage for review.
 
 ## T4 [ ] Persistence
-- Room entities and DAOs (TECH-DESIGN section 7), Repository, seeding (the two presets, Pan wand active, 3 hives "Hive 1..3").
+- Room entities and DAOs (TECH-DESIGN section 7, no history table in alpha), Repository, seeding (the two presets, OAV pan wand active, 3 hives "Hive 1..3").
+- `exportSchema = true`; commit `app/schemas/.../1.json`.
 - Scheduler state saved as a JSON row, written in one transaction per dispatch.
 
 ## T5 [ ] Engine, alarms, receivers
@@ -43,14 +51,14 @@ Status: [ ] todo, [~] in progress, [x] done.
 
 ## T8 [ ] Settings
 - Hives: quick-add N, rename (free text, e.g. Emory, Herb, Sparky), note, up/down reorder, delete with confirmation.
-- Template editor (mockup 4): preset toggle; add, delete, and up/down steps; field editor; validation errors inline; reset to defaults; footer text.
-- Theme picker, keep-screen-on toggle, New session with confirmation, History list.
+- Template editor (mockup 4), alpha: preset toggle (Pan wand / Gun type) and duration edits on TIMED steps only. No add, delete, or reorder of steps. Reset to defaults. Footer text.
+- Theme picker, keep-screen-on toggle, New session with confirmation. History is deferred.
 
 ## T9 [ ] First-run permissions
 - `POST_NOTIFICATIONS` request, exact alarm check, full-screen intent check with a one-screen explainer, and a one-time battery optimization ask.
 
 ## T10 [ ] Build and docs (STOP after)
-- `./gradlew test lint assembleDebug` and `scripts/check.sh` green, or exceptions logged.
+- `./gradlew test lint assembleDebug` green.
 - README: Fedora toolchain, build, and sideload (`adb install -r app/build/outputs/apk/debug/app-debug.apk` or "Install unknown apps").
 - `docs/MANUAL-TEST.md`: a 10-minute phone script with a 10 s template and Emory, Herb, and Sparky.
 - Known limitations, plus proposed features list. STOP for review with install steps.

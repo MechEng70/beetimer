@@ -1,11 +1,29 @@
-.gradle/
-build/
-local.properties
-.idea/
-*.iml
-.kotlin/
-captures/
+# Android signing: NEVER commit. Back up the keystore and passwords somewhere other than GitHub.
 *.jks
 *.keystore
 keystore.properties
+signing/
+
+# Gradle and build output
+.gradle/
+build/
+.kotlin/
+captures/
+*.apk
+*.aab
+release/
+
+# Machine-specific
+local.properties
+.idea/
+*.iml
 .DS_Store
+.env
+*.env
+
+# Device captures (phone screenshots show other apps' icons; the repo is public)
+docs/screenshots/
+
+# Agent worktrees and Claude Code's local settings
+.claude/worktrees/
+.claude/settings.local.json

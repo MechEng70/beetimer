@@ -1,8 +1,8 @@
-# Varroa OAV Timer: technical design (alpha)
+# Bee Timer: technical design (alpha)
 
 Status: draft for review. Phase: alpha proof of concept, target a working sideloadable APK in about a day of agent time, not days.
 
-Source of truth for requirements: `varroa-timer-claude-code-prompt.md` (the "spec"). Approved screens: `varroa-timer-mockups.html`. This doc records decisions and the answers to open questions, so a fresh session can pick up any task in `TASKS.md` cold.
+Source of truth for requirements: `SPEC.md` (section 1 Decisions wins over the original brief). Approved screens: `docs/mockups/varroa-timer-mockups.html`. This doc records decisions and the answers to open questions, so a fresh session can pick up any task in `TASKS.md` cold.
 
 ## 1. Goal and alpha scope
 
@@ -17,63 +17,71 @@ Alpha must demo, on the phone:
 
 Alpha cuts (deliberate; see section 10):
 - No release build or keystore (debug APK only).
-- No ktlint or detekt yet.
-- Reordering uses up/down buttons, not drag and drop.
+- No ktlint, detekt, Semgrep, or Snyk yet.
+- The template editor UI edits durations of TIMED steps on the two presets only. The model supports add, delete and reorder.
+- No history list. Hive reordering uses up/down buttons.
 - Ongoing notification shows end clock times per hive plus one live countdown to the next event, not a ticking countdown per line.
 
 ## 2. Toolchain (verified 2026-11-21)
 
 Installed on the build host already, no sudo needed:
-- JDK: Temurin 17.0.21.1 (AGP 9.5 requires JDK 17).
+- JDK 21 (Temurin 21.0.13) for Gradle and the toolchain. AGP 9.5 needs 17 or newer.
 - `ANDROID_HOME=~/Android/Sdk`: `platforms;android-36`, `build-tools;36.0.0`, `platform-tools` 37.0.1.
-- `adb` at `/usr/bin/adb`. Semgrep and Snyk CLIs on PATH.
+- `adb` at `/usr/bin/adb`.
 
-Pinned versions (checked against Google Maven, Maven Central, Gradle plugin portal, and the AGP release notes):
+Pinned versions (checked against Google Maven, Maven Central, the Gradle plugin portal and the AGP release notes):
 
 | Item | Version | Note |
 |---|---|---|
 | Gradle wrapper | 9.6.0 | AGP 9.5 minimum and default |
-| Android Gradle Plugin | 9.5.2 | Built-in Kotlin support, so no `kotlin-android` plugin in `:app` |
-| Kotlin (JVM plugin for `:core`, Compose compiler plugin) | 2.4.21 | |
+| Android Gradle Plugin | 9.5.2 | Built-in Kotlin, so no `kotlin-android` plugin in `:app` |
+| Kotlin (JVM plugin for `:scheduler`, Compose and serialization plugins) | 2.4.21 | |
 | KSP | 2.3.14 | Room annotation processing |
-| Compose BOM | 2026.11.01 | Material 3 comes from the BOM |
+| Room (+ `androidx.room` Gradle plugin) | 2.8.5 | `exportSchema` on, JSON in `app/schemas/`, committed from version 1. Room 3 exists; revisit after alpha. |
+| Compose BOM | 2026.06.01 | Compose UI 1.11.4, Material 3 1.4.0. Newer BOMs (Compose 1.12+) need compileSdk 37. |
 | activity-compose | 1.13.0 | |
-| lifecycle-runtime-compose / viewmodel-compose | 2.11.1 | |
-| core-ktx | 1.19.1 | |
-| Room | 2.8.5 | Room 3 (`androidx.room3` 3.0.3) exists; 2.8 chosen for the known API and speed. Revisit after alpha. |
-| kotlinx-coroutines | 1.11.0 | |
-| kotlinx-serialization-json | 1.13.0 | Persists scheduler state and template snapshots |
-| JUnit | 4.13.2 | `:core` tests |
+| lifecycle-runtime-compose / viewmodel-compose | 2.10.0 | 2.11+ needs compileSdk 37 |
+| core-ktx | 1.18.0 | 1.19+ needs compileSdk 37 |
+| kotlinx-coroutines | 1.11.0 | `:app` only |
+| kotlinx-serialization-json | 1.13.0 | Multiplatform; used by `:scheduler` |
+| JUnit | 4.13.2 | |
 
-SDK levels: `minSdk 31`, `targetSdk 36`, `compileSdk 36`.
+SDK levels: `minSdk 31`, `targetSdk 36`, `compileSdk 36`. compileSdk only affects the build; moving it to 37 later unlocks the newer libraries without changing behaviour on the phone.
+
+App ID `io.github.mecheng70.beetimer` (permanent). Display name "Bee Timer".
 
 Build commands:
-- `./gradlew :core:test`: scheduler tests (pure JVM, fast).
+- `./gradlew :scheduler:test`: scheduler tests (pure Kotlin, fast).
 - `./gradlew test lint assembleDebug`: everything, output `app/build/outputs/apk/debug/app-debug.apk`.
-- `scripts/check.sh`: the alpha quality gate (tests, lint, Semgrep, Snyk).
+- `scripts/check.sh`: the alpha quality gate (tests, lint).
 
-## 3. Module layout
+## 3. Module layout and platform boundary
 
 ```
 settings.gradle.kts, gradle/libs.versions.toml, gradle/wrapper/
-core/   (kotlin-jvm, no Android)
-  model/      Step, StepKind, Template, Hive, HiveRun, RunState, SchedulerState
-  presets/    Presets.panWand(), Presets.gunType()
-  validation/ TemplateValidator
-  scheduler/  Event, Effect, Scheduler.reduce(), Scheduler.restore()
-  test/       SchedulerTest, PropertyTest, RestoreTest, ValidatorTest
-app/    (Android)
+scheduler/   (kotlin-jvm today, KMP-ready; package io.github.mecheng70.beetimer.scheduler)
+  Model.kt        Step, StepKind, Template (add/delete/move ops), Hive, HiveRun, RunState, SchedulerState
+  Presets.kt      "OAV pan wand", "OAV gun type"
+  Validation.kt   TemplateValidator
+  Scheduler.kt    interface Scheduler { reduce; restore }, Event, Effect, DefaultScheduler
+  test/           SchedulerTest, PropertyTest, RestoreTest, ValidatorTest, MultiplatformGuardTest
+app/         (Android; package io.github.mecheng70.beetimer, by layer)
   data/       Room db, DAOs, entities, Repository
-  engine/     SchedulerEngine (single dispatch point), EffectExecutor
-  alarm/      AlarmScheduler (AlarmManager), AlarmReceiver, BootReceiver, ActionReceiver
-  notify/     Channels, RingingNotifier, OngoingNotifier
-  ui/         MainActivity, AlarmActivity, screens, theme
-  perms/      first-run permission flow
+  alarms/     AlarmScheduler (AlarmManager), receivers, Channels, RingingNotifier, OngoingNotifier, SchedulerEngine
+  ui/         MainActivity, AlarmActivity, screens, ui/theme/Theme.kt (all colors, type, sizes)
+  res/values/strings.xml   every UI string
 ```
 
-Putting the scheduler in its own JVM module enforces the "no Android imports" rule at compile time.
+**KMP-ready scheduler (iOS later).** KMP is not set up now, but `:scheduler` is written so it can become a multiplatform `commonMain` with no code changes:
+- Kotlin stdlib and kotlinx.serialization only. No `java.*`, `javax.*`, `android.*`, `androidx.*`, no Java time APIs, no `@Jvm*` or `@Synchronized`, no threads, no JVM-only collections or concurrency.
+- Time is always an epoch-millisecond `Long` passed in as `now`. The scheduler never reads a clock.
+- IDs are `Long`s from the app layer (no `UUID`).
+- `MultiplatformGuardTest` scans `scheduler/src/main` and fails `./gradlew test` on any of the above.
+- The app depends on the `Scheduler` interface, not the implementation.
 
-## 4. Domain model (`:core`)
+**Platform boundary: the alarm layer.** Everything platform-specific sits behind the effect executor in `alarms/`: `ScheduleAlarm`, `CancelAlarm`, `Ring`, `StopRing`, `NotifyDeviceFree`. On Android this is AlarmManager (`setAlarmClock`) plus notifications with a full-screen intent. On iOS 26+ it would be AlarmKit, which provides system alarms that break through silent mode and Focus. The scheduler and its effects are the same on both.
+
+## 4. Domain model (`:scheduler`)
 
 ```kotlin
 enum class StepKind { TIMED, MANUAL }
@@ -112,7 +120,7 @@ Hive labels are free text and are what every message shows ("Device free: Herb i
 
 Events: `Start(hive)`, `Done(hive)`, `TimerFired(hive, stepIndex)`, `Acknowledge(hive)`, `AddMinute(hive)`, `Snooze(hive)`, `Skip(hive)`, `Cancel(hive)`, `QueueSkipHead`, `QueueRemoveHead`, `NewSession(hives)`, `TemplateChanged(template)`.
 
-Effects: `ScheduleAlarm(hive, atMs)`, `CancelAlarm(hive)`, `Ring(hive, finishedStep, nextStep, overdue)`, `StopRing(hive)`, `NotifyDeviceFree(hive)`, `RecordHistory(hive, start, end, cancelled)`. After every reduce, the engine also refreshes the ongoing notification and the UI.
+Effects: `ScheduleAlarm(hive, atMs)`, `CancelAlarm(hive)`, `Ring(hive, finishedStep, nextStep, overdue)`, `StopRing(hive)`, `NotifyDeviceFree(hive)`. After every reduce, the engine also refreshes the ongoing notification and the UI.
 
 There is one pending alarm per hive (request code = hive id). Scheduling a new one replaces the old one.
 
@@ -122,26 +130,25 @@ Rules:
 3. **Reaching the device block.**
    - If `lockHolder == null` and the queue is empty: take the lock and enter the step.
    - Otherwise: append to the queue and go to `WAITING_FOR_DEVICE`.
-4. **Release.** The lock clears. If the queue is non-empty, emit `NotifyDeviceFree(head)`. The head stays `WAITING_FOR_DEVICE` until `Start(head)`, because you move the device by hand. While the queue is non-empty, nobody else may take the lock (the lock is reserved for the head). `QueueSkipHead` moves the head to the back and notifies the new head. `QueueRemoveHead` takes the head out of the queue (see the decision note below) and notifies the next head.
+4. **Release.** The lock clears. If the queue is non-empty, emit `NotifyDeviceFree(head)`. The head stays `WAITING_FOR_DEVICE` until `Start(head)`, because you move the device by hand. While the queue is non-empty, nobody else may take the lock (the lock is reserved for the head). `QueueSkipHead` moves the head to the back and notifies the new head. `QueueRemoveHead` resets the head's run to NOT_STARTED (approved) and notifies the next head.
 5. **TIMED step end (`TimerFired`).** Decided by question 4:
    - Next step is MANUAL: advance right away to that step (`AWAITING_CONFIRM`) and `Ring`. Alarm Done = Done on that MANUAL step (question 5). For example, after Cool in hive ends, Done on the alarm completes Remove wand and frees the device.
    - Next step is TIMED: stay on the finished step in `AWAITING_CONFIRM` with `ringing` set, and `Ring`. `Acknowledge` starts the next TIMED step at the moment of the tap (e.g. Cool starts after you switch power off).
-   - No next step: `DONE`, record history.
+   - No next step: `DONE`.
 6. **AddMinute.**
    - On a RUNNING TIMED step: `stepEndsAt += 60 s`.
    - While ringing: reopen the finished step with `stepEndsAt = now + 60 s`, go back to RUNNING, and `StopRing`. If we had already advanced to a MANUAL step, step back.
 7. **Snooze.** `StopRing` now and `ScheduleAlarm(now + 30 s)`. When it fires it rings again with no state change.
 8. **Skip.** Behaves like the step finishing, with no ring. Lock rules apply, so skipping the last device step releases the lock.
-9. **Cancel.** `CancelAlarm`, `StopRing`, release the lock if held (then rule 4), remove from the queue if queued (lock untouched), set `CANCELLED`, record history as cancelled.
+9. **Cancel.** `CancelAlarm`, `StopRing`, release the lock if held (then rule 4), remove from the queue if queued (lock untouched), set `CANCELLED`.
 10. **Template edits.** These change `activeTemplate` only. Runs keep their snapshot.
-11. **NewSession.** Clears all runs and the queue. Hives keep their names. History is kept.
+11. **NewSession.** Clears all runs and the queue. Hives keep their names.
 12. **Restore(state, now).** Used on app start, boot, and time change.
     - For each RUNNING TIMED run with `stepEndsAt <= now`: apply rule 5 as if it fired at `stepEndsAt`, with `overdue = true` (the alarm shows "overdue", nothing is silently skipped).
     - For future ends: `ScheduleAlarm`.
     - Ringing runs ring again.
     - Because a TIMED-to-TIMED handoff waits for acknowledgement, missed alarms never cascade through several steps.
 
-**Decision note (QueueRemoveHead).** Removing a hive from the queue puts it back to NOT_STARTED with a fresh run. It has already sealed, so you would re-Start it, which re-enters at step 0. For alpha this is acceptable. Alternative: keep its index and park it. Flag at review if you prefer that.
 
 ## 6. Template validation
 
@@ -149,7 +156,7 @@ Rules:
 - TIMED steps need a duration from 1 s to 86,400 s.
 - Device-bound steps must form one contiguous block, or there must be none. A split block is refused with the message: "Device steps must be next to each other. A gap would let another hive take the vaporizer mid-treatment."
 
-Presets A (Pan wand) and B (Gun type) are seeded exactly as in the spec. Both are saved and editable. The toggle picks which one is active for new runs, and each has "Reset to defaults".
+Presets "OAV pan wand" and "OAV gun type" are seeded exactly as in the spec. Both are saved. The alpha UI edits TIMED durations only; the `Template` model already supports add, delete and reorder (pure functions, tested) for the full editor later. The toggle picks which preset is active for new runs, and each has "Reset to defaults".
 
 ## 7. Persistence (Room)
 
@@ -157,7 +164,6 @@ To keep it simple and atomic:
 - `hives(id, label, note, position)`
 - `templates(id, name, stepsJson, isActive)`: two rows.
 - `scheduler_state(id = 1, json)`: the whole `SchedulerState` (minus the template) serialized with kotlinx.serialization. One row, written in the same transaction after every reduce.
-- `history(id, hiveId, hiveLabel, startedAt, endedAt, cancelled)`
 
 UI preferences (theme, keep screen on, battery prompt already shown) live in SharedPreferences.
 
@@ -209,11 +215,10 @@ UI preferences (theme, keep screen on, battery prompt already shown) live in Sha
   - Contextual buttons: Start; Done; +1 min / Skip on TIMED; Skip on MANUAL; Cancel run.
 - **Settings.**
   - Hives: quick-add N, rename, note, up/down reorder, delete with confirmation.
-  - Template editor: preset toggle; add, delete, and up/down steps; edit fields; reset to defaults. Footer text exactly as in the spec.
+  - Template editor: preset toggle; edit TIMED durations; reset to defaults. Footer text exactly as in the spec.
   - Theme: System / Light / Dark.
   - Keep screen on while a run is active (on by default).
   - New session, with confirmation.
-  - History list.
 - Navigation is a top app bar with a settings icon. There is no nav library; a simple state-based screen switch keeps it fast.
 
 ## 10. Known limitations and deferrals (alpha)
@@ -228,7 +233,7 @@ UI preferences (theme, keep screen on, battery prompt already shown) live in Sha
 
 ## 11. Testing
 
-`:core` unit tests (JUnit 4) cover every required test in the spec:
+`:scheduler` unit tests (JUnit 4) cover every required test in the spec:
 - Two hives started together.
 - Passive overlap.
 - 1,000-event randomized property test over 6 hives with a seeded RNG. Invariants: at most one lock holder; the holder is in a device-bound step; queued runs are WAITING_FOR_DEVICE; no run is both queued and holding the lock.

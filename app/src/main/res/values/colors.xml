@@ -1,0 +1,5 @@
+<resources>
+    <!-- Window and launcher colors only (XML cannot read Compose). Match ui/theme/Theme.kt. -->
+    <color name="alarm_bg">#FF412402</color>
+    <color name="launcher_bg">#FFFAC775</color>
+</resources>

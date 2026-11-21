@@ -1,0 +1,7 @@
+<resources>
+    <!-- Window themes only. Compose colors and type live in ui/theme/Theme.kt. -->
+    <style name="Theme.BeeTimer" parent="android:Theme.Material.Light.NoActionBar" />
+    <style name="Theme.BeeTimer.Alarm" parent="android:Theme.Material.NoActionBar">
+        <item name="android:windowBackground">@color/alarm_bg</item>
+    </style>
+</resources>

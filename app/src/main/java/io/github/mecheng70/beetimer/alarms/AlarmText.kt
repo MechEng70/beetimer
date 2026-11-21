@@ -47,13 +47,12 @@ object AlarmText {
         return AlarmInfo(finished, finishedStep, nextAction, timerLine, deviceNote(context, run, state, labels))
     }
 
-    /** Heads-up title: "Herb: cool in hive finished". */
-    fun notificationTitle(context: Context, label: String, info: AlarmInfo): String =
-        context.getString(R.string.alarm_notif_title, label, info.finishedStep.lowerFirst())
+    /** Heads-up title: the hive name only, so it never truncates. */
+    fun notificationTitle(label: String): String = label
 
-    /** Heads-up body: "Next: remove wand and unseal". */
+    /** Heads-up body: "Heat and vaporize finished. Next: Cool in hive". */
     fun notificationBody(context: Context, info: AlarmInfo): String =
-        context.getString(R.string.alarm_notif_body, info.nextAction.lowerFirst())
+        context.getString(R.string.alarm_notif_body, info.finished, info.nextAction)
 
     private fun deviceNote(context: Context, run: HiveRun, state: SchedulerState, labels: Map<Long, String>): String? {
         val step = run.currentStep ?: return null
@@ -65,6 +64,4 @@ object AlarmText {
         return if (nextLabel != null) context.getString(R.string.alarm_device_frees_next, nextLabel)
         else context.getString(R.string.alarm_device_frees)
     }
-
-    private fun String.lowerFirst() = replaceFirstChar { it.lowercaseChar() }
 }

@@ -60,6 +60,31 @@ class PlannerTest {
     }
 
     @Test
+    fun deviceFreeAt_isWhenTheHolderLeavesTheDeviceBlock() {
+        val h = Harness(tpl)
+        h.send(Start(a)); h.send(Done(a)); h.send(Done(a)) // Heat 0..100 s, then Hold (passive)
+        val f = planner.forecast(h.state, h.now)
+        assertEquals(100 * SEC, f.deviceFreeAt)
+        assertFalse(f.deviceFreeEstimated)
+    }
+
+    @Test
+    fun deviceFreeAt_isEstimatedWhenAManualDeviceStepRemains() {
+        val h = Harness(tpl)
+        h.send(Start(a)); h.send(Done(a)) // on Load (manual, device)
+        val f = planner.forecast(h.state, h.now)
+        assertEquals(MANUAL_STEP_MS + 100 * SEC, f.deviceFreeAt)
+        assertTrue(f.deviceFreeEstimated)
+    }
+
+    @Test
+    fun deviceFreeAt_isNullWhenNobodyHoldsTheDevice() {
+        val h = Harness(tpl)
+        h.send(Start(a)) // sealing, no device yet
+        assertNull(planner.forecast(h.state, h.now).deviceFreeAt)
+    }
+
+    @Test
     fun comingUp_isTimeOrderedAcrossHivesAndLimitedToFive() {
         val h = Harness(tpl)
         listOf(a, b).forEach { h.send(Start(it)); h.send(Done(it)) }

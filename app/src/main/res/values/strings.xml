@@ -33,21 +33,23 @@
 
     <!-- Wand status bar -->
     <string name="device_free">Wand: free</string>
-    <string name="device_busy_timed">Wand: %1$s, %2$s left</string>
+    <string name="device_free_in">Wand: %1$s, free in %2$s</string>
+    <string name="device_free_now">Wand: %1$s, free now</string>
     <string name="device_busy">Wand: %1$s, %2$s</string>
     <string name="device_next">Next: %1$s</string>
     <string name="device_free_next">Wand free: %1$s is next</string>
 
     <!-- Low alarm volume -->
-    <string name="volume_low">Alarm volume is low. Raise it so you can hear alarms outdoors.</string>
-    <string name="volume_open">Sound settings</string>
+    <string name="volume_low">Alarm volume is low</string>
+    <string name="volume_open">Raise</string>
 
     <!-- Planning (All tab) -->
     <string name="tab_all">All</string>
     <string name="coming_up">Coming up</string>
     <string name="estimate_prefix">~</string>
-    <string name="hive_next_at">Next: %1$s %2$s</string>
-    <string name="hive_starts_at">Starts %1$s</string>
+    <string name="hive_next_in">Next: %1$s in %2$s</string>
+    <string name="hive_next_now">Next: %1$s now</string>
+    <string name="hive_starts_in">Starts in %1$s</string>
     <string name="all_done_at">Started hives done %1$s</string>
     <string name="hive_starts_now">Starts now</string>
     <string name="time_now">Now</string>
@@ -83,8 +85,7 @@
     <string name="alarm_timer_starts">%1$s timer starts when you tap Done</string>
     <string name="alarm_device_frees">Wand frees when you tap Done.</string>
     <string name="alarm_device_frees_next">Wand frees when you tap Done. %1$s is next.</string>
-    <string name="alarm_notif_title">%1$s: %2$s finished</string>
-    <string name="alarm_notif_body">Next: %1$s</string>
+    <string name="alarm_notif_body">%1$s. Next: %2$s</string>
 
     <!-- Status notification -->
     <plurals name="status_title">

@@ -32,7 +32,7 @@ class EffectExecutor(
                     RingService.ring(
                         context,
                         effect.hiveId,
-                        AlarmText.notificationTitle(context, label, info),
+                        AlarmText.notificationTitle(label),
                         AlarmText.notificationBody(context, info),
                     )
                 }

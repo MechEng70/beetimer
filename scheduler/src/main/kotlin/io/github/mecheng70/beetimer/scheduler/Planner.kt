@@ -35,6 +35,9 @@ data class Forecast(
     /** When the last started hive finishes, or null if none is active. */
     val allDoneAt: Long?,
     val allDoneEstimated: Boolean,
+    /** When the current holder releases the device, or null if nobody holds it. */
+    val deviceFreeAt: Long? = null,
+    val deviceFreeEstimated: Boolean = false,
 ) {
     fun comingUp(count: Int = 5): List<PlannedStep> = steps.take(count)
 }
@@ -62,6 +65,9 @@ class Planner(private val scheduler: Scheduler = DefaultScheduler()) {
         val steps = mutableListOf<PlannedStep>()
         val doneAt = mutableMapOf<Long, Long>()
         val involved = state.runs.values.filter { it.isActive }.map { it.hiveId }.toSet()
+        val holder = state.lockHolder
+        var freeAt: Long? = null
+        var freeEstimated = false
 
         for (i in 0 until MAX_ACTIONS) {
             val action = nextAction(s, t, lockFreedAt) ?: break
@@ -71,6 +77,10 @@ class Planner(private val scheduler: Scheduler = DefaultScheduler()) {
             if (s == before) break
             if (action.estimate) estimated += action.hiveId
             if (before.lockHolder != null && s.lockHolder == null) lockFreedAt = t
+            if (holder != null && freeAt == null && s.lockHolder != holder) {
+                freeAt = t
+                freeEstimated = holder in estimated
+            }
             for ((id, after) in s.runs) {
                 val prior = before.runs[id]
                 if (after.state == RunState.DONE && prior?.state != RunState.DONE) doneAt[id] = t
@@ -95,7 +105,7 @@ class Planner(private val scheduler: Scheduler = DefaultScheduler()) {
             )
         }
         val allDone = if (involved.isNotEmpty() && involved.all { it in doneAt }) involved.maxOf { doneAt.getValue(it) } else null
-        return Forecast(ordered, hives, allDone, involved.any { it in estimated })
+        return Forecast(ordered, hives, allDone, involved.any { it in estimated }, freeAt, freeEstimated)
     }
 
     private data class Action(

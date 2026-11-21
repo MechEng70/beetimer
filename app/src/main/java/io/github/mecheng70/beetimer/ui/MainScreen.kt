@@ -79,7 +79,10 @@ fun MainScreen(onSettings: () -> Unit) {
         if (anyActive) VolumeBanner()
         AppCard(Modifier.fillMaxWidth().padding(horizontal = Dimens.PageMargin).padding(bottom = Dimens.PageMargin)) {
             val labels = hives.associate { it.id to it.label }
-            DeviceStatusBar(s, labels, now, planner.nextUp(s, order))
+            // Recomputed only when the state changes (taps, step ends, queue changes), never on
+            // clock ticks, so estimates hold still; the countdowns below tick from these times.
+            val forecast = remember(s) { planner.forecast(s, System.currentTimeMillis()) }
+            DeviceStatusBar(s, labels, now, planner.nextUp(s, order), forecast)
             if (hives.isEmpty()) {
                 VSpace(Dimens.SectionGap)
                 Text(stringResource(R.string.no_hives), style = AppType.body, color = BeeTheme.colors.inkMuted)
@@ -93,9 +96,6 @@ fun MainScreen(onSettings: () -> Unit) {
                 modifier = Modifier.padding(vertical = Dimens.RowPadding),
             )
             if (selected == 0) {
-                // Recomputed only when the state changes (taps, step ends, queue changes), never
-                // on clock ticks, so estimates hold still; passed times show "Now".
-                val forecast = remember(s) { planner.forecast(s, System.currentTimeMillis()) }
                 AllTab(hives, s, forecast, now, onSelect = { tab = hives.indexOf(it) + 1 })
             } else {
                 HiveTab(hives[selected - 1], s, now)
@@ -124,7 +124,7 @@ private fun VolumeBanner() {
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(Dimens.Gap),
     ) {
-        Text(stringResource(R.string.volume_low), style = AppType.label, color = fg, modifier = Modifier.weight(1f))
+        Text(stringResource(R.string.volume_low), style = AppType.status, color = fg, maxLines = 1, modifier = Modifier.weight(1f))
         AppButton(stringResource(R.string.volume_open), {
             runCatching { context.startActivity(Intent(Settings.ACTION_SOUND_SETTINGS)) }
             // Re-checked on resume.
@@ -132,18 +132,17 @@ private fun VolumeBanner() {
     }
 }
 
-/** "1:05 PM" for the footer; "12:14" (locale 12 or 24 hour, no AM/PM) for lists. */
+/** Clock time for the footer, following the phone's 12/24-hour setting: "1:05 PM" or "13:05". */
 @Composable
-private fun rememberClock(): Pair<(Long) -> String, (Long) -> String> {
+private fun rememberClock(): (Long) -> String {
     val context = LocalContext.current
-    return remember {
-        val full = android.text.format.DateFormat.getTimeFormat(context)
-        val skeleton = if (android.text.format.DateFormat.is24HourFormat(context)) "Hm" else "hm"
-        val compact = java.text.SimpleDateFormat(
-            android.text.format.DateFormat.getBestDateTimePattern(java.util.Locale.getDefault(), skeleton).replace("a", "").trim(),
-            java.util.Locale.getDefault(),
-        )
-        Pair({ ms: Long -> full.format(Date(ms)) }, { ms: Long -> compact.format(Date(ms)) })
+    val is24 = android.text.format.DateFormat.is24HourFormat(context)
+    return remember(is24) {
+        val locale = java.util.Locale.getDefault()
+        val pattern = android.text.format.DateFormat.getBestDateTimePattern(locale, if (is24) "Hm" else "hma")
+        val format = java.text.SimpleDateFormat(pattern, locale)
+        val clock: (Long) -> String = { ms -> format.format(Date(ms)) }
+        clock
     }
 }
 
@@ -151,13 +150,18 @@ private fun rememberClock(): Pair<(Long) -> String, (Long) -> String> {
 private fun estimate(text: String, estimated: Boolean): String =
     if (estimated) stringResource(R.string.estimate_prefix) + text else text
 
-/** A projected time: "~12:20" (or "12:20" when firm), or [nowText] once it has passed. */
+/** Time left until a projected moment: "2:10", "~14:09" when it depends on a manual tap, or [nowText] once passed. */
 @Composable
-private fun projected(at: Long, estimated: Boolean, now: Long, clock: (Long) -> String, nowText: String): String =
+private fun remaining(at: Long, estimated: Boolean, now: Long, nowText: String): String =
+    if (at <= now) nowText else estimate(formatCountdown(at - now), estimated)
+
+/** A clock time for the footer: "~12:49 PM", or [nowText] once passed. */
+@Composable
+private fun projectedClock(at: Long, estimated: Boolean, now: Long, clock: (Long) -> String, nowText: String): String =
     if (at <= now) nowText else estimate(clock(at), estimated)
 
 @Composable
-private fun DeviceStatusBar(s: SchedulerState, labels: Map<Long, String>, now: Long, nextUp: Long?) {
+private fun DeviceStatusBar(s: SchedulerState, labels: Map<Long, String>, now: Long, nextUp: Long?, forecast: Forecast) {
     val app = LocalContext.current.app
     val holder = s.lockHolder?.let { s.runs[it] }
     val head = s.queue.firstOrNull()
@@ -167,14 +171,21 @@ private fun DeviceStatusBar(s: SchedulerState, labels: Map<Long, String>, now: L
             .background(bg, RoundedCornerShape(Dimens.SmallCorner))
             .padding(horizontal = Dimens.StatusPaddingH, vertical = Dimens.StatusPaddingV),
     ) {
-        val ends = holder?.stepEndsAt
+        val freeAt = forecast.deviceFreeAt
         val line = when {
-            holder != null && holder.state == RunState.RUNNING && ends != null -> {
-                val template = stringResource(R.string.device_busy_timed, labels[holder.hiveId].orEmpty(), COUNTDOWN_MARK)
-                buildAnnotatedString {
-                    append(template.substringBefore(COUNTDOWN_MARK))
-                    withStyle(SpanStyle(fontWeight = FontWeight.Bold)) { append(formatCountdown(ends - now)) }
-                    append(template.substringAfter(COUNTDOWN_MARK))
+            holder != null && freeAt != null -> {
+                val label = labels[holder.hiveId].orEmpty()
+                if (freeAt <= now) {
+                    AnnotatedString(stringResource(R.string.device_free_now, label))
+                } else {
+                    val template = stringResource(R.string.device_free_in, label, COUNTDOWN_MARK)
+                    buildAnnotatedString {
+                        append(template.substringBefore(COUNTDOWN_MARK))
+                        withStyle(SpanStyle(fontWeight = FontWeight.Bold)) {
+                            append(remaining(freeAt, forecast.deviceFreeEstimated, now, ""))
+                        }
+                        append(template.substringAfter(COUNTDOWN_MARK))
+                    }
                 }
             }
             holder != null -> AnnotatedString(
@@ -203,7 +214,7 @@ private fun DeviceStatusBar(s: SchedulerState, labels: Map<Long, String>, now: L
 private fun AllTab(hives: List<Hive>, s: SchedulerState, forecast: Forecast, now: Long, onSelect: (Hive) -> Unit) {
     val app = LocalContext.current.app
     val c = BeeTheme.colors
-    val (fullClock, clock) = rememberClock()
+    val fullClock = rememberClock()
     val labels = hives.associate { it.id to it.label }
 
     val upcoming = forecast.comingUp()
@@ -211,7 +222,7 @@ private fun AllTab(hives: List<Hive>, s: SchedulerState, forecast: Forecast, now
         Text(stringResource(R.string.coming_up), style = AppType.section, color = c.ink, modifier = Modifier.padding(bottom = Dimens.ChipPaddingV))
         upcoming.forEach { p ->
             Row(Modifier.fillMaxWidth().padding(vertical = Dimens.ChipPaddingV), horizontalArrangement = Arrangement.spacedBy(Dimens.Gap)) {
-                Text(projected(p.at, p.estimated, now, clock, stringResource(R.string.time_now)), style = AppType.comingTime, color = c.ink, modifier = Modifier.width(Dimens.ComingTimeWidth))
+                Text(remaining(p.at, p.estimated, now, stringResource(R.string.time_now)), style = AppType.comingTime, color = c.ink, modifier = Modifier.width(Dimens.ComingTimeWidth))
                 Text(labels[p.hiveId].orEmpty(), style = AppType.section, color = c.ink, maxLines = 1)
                 Text(p.stepName, style = AppType.body, color = c.inkMuted, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f))
             }
@@ -239,10 +250,11 @@ private fun AllTab(hives: List<Hive>, s: SchedulerState, forecast: Forecast, now
                     val second = when {
                         run?.state == RunState.WAITING_FOR_DEVICE -> plan?.deviceStart?.let {
                             if (it.at <= now) stringResource(R.string.hive_starts_now)
-                            else estimate(stringResource(R.string.hive_starts_at, clock(it.at)), it.estimated)
+                            else stringResource(R.string.hive_starts_in, remaining(it.at, it.estimated, now, ""))
                         }
                         run != null && run.isActive -> plan?.next?.let {
-                            stringResource(R.string.hive_next_at, it.stepName, projected(it.at, it.estimated, now, clock, stringResource(R.string.time_now_inline)))
+                            if (it.at <= now) stringResource(R.string.hive_next_now, it.stepName)
+                            else stringResource(R.string.hive_next_in, it.stepName, remaining(it.at, it.estimated, now, ""))
                         }
                         else -> null
                     }
@@ -258,7 +270,7 @@ private fun AllTab(hives: List<Hive>, s: SchedulerState, forecast: Forecast, now
         VSpace(Dimens.Gap)
         RowDivider()
         Text(
-            stringResource(R.string.all_done_at, projected(it, forecast.allDoneEstimated, now, fullClock, stringResource(R.string.time_now_inline))),
+            stringResource(R.string.all_done_at, projectedClock(it, forecast.allDoneEstimated, now, fullClock, stringResource(R.string.time_now_inline))),
             style = AppType.label,
             color = c.inkMuted,
             modifier = Modifier.padding(top = Dimens.RowPadding),

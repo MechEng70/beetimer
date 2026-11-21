@@ -12,6 +12,12 @@ Captured 2026-11-21 on a OnePlus CPH2583 (Android 16, 360 dp wide, font scale 1.
 | `app-5-settings-hives.png` | Hives card (drag handle, tap to rename, trash), "+ Add hive", Display, Alerts and Session. Back-arrow top bar. |
 | `app-6-headsup.png` | Heads-up while unlocked: "Herb: heat and vaporize finished" with "Next: cool in hive" and the Done and +1 min actions. Behind it, Coming up shows "Now" for the passed 12:35. |
 
+## Changed after these captures (not re-captured)
+
+- The All tab shows time remaining instead of clock times ("~14:09", "Next: Cool in hive in 2:10", "Starts in ~15:09", "Wand: Herb, free in ~15:09"). Only the footer is a clock time.
+- The heads-up title is now the hive name ("Herb"), with the body "Heat and vaporize finished. Next: Cool in hive". This resolves note 1.
+- The volume banner reads "Alarm volume is low" with a Raise button, on one line. This resolves note 4.
+
 ## Notes
 
 1. **The heads-up title truncates while collapsed** ("Herb: heat and vapo..."). Android shows heads-ups collapsed, and the BigText style only applies once the notification is expanded (swiping down shows the full text). If the full title must show collapsed, a shorter title such as the hive name alone, with the finished step moved into the body, would fit. That needs your call, since it changes the copy you specified.

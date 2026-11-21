@@ -26,6 +26,7 @@ Fedora; Android Studio is not needed.
 ./gradlew :scheduler:test          # scheduler unit tests (pure Kotlin, fast)
 ./gradlew assembleDebug            # app/build/outputs/apk/debug/app-debug.apk
 scripts/check.sh                   # the quality gate: all tests plus Android lint
+scripts/build-apk.sh               # gate + APK copied to release/beetimer-<version>.apk
 ```
 
 ## Install on a phone

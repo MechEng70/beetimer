@@ -57,7 +57,7 @@ Status: [ ] todo, [~] in progress, [x] done.
 ## T9 [x] First-run permissions
 - `POST_NOTIFICATIONS` request, exact alarm check, full-screen intent check with a one-screen explainer, and a one-time battery optimization ask.
 
-## T10 [ ] Build and docs (STOP after)
+## T10 [x] Build and docs (STOP after): field APK ready for phone test
 - `./gradlew test lint assembleDebug` green.
 - README: Fedora toolchain, build, and sideload (`adb install -r app/build/outputs/apk/debug/app-debug.apk` or "Install unknown apps").
 - `docs/MANUAL-TEST.md`: a 10-minute phone script with a 10 s template and Emory, Herb, and Sparky.

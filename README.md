@@ -20,7 +20,7 @@ Android only for now. Steps are in [docs/INSTALL.md](docs/INSTALL.md), and the f
 - Two presets, OAV pan wand and OAV gun type, with editable step times
 - One vaporizer shared between hives: a queue, and a "Device free" alert when it is the next hive's turn
 - Hives sealed and waiting don't hold the vaporizer, so the next hive can start
-- Loud alarms that show over the lock screen, with Done, +1 min and Snooze 30 s
+- Loud alarms that show over the lock screen, with Done, +1 min and Snooze 30 s. They use the alarm volume, so they ring on silent and in Do Not Disturb
 - Timers that survive the app closing, the screen going off and a phone restart
 
 ## Coming next

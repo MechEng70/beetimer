@@ -18,7 +18,7 @@
 - Never commit signing keys (`*.jks`, `*.keystore`, `keystore.properties`) or `local.properties`.
 - Destructive actions need an explicit yes from Jason first: uninstalling the app, clearing app data, or
   anything destructive on a device or in the repo.
-- Device screenshots crop off the status bar (the repo is public).
+- Device screenshots crop off the status bar (the repo is public). Mockup and app captures for UI review go in `docs/screenshots/` (`mockup-*.png`, `app-*.png`).
 - No UI element that isn't in `docs/mockups` or SPEC without asking Jason first.
 - UI copy: plain, short, straight apostrophes, no em dashes. Same for README and comments.
 

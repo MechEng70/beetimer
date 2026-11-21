@@ -1,29 +1,19 @@
 package io.github.mecheng70.beetimer.ui
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.PrimaryScrollableTabRow
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -33,8 +23,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.mecheng70.beetimer.R
@@ -44,10 +37,13 @@ import io.github.mecheng70.beetimer.scheduler.HiveRun
 import io.github.mecheng70.beetimer.scheduler.RunState
 import io.github.mecheng70.beetimer.scheduler.SchedulerState
 import io.github.mecheng70.beetimer.scheduler.StepKind
+import io.github.mecheng70.beetimer.ui.theme.AppType
+import io.github.mecheng70.beetimer.ui.theme.BeeTheme
 import io.github.mecheng70.beetimer.ui.theme.Dimens
-import io.github.mecheng70.beetimer.ui.theme.LocalStatusColors
 
-@OptIn(ExperimentalMaterial3Api::class)
+/** Placeholder swapped for the bold countdown in the status line. */
+private const val COUNTDOWN_MARK = "\u0001"
+
 @Composable
 fun MainScreen(onSettings: () -> Unit) {
     val app = LocalContext.current.app
@@ -57,79 +53,94 @@ fun MainScreen(onSettings: () -> Unit) {
     var tab by rememberSaveable { mutableIntStateOf(0) }
     val s = state
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text(stringResource(R.string.app_name)) },
-                actions = { TextButton(onClick = onSettings) { Text(stringResource(R.string.action_settings)) } },
-            )
-        },
-    ) { padding ->
-        Column(Modifier.fillMaxSize().padding(padding).padding(horizontal = Dimens.Gutter)) {
-            if (s == null) return@Column
+    Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
+        ScreenHeader(stringResource(R.string.app_name), action = stringResource(R.string.action_settings), onAction = onSettings)
+        AppCard(Modifier.fillMaxWidth().padding(horizontal = Dimens.PageMargin).padding(bottom = Dimens.PageMargin)) {
+            if (s == null) return@AppCard
             val labels = hives.associate { it.id to it.label }
-            DeviceStatusBar(s, labels, now, onStart = { app.send(Event.Start(it)) })
+            DeviceStatusBar(s, labels, now)
             if (hives.isEmpty()) {
-                Spacer(Modifier.height(Dimens.Gutter))
-                Text(stringResource(R.string.no_hives), style = MaterialTheme.typography.bodyLarge)
-                return@Column
+                VSpace(Dimens.SectionGap)
+                Text(stringResource(R.string.no_hives), style = AppType.body, color = BeeTheme.colors.inkMuted)
+                return@AppCard
             }
             val selected = tab.coerceIn(0, hives.size)
-            PrimaryScrollableTabRow(selectedTabIndex = selected, edgePadding = 0.dp) {
-                Tab(selected = selected == 0, onClick = { tab = 0 }, text = { Text(stringResource(R.string.tab_all)) })
-                hives.forEachIndexed { i, h ->
-                    Tab(selected = selected == i + 1, onClick = { tab = i + 1 }, text = { Text(h.label) })
-                }
-            }
+            TabStrip(
+                labels = listOf(stringResource(R.string.tab_all)) + hives.map { it.label },
+                selected = selected,
+                onSelect = { tab = it },
+                modifier = Modifier.padding(vertical = Dimens.RowPadding),
+            )
             if (selected == 0) {
                 AllTab(hives, s, now, onSelect = { tab = hives.indexOf(it) + 1 })
             } else {
-                HiveTab(hives[selected - 1], s, labels, now)
+                HiveTab(hives[selected - 1], s, now)
             }
         }
     }
 }
 
+/** App name (or Back) on the left, one text action on the right, on the page background. */
 @Composable
-private fun DeviceStatusBar(s: SchedulerState, labels: Map<Long, String>, now: Long, onStart: (Long) -> Unit) {
+fun ScreenHeader(title: String, action: String? = null, onAction: () -> Unit = {}, onBack: (() -> Unit)? = null) {
+    Row(
+        Modifier.fillMaxWidth().padding(horizontal = Dimens.PageMargin),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        if (onBack != null) TextAction(stringResource(R.string.action_back), onBack)
+        Text(
+            title,
+            style = AppType.title,
+            color = BeeTheme.colors.ink,
+            modifier = Modifier.weight(1f).padding(horizontal = if (onBack == null) Dimens.Gap else 0.dp),
+        )
+        if (action != null) TextAction(action, onAction)
+    }
+}
+
+@Composable
+private fun DeviceStatusBar(s: SchedulerState, labels: Map<Long, String>, now: Long) {
+    val app = LocalContext.current.app
     val holder = s.lockHolder?.let { s.runs[it] }
     val head = s.queue.firstOrNull()
-    val tone = if (holder != null) Tone.DEVICE else Tone.IDLE
-    val (bg, fg) = toneColors(tone)
-    Surface(color = bg, contentColor = fg, shape = RoundedCornerShape(Dimens.Corner), modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp)) {
-        Column(Modifier.padding(12.dp)) {
-            val line = when {
-                holder != null -> {
-                    val label = labels[holder.hiveId].orEmpty()
-                    val step = holder.currentStep?.name.orEmpty()
-                    val ends = holder.stepEndsAt
-                    if (holder.state == RunState.RUNNING && ends != null) {
-                        stringResource(R.string.device_busy_timed, label, step, formatCountdown(ends - now))
-                    } else {
-                        stringResource(R.string.device_busy, label, step)
-                    }
-                }
-                head != null -> stringResource(R.string.device_free_next, labels[head].orEmpty())
-                else -> stringResource(R.string.device_free)
-            }
-            Text(line, style = MaterialTheme.typography.titleMedium)
-            val waiting = if (holder != null) s.queue else s.queue.drop(1)
-            if (waiting.isNotEmpty()) {
-                Text(
-                    stringResource(R.string.device_next, waiting.joinToString(", ") { labels[it].orEmpty() }),
-                    style = MaterialTheme.typography.bodyMedium,
+    val (bg, fg) = toneColors(if (holder != null) Tone.DEVICE else Tone.IDLE)
+    Column(
+        Modifier.fillMaxWidth()
+            .background(bg, RoundedCornerShape(Dimens.SmallCorner))
+            .padding(horizontal = Dimens.StatusPaddingH, vertical = Dimens.StatusPaddingV),
+    ) {
+        val ends = holder?.stepEndsAt
+        val line = when {
+            holder != null && holder.state == RunState.RUNNING && ends != null -> {
+                val template = stringResource(
+                    R.string.device_busy_timed,
+                    labels[holder.hiveId].orEmpty(),
+                    holder.currentStep?.name.orEmpty().midSentence(),
+                    COUNTDOWN_MARK,
                 )
-            }
-            if (holder == null && head != null) {
-                Spacer(Modifier.height(8.dp))
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    BigButton(stringResource(R.string.action_start), onClick = { onStart(head) }, modifier = Modifier.weight(1f))
-                    val app = LocalContext.current.app
-                    if (s.queue.size > 1) {
-                        BigOutlinedButton(stringResource(R.string.action_queue_skip), onClick = { app.send(Event.QueueSkipHead) }, modifier = Modifier.weight(1f))
-                    }
-                    BigOutlinedButton(stringResource(R.string.action_queue_remove), onClick = { app.send(Event.QueueRemoveHead) }, modifier = Modifier.weight(1f))
+                buildAnnotatedString {
+                    append(template.substringBefore(COUNTDOWN_MARK))
+                    withStyle(SpanStyle(fontWeight = FontWeight.Bold)) { append(formatCountdown(ends - now)) }
+                    append(template.substringAfter(COUNTDOWN_MARK))
                 }
+            }
+            holder != null -> buildAnnotatedString {
+                append(stringResource(R.string.device_busy, labels[holder.hiveId].orEmpty(), holder.currentStep?.name.orEmpty().midSentence()))
+            }
+            head != null -> buildAnnotatedString { append(stringResource(R.string.device_free_next, labels[head].orEmpty())) }
+            else -> buildAnnotatedString { append(stringResource(R.string.device_free)) }
+        }
+        Text(line, style = AppType.status, color = fg)
+        val waiting = if (holder != null) s.queue else s.queue.drop(1)
+        if (waiting.isNotEmpty()) {
+            Text(stringResource(R.string.device_next, waiting.joinToString(", ") { labels[it].orEmpty() }), style = AppType.statusSub, color = fg)
+        }
+        if (holder == null && head != null) {
+            VSpace(Dimens.Gap)
+            Row(horizontalArrangement = Arrangement.spacedBy(Dimens.Gap)) {
+                AppButton(stringResource(R.string.action_start), { app.send(Event.Start(head)) }, kind = ButtonKind.FILLED)
+                if (s.queue.size > 1) AppButton(stringResource(R.string.action_queue_skip), { app.send(Event.QueueSkipHead) })
+                AppButton(stringResource(R.string.action_queue_remove), { app.send(Event.QueueRemoveHead) })
             }
         }
     }
@@ -138,22 +149,21 @@ private fun DeviceStatusBar(s: SchedulerState, labels: Map<Long, String>, now: L
 @Composable
 private fun AllTab(hives: List<Hive>, s: SchedulerState, now: Long, onSelect: (Hive) -> Unit) {
     val app = LocalContext.current.app
-    LazyColumn(Modifier.fillMaxSize()) {
-        items(hives, key = { it.id }) { hive ->
+    val c = BeeTheme.colors
+    Column(Modifier.fillMaxWidth()) {
+        hives.forEachIndexed { i, hive ->
             val run = s.runs[hive.id]
             Row(
-                Modifier.fillMaxWidth().padding(vertical = 10.dp),
+                Modifier.fillMaxWidth().clickable { onSelect(hive) }.padding(vertical = Dimens.RowPadding),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Column(Modifier.weight(1f)) {
-                    TextButton(onClick = { onSelect(hive) }, contentPadding = androidx.compose.foundation.layout.PaddingValues(0.dp)) {
-                        Text(hive.label, style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onSurface)
-                    }
-                    Text(subtitle(run), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(hive.label, style = AppType.hiveName, color = c.ink)
+                    Text(subtitle(run), style = AppType.body, color = c.inkMuted)
                 }
                 RowAction(hive.id, run, s, now, onEvent = { app.send(it) })
             }
-            HorizontalDivider()
+            if (i < hives.lastIndex) RowDivider()
         }
     }
 }
@@ -172,64 +182,64 @@ private fun subtitle(run: HiveRun?): String {
     }
 }
 
-/** The one thing you can do now for this hive, or its countdown. */
+/** The one thing you can do now for this hive, or its countdown chip. */
 @Composable
 private fun RowAction(hiveId: Long, run: HiveRun?, s: SchedulerState, now: Long, onEvent: (Event) -> Unit) {
     val headReady = s.lockHolder == null && s.queue.firstOrNull() == hiveId
     val ends = run?.stepEndsAt
     when {
         run == null || run.state == RunState.CANCELLED ->
-            BigButton(stringResource(R.string.action_start), onClick = { onEvent(Event.Start(hiveId)) })
+            AppButton(stringResource(R.string.action_start), { onEvent(Event.Start(hiveId)) })
         run.ringing != null || run.state == RunState.AWAITING_CONFIRM ->
-            BigButton(stringResource(R.string.action_done), onClick = { onEvent(Event.Done(hiveId)) })
+            AppButton(stringResource(R.string.action_done), { onEvent(Event.Done(hiveId)) })
         run.state == RunState.WAITING_FOR_DEVICE && headReady ->
-            BigButton(stringResource(R.string.action_start), onClick = { onEvent(Event.Start(hiveId)) })
-        run.state == RunState.WAITING_FOR_DEVICE -> Pill(stringResource(R.string.state_queued), Tone.IDLE)
-        run.state == RunState.RUNNING && ends != null ->
-            Pill(formatCountdown(ends - now), toneOf(run))
-        run.state == RunState.DONE -> Pill(stringResource(R.string.state_done), Tone.IDLE)
+            AppButton(stringResource(R.string.action_start), { onEvent(Event.Start(hiveId)) })
+        run.state == RunState.WAITING_FOR_DEVICE -> Chip(stringResource(R.string.state_queued), Tone.IDLE)
+        run.state == RunState.RUNNING && ends != null -> Chip(formatCountdown(ends - now), toneOf(run))
+        run.state == RunState.DONE -> Chip(stringResource(R.string.state_done), Tone.IDLE)
     }
 }
 
 @Composable
-private fun HiveTab(hive: Hive, s: SchedulerState, labels: Map<Long, String>, now: Long) {
+private fun HiveTab(hive: Hive, s: SchedulerState, now: Long) {
     val app = LocalContext.current.app
+    val c = BeeTheme.colors
     val run = s.runs[hive.id]
     val steps = run?.steps ?: s.template.steps
-    val status = LocalStatusColors.current
-    Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
+    Column(Modifier.fillMaxWidth()) {
         // Header: step, big countdown, instruction.
-        Column(Modifier.fillMaxWidth().padding(vertical = 12.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+        Column(
+            Modifier.fillMaxWidth().padding(top = Dimens.Gap, bottom = Dimens.SectionGap),
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
             val ringing = run?.ringing
             val current = run?.currentStep
             val ends = run?.stepEndsAt
             if (run != null && current != null && !run.isTerminal) {
                 Text(
-                    stringResource(R.string.hive_step_of, run.currentStepIndex + 1, run.steps.size, current.name),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    stringResource(R.string.hive_step_of, run.currentStepIndex + 1, run.steps.size, current.name.midSentence()),
+                    style = AppType.label,
+                    color = c.inkMuted,
                 )
             }
-            val big = when {
-                run == null || run.state == RunState.CANCELLED -> stringResource(R.string.hive_ready)
-                run.state == RunState.DONE -> stringResource(R.string.hive_all_done)
-                ringing != null && run.currentStepIndex == ringing.finishedStepIndex ->
-                    stringResource(R.string.state_finished, run.steps[ringing.finishedStepIndex].name)
-                run.state == RunState.RUNNING && ends != null -> formatCountdown(ends - now)
-                run.state == RunState.WAITING_FOR_DEVICE ->
-                    if (s.lockHolder == null && s.queue.firstOrNull() == hive.id) stringResource(R.string.hive_waiting_head)
-                    else stringResource(R.string.hive_waiting)
-                else -> stringResource(R.string.hive_tap_done)
+            val counting = run != null && ringing == null && run.state == RunState.RUNNING && ends != null
+            if (counting && ends != null) {
+                Text(formatCountdown(ends - now), style = AppType.countdown, color = c.ink)
+            } else {
+                val line = when {
+                    run == null || run.state == RunState.CANCELLED -> stringResource(R.string.hive_ready)
+                    run.state == RunState.DONE && ringing == null -> stringResource(R.string.hive_all_done)
+                    ringing != null -> stringResource(R.string.state_finished, run.steps[ringing.finishedStepIndex].name)
+                    run.state == RunState.WAITING_FOR_DEVICE ->
+                        if (s.lockHolder == null && s.queue.firstOrNull() == hive.id) stringResource(R.string.hive_waiting_head)
+                        else stringResource(R.string.hive_waiting)
+                    else -> stringResource(R.string.hive_tap_done)
+                }
+                Text(line, style = AppType.stateLine, color = c.ink, textAlign = TextAlign.Center, modifier = Modifier.padding(vertical = Dimens.Gap))
             }
-            val isCountdown = run?.state == RunState.RUNNING && ringing == null
-            Text(
-                big,
-                style = if (isCountdown) MaterialTheme.typography.displayLarge else MaterialTheme.typography.headlineMedium,
-                textAlign = TextAlign.Center,
-            )
-            if (ringing?.overdue == true) Pill(stringResource(R.string.pill_overdue), Tone.DEVICE)
+            if (ringing?.overdue == true) Chip(stringResource(R.string.pill_overdue), Tone.DEVICE, strong = true)
             if (current != null && run.isActive && current.instruction.isNotBlank()) {
-                Text(current.instruction, style = MaterialTheme.typography.bodyLarge, textAlign = TextAlign.Center)
+                Text(current.instruction, style = AppType.label, color = c.inkMuted, textAlign = TextAlign.Center)
             }
         }
 
@@ -237,17 +247,27 @@ private fun HiveTab(hive: Hive, s: SchedulerState, labels: Map<Long, String>, no
         steps.forEachIndexed { i, step ->
             val isCurrent = run != null && !run.isTerminal && i == run.currentStepIndex
             val isDone = run != null && (i < run.currentStepIndex || run.state == RunState.DONE)
-            val rowBg = if (isCurrent && step.deviceBound) status.deviceBg else if (isCurrent) status.passiveBg else null
+            val tone = if (step.deviceBound) Tone.DEVICE else Tone.PASSIVE
+            val (rowBg, rowFg) = toneColors(tone)
             Row(
                 Modifier.fillMaxWidth()
-                    .then(if (rowBg != null) Modifier.background(rowBg, RoundedCornerShape(Dimens.Corner)) else Modifier)
-                    .padding(horizontal = 8.dp, vertical = 10.dp),
+                    .then(if (isCurrent) Modifier.background(rowBg, RoundedCornerShape(Dimens.SmallCorner)).padding(horizontal = Dimens.Gap) else Modifier)
+                    .padding(vertical = Dimens.RowPadding),
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(10.dp),
             ) {
                 Text(
-                    if (isDone) "✓" else if (isCurrent) "▶" else "○",
-                    color = if (isDone) status.done else MaterialTheme.colorScheme.onSurface,
+                    when {
+                        isDone -> "✓"
+                        isCurrent -> "▶"
+                        else -> "○"
+                    },
+                    style = AppType.body,
+                    color = when {
+                        isDone -> c.done
+                        isCurrent -> rowFg
+                        else -> c.ink
+                    },
+                    modifier = Modifier.width(Dimens.StepIcon),
                 )
                 val name = if (step.kind == StepKind.TIMED) {
                     stringResource(R.string.step_with_duration, step.name, formatDuration(step.durationSeconds ?: 0))
@@ -256,54 +276,64 @@ private fun HiveTab(hive: Hive, s: SchedulerState, labels: Map<Long, String>, no
                 }
                 Text(
                     name,
-                    modifier = Modifier.weight(1f),
-                    style = MaterialTheme.typography.bodyLarge,
-                    fontWeight = if (isCurrent) FontWeight.SemiBold else FontWeight.Normal,
-                    color = if (isDone) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurface,
+                    style = AppType.body,
+                    color = when {
+                        isCurrent -> rowFg
+                        isDone -> c.inkMuted
+                        else -> c.ink
+                    },
+                    modifier = Modifier.weight(1f).padding(start = Dimens.Gap),
                 )
-                if (step.deviceBound) Pill(stringResource(R.string.pill_device), Tone.DEVICE)
-                else if (step.kind == StepKind.TIMED) Pill(stringResource(R.string.pill_passive), Tone.PASSIVE)
+                if (step.deviceBound) {
+                    Chip(stringResource(R.string.pill_device), Tone.DEVICE, strong = isCurrent)
+                } else if (step.kind == StepKind.TIMED) {
+                    Chip(stringResource(R.string.pill_passive), Tone.PASSIVE)
+                }
             }
+            if (!isCurrent && i < steps.lastIndex) RowDivider()
         }
 
-        Spacer(Modifier.height(Dimens.Gap))
+        VSpace(Dimens.RowPadding)
         HiveActions(hive.id, run, s, onEvent = { app.send(it) })
-        Spacer(Modifier.height(Dimens.Gutter))
+        VSpace(Dimens.Gap)
     }
 }
 
 @Composable
 private fun HiveActions(hiveId: Long, run: HiveRun?, s: SchedulerState, onEvent: (Event) -> Unit) {
     val full = Modifier.fillMaxWidth()
-    val danger = LocalStatusColors.current.danger
-    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        when {
-            run == null || run.isTerminal && run.ringing == null -> {
-                if (run?.state != RunState.DONE) BigButton(stringResource(R.string.action_start), { onEvent(Event.Start(hiveId)) }, full)
-                return@Column
+    val glove = Dimens.GloveButton
+    Column(verticalArrangement = Arrangement.spacedBy(Dimens.Gap)) {
+        if (run == null || run.isTerminal && run.ringing == null) {
+            if (run?.state != RunState.DONE) {
+                AppButton(stringResource(R.string.action_start), { onEvent(Event.Start(hiveId)) }, full, kind = ButtonKind.FILLED)
             }
-            run.state == RunState.WAITING_FOR_DEVICE -> {
-                val ready = s.lockHolder == null && s.queue.firstOrNull() == hiveId
-                BigButton(stringResource(R.string.action_start), { onEvent(Event.Start(hiveId)) }, full, enabled = ready)
-                if (run.ringing != null) BigOutlinedButton(stringResource(R.string.action_done), { onEvent(Event.Done(hiveId)) }, full)
+            return@Column
+        }
+        if (run.state == RunState.WAITING_FOR_DEVICE) {
+            val ready = s.lockHolder == null && s.queue.firstOrNull() == hiveId
+            AppButton(stringResource(R.string.action_start), { onEvent(Event.Start(hiveId)) }, full, kind = ButtonKind.FILLED, enabled = ready)
+            if (run.ringing != null) AppButton(stringResource(R.string.action_done), { onEvent(Event.Done(hiveId)) }, full)
+        } else {
+            val ringing = run.ringing != null
+            val canConfirm = ringing || run.state == RunState.AWAITING_CONFIRM
+            val canExtend = ringing || run.state == RunState.RUNNING
+            val canSkip = run.state == RunState.RUNNING || run.state == RunState.AWAITING_CONFIRM
+            val buttons = buildList<@Composable (Modifier) -> Unit> {
+                if (canConfirm) add { m -> AppButton(stringResource(R.string.action_done), { onEvent(Event.Done(hiveId)) }, m, ButtonKind.FILLED, minHeight = glove, style = AppType.gloveButton) }
+                if (canExtend) add { m -> AppButton(stringResource(R.string.action_add_minute), { onEvent(Event.AddMinute(hiveId)) }, m, minHeight = glove, style = AppType.gloveButton) }
+                if (ringing) add { m -> AppButton(stringResource(R.string.action_snooze), { onEvent(Event.Snooze(hiveId)) }, m, minHeight = glove, style = AppType.gloveButton) }
+                if (canSkip) add { m -> AppButton(stringResource(R.string.action_skip), { onEvent(Event.Skip(hiveId)) }, m, minHeight = glove, style = AppType.gloveButton) }
             }
-            else -> {
-                if (run.ringing != null || run.state == RunState.AWAITING_CONFIRM) {
-                    BigButton(stringResource(R.string.action_done), { onEvent(Event.Done(hiveId)) }, full)
+            buttons.chunked(2).forEach { pair ->
+                Row(horizontalArrangement = Arrangement.spacedBy(Dimens.Gap)) {
+                    pair.forEach { it(Modifier.weight(1f)) }
+                    if (pair.size == 1) Spacer(Modifier.weight(1f))
                 }
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    if (run.ringing != null || run.state == RunState.RUNNING) {
-                        BigOutlinedButton(stringResource(R.string.action_add_minute), { onEvent(Event.AddMinute(hiveId)) }, Modifier.weight(1f))
-                    }
-                    if (run.state == RunState.RUNNING || run.state == RunState.AWAITING_CONFIRM) {
-                        BigOutlinedButton(stringResource(R.string.action_skip), { onEvent(Event.Skip(hiveId)) }, Modifier.weight(1f))
-                    }
-                }
-                if (run.ringing != null) BigOutlinedButton(stringResource(R.string.action_snooze), { onEvent(Event.Snooze(hiveId)) }, full)
             }
         }
         if (!run.isTerminal) {
-            BigOutlinedButton(stringResource(R.string.action_cancel_run), { onEvent(Event.Cancel(hiveId)) }, full, color = danger)
+            AppButton(stringResource(R.string.action_cancel_run), { onEvent(Event.Cancel(hiveId)) }, full, ButtonKind.DANGER)
         }
     }
 }

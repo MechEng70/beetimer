@@ -169,7 +169,7 @@ UI preferences (theme, keep screen on, battery prompt already shown) live in Sha
 
 ## 8. Android layer
 
-**Wiring.** `BeeTimerApp` builds the graph by hand (no DI library): Room `BeeTimerDb`, `Repository`, `Prefs`, `AlarmScheduler`, `Notifier`, `EffectExecutor`, `SchedulerEngine`. Startup seeds once (locked; two callers raced and seeded 6 hives in the first build) and loads state, which runs `restore`.
+**Wiring.** `BeeTimerApp` builds the graph by hand (no DI library): Room `BeeTimerDb`, `Repository`, `Prefs`, `AlarmScheduler`, `Notifier`, `EffectExecutor`, `SchedulerEngine`. Startup seeds once and loads state, which runs `restore`. Seeding runs in one Room transaction and only when the templates table is empty, so presets and the 3 default hives go in together or not at all, and a second caller sees them (regression: two callers raced and seeded 6 hives; `SeedingTest`).
 
 **SchedulerEngine** (app singleton) is the only place events are dispatched. It does mutex, load state, `reduce(now = System.currentTimeMillis())`, persist, then execute effects. It exposes a `StateFlow<SchedulerState>` for the UI.
 
@@ -189,8 +189,8 @@ UI preferences (theme, keep screen on, battery prompt already shown) live in Sha
 - Findings: (1) OxygenOS replaced the channel's vibration and ignored `FLAG_INSISTENT`, so the phone buzzed once (`OplusVibrationEffectSegment ... repeat=-1`). (2) The system default alarm tone is unset on this phone (`settings get system alarm_alert` is null), so a player set to "default alarm" never started.
 - So the notification no longer makes the noise. `RingService` (a foreground service that runs only while something is ringing) plays the sound and vibration itself through `AlarmSound`.
 - Service type `systemExempted`: Android allows it for apps that hold `USE_EXACT_ALARM` and keep an alarm going in the background. It is started from the exact-alarm receiver, which is exempt from background-start limits. The spec allows a service when testing shows alarms are unreliable without one; this test showed that.
-- Sound: the phone's alarm tone if one is set and plays, otherwise the bundled `res/raw/alarm_beep.wav` (two 880 Hz beeps, looped). It plays at the **ringer** volume (`USAGE_NOTIFICATION_RINGTONE`), Jason's choice (2026-11-21) since he keeps alarm volume low. Trade-off: silent mode and Do Not Disturb mute the sound. Changing one constant in `AlarmSound` switches it to the alarm volume.
-- Vibration: a repeating waveform with alarm usage, so it keeps going on silent and vibrate.
+- Sound: the phone's alarm tone if one is set and plays, otherwise the bundled `res/raw/alarm_beep.wav` (two 880 Hz beeps, looped). It plays on the **alarm stream** (`USAGE_ALARM`, alarm volume), so it rings in silent mode and through Do Not Disturb's default alarm exception (Jason, 2026-11-21; this replaced an earlier ringer-volume trial). No setting.
+- Vibration: a repeating waveform with alarm usage.
 - Channel `alarms_v2`: importance HIGH, silent, full-screen intent to `AlarmActivity`. `alarms_v1` (channel sound) is deleted at startup.
 - 2-minute cap: the service stops after 2 minutes. T6 schedules the re-ring 2 minutes later, repeating until acknowledged.
 - Notification actions (Done, +1 min, Snooze 30 s) go to the engine; each one stops the service.
@@ -209,39 +209,34 @@ UI preferences (theme, keep screen on, battery prompt already shown) live in Sha
 - Check exact alarms and full-screen intent.
 - Ask once for the battery optimization exemption (`REQUEST_IGNORE_BATTERY_OPTIMIZATIONS`) with one plain sentence. Never ask again.
 
-## 9. UI (Compose, Material 3), following the mockups
+## 9. UI (Compose, Material 3 underneath), matching the mockups
 
-- **Color semantics.** Amber = device-bound and holding the vaporizer. Teal = passive sealed wait. Gray = queued or not started. These map to custom M3 color roles with light and dark variants. High contrast and large type throughout.
-- **Device status bar (top).**
-  - "Device: free", or "Device: Herb, Heat and vaporize, 1:42 left".
-  - Second line: "Next: Sparky, Emory".
-  - When the head is ready: "Device free: Sparky is next" with a Start button.
-- **All tab.**
-  - One row per hive: name, current step or state, and the one action you can take: Start (not started or queue head ready), Done (MANUAL waiting), otherwise a countdown or status pill.
-  - Queue head row also gets Skip to back / Remove.
-- **Hive tab.**
-  - "Step 3 of 7, Heat and vaporize", a big countdown, and the instruction.
-  - Step list with ticks, the current step highlighted, and Device / Passive pills.
-  - Contextual buttons: Start; Done; +1 min / Skip on TIMED; Skip on MANUAL; Cancel run.
-- **Settings.**
-  - Hives: quick-add N, rename, note, up/down reorder, delete with confirmation.
-  - Template editor: preset toggle; edit TIMED durations; reset to defaults. Footer text exactly as in the spec.
-  - Theme: System / Light / Dark.
-  - Keep screen on while a run is active (on by default).
-  - New session, with confirmation.
-- Navigation is a top app bar with a settings icon. There is no nav library; a simple state-based screen switch keeps it fast.
+The mockups are the spec. Side-by-side captures: `docs/screenshots/` (mockup-*.png rendered from the HTML at 412 px, app-*.png from the phone), with the differences we kept in `docs/screenshots/README.md`.
+
+- **Tokens.** Everything visual lives in `ui/theme/Theme.kt`: `AppColors` (light and dark), `AlarmColors`, `AppType`, `Dimens`. No dynamic color; the Material scheme is built from the same tokens so dialogs and text fields match. All text in `strings.xml`.
+- **Colors (light).** Page #F4F4F2, cards white with a 1 dp #D3D1C7 border and 16 dp corners, text #1F1F1D and #5F5E5A. Device-bound #FAEEDA / #633806 (strong chip #FAC775), passive #E1F5EE / #085041, queued or not started #F1EFE8 / #5F5E5A, danger #A32D2D. Alarm #412402 with #FAEEDA, #FAC775 and #BA7517 in both themes.
+- **Type.** System font. Body 14 sp, labels 13, chips 12, hive names 15 bold, status bar 14 (sub line 12). Only the Hive tab countdown (52 sp) and the alarm hive name (48 sp) are large. Bold rather than semibold because the phone's system font has no 600 weight.
+- **Sizes.** Buttons 44 dp tall and as wide as their text (`AppButton`). 56 dp for the Hive tab action grid (+1 min, Skip, and Done or Snooze when shown there). 64 dp only for the alarm screen's Done, +1 min and Snooze.
+- **Components** (`ui/Common.kt`): `AppCard`, `Chip`, `AppButton` (outlined, filled, danger), `TextAction`, `TabStrip` (underlined, scrollable), `RowDivider`.
+- **Main screen.** Header (app name, Settings) on the page background, then one white card that wraps its content: device status bar (tinted card, countdown in bold), tab strip, and the All list or a Hive tab. The page scrolls.
+- **Device status bar.** "Device: free", or "Device: Herb, heat and vaporize, 1:42 left" (step names lower-case mid-sentence, as in the mockup), and "Next: Sparky, Emory". When the device is free for the queue head: "Device free: Sparky is next" with Start, Skip to back and Remove.
+- **All tab.** Compact rows with dividers: name, current step or state, and the one action you can take (Start, Done) or a chip (countdown in the step's color, Queued, Done).
+- **Hive tab.** "Step 3 of 7, heat and vaporize", 52 sp countdown, instruction. Step list with ticks and Device / Passive chips; the current step is tinted with the strong chip. Action grid, then Cancel run.
+- **Settings.** Cards: Steps (template editor, mockup 4), Hives, Display (theme, keep screen on), Alerts, Session.
+- **Theme.** System, Light or Dark (default System). The alarm screen is dark amber in both. Window themes set `forceDarkAllowed=false`: the app draws its own dark theme, and OxygenOS otherwise recolored the alarm window (found in the screenshot pass).
 
 ## 10. Known limitations and deferrals (alpha)
 
 - Debug build only, debug-signed. No release keystore yet.
 - After a reboot, alarms come back only after the first unlock (state lives in credential-protected storage). An alarm due before you unlock rings right after unlocking, marked overdue.
-- Alarm sound follows the ringer volume, so silent mode and Do Not Disturb mute it (vibration keeps going). One constant in `AlarmSound` switches it to the alarm volume.
+- Alarm sound uses the alarm volume. If the alarm volume is turned down (it was 1 of 16 on the test phone), the alarm is quiet; the permissions screen reminds you to check it.
 - The alarm tone is the phone's alarm tone if one is set, otherwise the bundled beep. No tone picker.
 - The ongoing notification shows end times per hive plus one countdown to the next end, not a ticking countdown per line.
 - Template editing in the UI is limited to TIMED durations on the two presets. The model supports add, delete and reorder.
 - No session history. No ktlint, detekt, Semgrep or Snyk yet.
 - No instrumented or UI tests. The Android layer (seeding, ringing, receivers) is checked with the manual phone script (`docs/MANUAL-TEST.md`).
 - compileSdk 36 holds Compose, core-ktx and lifecycle at older versions (section 2).
+- Text follows the phone's font size setting (the test phone is at 1.15), so long status lines can wrap where the mockup fits on one line.
 - Removing a hive from the queue resets its run (approved).
 
 ## 11. Testing

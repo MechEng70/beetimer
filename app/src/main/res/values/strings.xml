@@ -90,12 +90,15 @@
     <string name="move_up">Up</string>
     <string name="move_down">Down</string>
     <string name="action_edit">Edit</string>
-    <string name="settings_steps">Steps</string>
+    <string name="action_open">Open</string>
+    <string name="count_minus">−</string>
+    <string name="count_plus">+</string>
+    <string name="preset_short_pan_wand">Pan wand</string>
+    <string name="preset_short_gun_type">Gun type</string>
     <string name="kind_timed">Timed, %1$d s</string>
     <string name="kind_manual">Manual</string>
     <string name="template_reset">Reset to defaults</string>
     <string name="template_footer">Defaults are reference values. Follow your product label and vaporizer manual; the label is the legal use spec.</string>
-    <string name="duration_title">%1$s</string>
     <string name="duration_seconds">Seconds</string>
     <string name="duration_invalid">Enter 1 to 86400 seconds.</string>
     <string name="settings_display">Display</string>
@@ -120,6 +123,6 @@
     <string name="perm_on">On</string>
     <string name="perm_off">Off</string>
     <string name="perm_allow">Allow</string>
-    <string name="perms_sound_note">Alarm sound follows your ringer volume. On silent it only vibrates.</string>
+    <string name="perms_sound_note">Alarms use your alarm volume and ring on silent and in Do Not Disturb. Check that the alarm volume is up.</string>
     <string name="perms_continue">Continue</string>
 </resources>

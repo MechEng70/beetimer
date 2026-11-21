@@ -5,7 +5,12 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.material3.Surface
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.safeDrawingPadding
+import androidx.compose.runtime.SideEffect
+import androidx.core.view.WindowCompat
+import io.github.mecheng70.beetimer.ui.theme.BeeTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
@@ -26,7 +31,15 @@ class MainActivity : ComponentActivity() {
         setContent {
             val theme by app.prefs.theme.collectAsStateWithLifecycle()
             BeeTimerTheme(theme) {
-                Surface(Modifier.fillMaxSize()) { Root() }
+                val c = BeeTheme.colors
+                val view = LocalView.current
+                SideEffect {
+                    WindowCompat.getInsetsController(window, view).apply {
+                        isAppearanceLightStatusBars = !c.isDark
+                        isAppearanceLightNavigationBars = !c.isDark
+                    }
+                }
+                Box(Modifier.fillMaxSize().background(c.page).safeDrawingPadding()) { Root() }
             }
         }
     }

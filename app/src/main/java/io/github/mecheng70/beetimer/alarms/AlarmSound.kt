@@ -12,10 +12,8 @@ import android.util.Log
 import io.github.mecheng70.beetimer.R
 
 /**
- * Plays the alarm tone (looping) and a repeating vibration.
- * Sound follows the ringer volume (Jason keeps alarm volume low; 2026-11-21), so it is quiet
- * when the phone is on silent or Do Not Disturb. Vibration uses alarm usage, so it still
- * repeats on silent and vibrate.
+ * Plays the alarm tone (looping) and a repeating vibration, both as an alarm:
+ * alarm volume, rings in silent mode and through Do Not Disturb's default alarm exception.
  * The app does this itself because some phones (OxygenOS) replace a notification's
  * sound and vibration with a single buzz.
  */
@@ -31,7 +29,7 @@ class AlarmSound(private val context: Context) {
             vibrator.vibrate(effect, VibrationAttributes.createForUsage(VibrationAttributes.USAGE_ALARM))
         } else {
             @Suppress("DEPRECATION")
-            vibrator.vibrate(effect, VIBRATION_ATTRS)
+            vibrator.vibrate(effect, ALARM_ATTRS)
         }
     }
 
@@ -66,7 +64,7 @@ class AlarmSound(private val context: Context) {
     private inline fun newPlayer(source: MediaPlayer.() -> Unit): MediaPlayer {
         val p = MediaPlayer()
         try {
-            p.setAudioAttributes(SOUND_ATTRS)
+            p.setAudioAttributes(ALARM_ATTRS)
             p.source()
             p.isLooping = true
             p.prepare()
@@ -81,12 +79,8 @@ class AlarmSound(private val context: Context) {
     private companion object {
         const val TAG = "AlarmSound"
         val VIBRATION = longArrayOf(0, 800, 400, 800, 1200)
-        /** Ringer volume. Switch to USAGE_ALARM to follow the alarm volume instead. */
-        val SOUND_ATTRS: AudioAttributes = AudioAttributes.Builder()
-            .setUsage(AudioAttributes.USAGE_NOTIFICATION_RINGTONE)
-            .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
-            .build()
-        val VIBRATION_ATTRS: AudioAttributes = AudioAttributes.Builder()
+        /** Alarm stream (Jason, 2026-11-21): the only behavior, no setting. */
+        val ALARM_ATTRS: AudioAttributes = AudioAttributes.Builder()
             .setUsage(AudioAttributes.USAGE_ALARM)
             .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
             .build()

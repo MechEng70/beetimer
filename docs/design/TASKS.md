@@ -62,3 +62,11 @@ Status: [ ] todo, [~] in progress, [x] done.
 - README: Fedora toolchain, build, and sideload (`adb install -r app/build/outputs/apk/debug/app-debug.apk` or "Install unknown apps").
 - `docs/MANUAL-TEST.md`: a 10-minute phone script with a 10 s template and Emory, Herb, and Sparky.
 - Known limitations, plus proposed features list. STOP for review with install steps.
+
+## After alpha
+
+## T11 [ ] Release keystore before the first public GitHub Release
+- Generate a release keystore stored outside the repo (never committed; `*.jks`, `*.keystore`, `keystore.properties` are git-ignored).
+- Signing config reads `keystore.properties` from outside the repo or from environment variables.
+- `docs/DEVELOPING.md`: how to generate it, where it lives, and how to back it up (keystore file plus passwords, kept somewhere other than GitHub). Losing it means users must uninstall to update.
+- Must be done before the first public GitHub Release; the alpha APK is debug-signed.

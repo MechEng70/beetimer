@@ -3,26 +3,18 @@ package io.github.mecheng70.beetimer.ui
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
-import androidx.compose.foundation.BorderStroke
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Switch
+import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -34,122 +26,54 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.mecheng70.beetimer.R
-import io.github.mecheng70.beetimer.data.StoredTemplate
 import io.github.mecheng70.beetimer.scheduler.Event
 import io.github.mecheng70.beetimer.scheduler.Hive
 import io.github.mecheng70.beetimer.scheduler.Presets
 import io.github.mecheng70.beetimer.scheduler.StepKind
 import io.github.mecheng70.beetimer.scheduler.Template
 import io.github.mecheng70.beetimer.scheduler.TemplateValidator
+import io.github.mecheng70.beetimer.ui.theme.AppType
+import io.github.mecheng70.beetimer.ui.theme.BeeTheme
 import io.github.mecheng70.beetimer.ui.theme.Dimens
-import io.github.mecheng70.beetimer.ui.theme.LocalStatusColors
 import io.github.mecheng70.beetimer.ui.theme.ThemeMode
 import kotlinx.coroutines.launch
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsScreen(onBack: () -> Unit, onAlerts: () -> Unit) {
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text(stringResource(R.string.settings_title)) },
-                navigationIcon = { TextButton(onClick = onBack) { Text(stringResource(R.string.action_back)) } },
-            )
-        },
-    ) { padding ->
+    Column(Modifier.fillMaxSize()) {
+        ScreenHeader(stringResource(R.string.settings_title), onBack = onBack)
         Column(
-            Modifier.fillMaxSize().padding(padding).padding(horizontal = Dimens.Gutter).verticalScroll(rememberScrollState()),
-            verticalArrangement = Arrangement.spacedBy(Dimens.Gap),
+            Modifier.fillMaxSize().verticalScroll(rememberScrollState())
+                .padding(horizontal = Dimens.PageMargin).padding(bottom = Dimens.PageMargin),
+            verticalArrangement = Arrangement.spacedBy(Dimens.SectionGap),
         ) {
-            HivesSection()
-            HorizontalDivider()
-            StepsSection()
-            HorizontalDivider()
-            DisplaySection()
-            HorizontalDivider()
-            Text(stringResource(R.string.settings_alerts), style = MaterialTheme.typography.titleLarge)
-            BigOutlinedButton(stringResource(R.string.perms_title), onAlerts, Modifier.fillMaxWidth())
-            HorizontalDivider()
-            SessionSection()
-            Spacer(Modifier.height(Dimens.Gutter))
-        }
-    }
-}
-
-@Composable
-private fun HivesSection() {
-    val app = LocalContext.current.app
-    val hives by app.repo.hives.collectAsStateWithLifecycle(emptyList())
-    var addCount by remember { mutableIntStateOf(1) }
-    var editing by remember { mutableStateOf<Hive?>(null) }
-    var deleting by remember { mutableStateOf<Hive?>(null) }
-
-    Text(stringResource(R.string.settings_hives), style = MaterialTheme.typography.titleLarge)
-    hives.forEachIndexed { i, hive ->
-        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-            Column(Modifier.weight(1f)) {
-                Text(hive.label, style = MaterialTheme.typography.titleMedium)
-                hive.note?.let { Text(it, style = MaterialTheme.typography.bodyMedium) }
-            }
-            TextButton(onClick = { app.scope.launch { app.repo.moveHive(hive.id, -1) } }, enabled = i > 0) { Text(stringResource(R.string.move_up)) }
-            TextButton(onClick = { app.scope.launch { app.repo.moveHive(hive.id, 1) } }, enabled = i < hives.lastIndex) { Text(stringResource(R.string.move_down)) }
-            TextButton(onClick = { editing = hive }) { Text(stringResource(R.string.action_edit)) }
-            TextButton(onClick = { deleting = hive }) { Text(stringResource(R.string.action_delete), color = LocalStatusColors.current.danger) }
-        }
-    }
-    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-        BigOutlinedButton("-", { addCount = (addCount - 1).coerceAtLeast(1) })
-        BigButton(stringResource(R.string.settings_add_hives, addCount), { app.scope.launch { app.repo.addHives(addCount) } }, Modifier.weight(1f))
-        BigOutlinedButton("+", { addCount = (addCount + 1).coerceAtMost(MAX_ADD) })
-    }
-
-    editing?.let { hive ->
-        var name by remember(hive.id) { mutableStateOf(hive.label) }
-        var note by remember(hive.id) { mutableStateOf(hive.note.orEmpty()) }
-        AlertDialog(
-            onDismissRequest = { editing = null },
-            title = { Text(stringResource(R.string.hive_edit_title)) },
-            text = {
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    OutlinedTextField(name, { name = it }, label = { Text(stringResource(R.string.hive_name)) }, singleLine = true)
-                    OutlinedTextField(note, { note = it }, label = { Text(stringResource(R.string.hive_note)) })
+            StepsCard()
+            HivesCard()
+            DisplayCard()
+            AppCard(Modifier.fillMaxWidth()) {
+                SectionTitle(stringResource(R.string.settings_alerts))
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(stringResource(R.string.perms_title), style = AppType.body, color = BeeTheme.colors.inkMuted, modifier = Modifier.weight(1f))
+                    AppButton(stringResource(R.string.action_open), onAlerts)
                 }
-            },
-            confirmButton = {
-                TextButton(onClick = {
-                    app.scope.launch { app.repo.updateHive(hive.id, name, note) }
-                    editing = null
-                }) { Text(stringResource(R.string.action_save)) }
-            },
-            dismissButton = { TextButton(onClick = { editing = null }) { Text(stringResource(R.string.action_cancel)) } },
-        )
-    }
-
-    deleting?.let { hive ->
-        AlertDialog(
-            onDismissRequest = { deleting = null },
-            title = { Text(stringResource(R.string.hive_delete_title, hive.label)) },
-            text = { Text(stringResource(R.string.hive_delete_text)) },
-            confirmButton = {
-                TextButton(onClick = {
-                    app.scope.launch {
-                        app.engine.dispatch(Event.Cancel(hive.id))
-                        app.repo.deleteHive(hive.id)
-                    }
-                    deleting = null
-                }) { Text(stringResource(R.string.action_delete), color = LocalStatusColors.current.danger) }
-            },
-            dismissButton = { TextButton(onClick = { deleting = null }) { Text(stringResource(R.string.action_cancel)) } },
-        )
+            }
+            SessionCard()
+        }
     }
 }
 
 @Composable
-private fun StepsSection() {
+private fun SectionTitle(text: String) {
+    Text(text, style = AppType.section, color = BeeTheme.colors.ink, modifier = Modifier.padding(bottom = Dimens.Gap))
+}
+
+/** Template editor (mockup 4). Alpha: preset toggle and TIMED durations only. */
+@Composable
+private fun StepsCard() {
     val app = LocalContext.current.app
+    val c = BeeTheme.colors
     val templates by app.repo.templates.collectAsStateWithLifecycle(emptyList())
     val active = templates.firstOrNull { it.isActive } ?: templates.firstOrNull() ?: return
     var editIndex by remember { mutableStateOf<Int?>(null) }
@@ -163,36 +87,42 @@ private fun StepsSection() {
         }
     }
 
-    Text(stringResource(R.string.settings_steps), style = MaterialTheme.typography.titleLarge)
-    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-        templates.sortedBy { Presets.all.indexOfFirst { p -> p.id == it.template.id } }.forEach { stored: StoredTemplate ->
-            val selected = stored.template.id == active.template.id
-            OutlinedButton(
-                onClick = { save(stored.template, makeActive = true) },
-                modifier = Modifier.weight(1f).height(Dimens.TouchMin),
-                border = if (selected) BorderStroke(2.dp, MaterialTheme.colorScheme.primary) else null,
-            ) { Text(stored.template.name) }
-        }
-    }
-    active.template.steps.forEachIndexed { i, step ->
-        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            Column(Modifier.weight(1f)) {
-                Text(step.name, style = MaterialTheme.typography.titleMedium)
-                Text(
-                    if (step.kind == StepKind.TIMED) stringResource(R.string.kind_timed, step.durationSeconds ?: 0)
-                    else stringResource(R.string.kind_manual),
-                    style = MaterialTheme.typography.bodyMedium,
+    AppCard(Modifier.fillMaxWidth()) {
+        Row(horizontalArrangement = Arrangement.spacedBy(Dimens.Gap), modifier = Modifier.padding(bottom = Dimens.Gap)) {
+            templates.sortedBy { st -> Presets.all.indexOfFirst { it.id == st.template.id } }.forEach { stored ->
+                AppButton(
+                    text = presetLabel(stored.template.id, stored.template.name),
+                    onClick = { save(stored.template, makeActive = true) },
+                    modifier = Modifier.weight(1f),
+                    selected = stored.template.id == active.template.id,
                 )
             }
-            if (step.deviceBound) Pill(stringResource(R.string.pill_device), Tone.DEVICE)
-            else if (step.kind == StepKind.TIMED) Pill(stringResource(R.string.pill_passive), Tone.PASSIVE)
-            if (step.kind == StepKind.TIMED) TextButton(onClick = { editIndex = i }) { Text(stringResource(R.string.action_edit)) }
         }
+        val steps = active.template.steps
+        steps.forEachIndexed { i, step ->
+            Row(Modifier.fillMaxWidth().padding(vertical = Dimens.RowPadding), verticalAlignment = Alignment.CenterVertically) {
+                Column(Modifier.weight(1f)) {
+                    Text(step.name, style = AppType.body, color = c.ink)
+                    Text(
+                        if (step.kind == StepKind.TIMED) stringResource(R.string.kind_timed, step.durationSeconds ?: 0)
+                        else stringResource(R.string.kind_manual),
+                        style = AppType.chip,
+                        color = c.inkMuted,
+                    )
+                }
+                if (step.deviceBound) Chip(stringResource(R.string.pill_device), Tone.DEVICE)
+                else if (step.kind == StepKind.TIMED) Chip(stringResource(R.string.pill_passive), Tone.PASSIVE)
+                if (step.kind == StepKind.TIMED) TextAction(stringResource(R.string.action_edit), { editIndex = i })
+            }
+            if (i < steps.lastIndex) RowDivider()
+        }
+        Presets.byId(active.template.id)?.let { preset ->
+            VSpace(Dimens.Gap)
+            AppButton(stringResource(R.string.template_reset), { save(preset) }, Modifier.fillMaxWidth())
+        }
+        VSpace(Dimens.RowPadding)
+        Text(stringResource(R.string.template_footer), style = AppType.chip, color = c.inkMuted)
     }
-    Presets.byId(active.template.id)?.let { preset ->
-        BigOutlinedButton(stringResource(R.string.template_reset), { save(preset) }, Modifier.fillMaxWidth())
-    }
-    Text(stringResource(R.string.template_footer), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
 
     editIndex?.let { i ->
         val step = active.template.steps[i]
@@ -201,7 +131,7 @@ private fun StepsSection() {
         val valid = seconds != null && seconds in TemplateValidator.MIN_DURATION_S..TemplateValidator.MAX_DURATION_S
         AlertDialog(
             onDismissRequest = { editIndex = null },
-            title = { Text(stringResource(R.string.duration_title, step.name)) },
+            title = { Text(step.name, style = AppType.title) },
             text = {
                 OutlinedTextField(
                     value = text,
@@ -224,47 +154,134 @@ private fun StepsSection() {
     }
 }
 
+/** Short toggle labels from the mockup ("Pan wand", "Gun type"); custom templates keep their name. */
 @Composable
-private fun DisplaySection() {
+private fun presetLabel(id: String, name: String): String = when (id) {
+    Presets.PAN_WAND_ID -> stringResource(R.string.preset_short_pan_wand)
+    Presets.GUN_TYPE_ID -> stringResource(R.string.preset_short_gun_type)
+    else -> name
+}
+
+@Composable
+private fun HivesCard() {
     val app = LocalContext.current.app
-    val theme by app.prefs.theme.collectAsStateWithLifecycle()
-    val keepOn by app.prefs.keepScreenOn.collectAsStateWithLifecycle()
-    Text(stringResource(R.string.settings_display), style = MaterialTheme.typography.titleLarge)
-    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-        listOf(
-            ThemeMode.SYSTEM to R.string.theme_system,
-            ThemeMode.LIGHT to R.string.theme_light,
-            ThemeMode.DARK to R.string.theme_dark,
-        ).forEach { (mode, label) ->
-            OutlinedButton(
-                onClick = { app.prefs.setTheme(mode) },
-                modifier = Modifier.weight(1f).height(Dimens.TouchMin),
-                border = if (theme == mode) BorderStroke(2.dp, MaterialTheme.colorScheme.primary) else null,
-            ) { Text(stringResource(label)) }
+    val c = BeeTheme.colors
+    val hives by app.repo.hives.collectAsStateWithLifecycle(emptyList())
+    var addCount by remember { mutableIntStateOf(1) }
+    var editing by remember { mutableStateOf<Hive?>(null) }
+    var deleting by remember { mutableStateOf<Hive?>(null) }
+
+    AppCard(Modifier.fillMaxWidth()) {
+        SectionTitle(stringResource(R.string.settings_hives))
+        hives.forEachIndexed { i, hive ->
+            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                Column(Modifier.weight(1f).padding(vertical = Dimens.RowPadding)) {
+                    Text(hive.label, style = AppType.hiveName, color = c.ink)
+                    hive.note?.let { Text(it, style = AppType.label, color = c.inkMuted) }
+                }
+                TextAction(stringResource(R.string.move_up), { app.scope.launch { app.repo.moveHive(hive.id, -1) } }, enabled = i > 0)
+                TextAction(stringResource(R.string.move_down), { app.scope.launch { app.repo.moveHive(hive.id, 1) } }, enabled = i < hives.lastIndex)
+                TextAction(stringResource(R.string.action_edit), { editing = hive })
+                TextAction(stringResource(R.string.action_delete), { deleting = hive }, color = c.danger)
+            }
+            RowDivider()
+        }
+        VSpace(Dimens.Gap)
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Dimens.Gap)) {
+            AppButton(stringResource(R.string.count_minus), { addCount = (addCount - 1).coerceAtLeast(1) })
+            AppButton(stringResource(R.string.settings_add_hives, addCount), { app.scope.launch { app.repo.addHives(addCount) } })
+            AppButton(stringResource(R.string.count_plus), { addCount = (addCount + 1).coerceAtMost(MAX_ADD) })
         }
     }
-    Row(verticalAlignment = Alignment.CenterVertically) {
-        Text(stringResource(R.string.keep_screen_on), modifier = Modifier.weight(1f), style = MaterialTheme.typography.bodyLarge)
-        Switch(checked = keepOn, onCheckedChange = { app.prefs.setKeepScreenOn(it) })
+
+    editing?.let { hive ->
+        var name by remember(hive.id) { mutableStateOf(hive.label) }
+        var note by remember(hive.id) { mutableStateOf(hive.note.orEmpty()) }
+        AlertDialog(
+            onDismissRequest = { editing = null },
+            title = { Text(stringResource(R.string.hive_edit_title), style = AppType.title) },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(Dimens.Gap)) {
+                    OutlinedTextField(name, { name = it }, label = { Text(stringResource(R.string.hive_name)) }, singleLine = true)
+                    OutlinedTextField(note, { note = it }, label = { Text(stringResource(R.string.hive_note)) })
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    app.scope.launch { app.repo.updateHive(hive.id, name, note) }
+                    editing = null
+                }) { Text(stringResource(R.string.action_save)) }
+            },
+            dismissButton = { TextButton(onClick = { editing = null }) { Text(stringResource(R.string.action_cancel)) } },
+        )
+    }
+
+    deleting?.let { hive ->
+        AlertDialog(
+            onDismissRequest = { deleting = null },
+            title = { Text(stringResource(R.string.hive_delete_title, hive.label), style = AppType.title) },
+            text = { Text(stringResource(R.string.hive_delete_text)) },
+            confirmButton = {
+                TextButton(onClick = {
+                    app.scope.launch {
+                        app.engine.dispatch(Event.Cancel(hive.id))
+                        app.repo.deleteHive(hive.id)
+                    }
+                    deleting = null
+                }) { Text(stringResource(R.string.action_delete), color = c.danger) }
+            },
+            dismissButton = { TextButton(onClick = { deleting = null }) { Text(stringResource(R.string.action_cancel)) } },
+        )
     }
 }
 
 @Composable
-private fun SessionSection() {
+private fun DisplayCard() {
     val app = LocalContext.current.app
+    val c = BeeTheme.colors
+    val theme by app.prefs.theme.collectAsStateWithLifecycle()
+    val keepOn by app.prefs.keepScreenOn.collectAsStateWithLifecycle()
+    AppCard(Modifier.fillMaxWidth()) {
+        SectionTitle(stringResource(R.string.settings_display))
+        Row(horizontalArrangement = Arrangement.spacedBy(Dimens.Gap)) {
+            listOf(
+                ThemeMode.SYSTEM to R.string.theme_system,
+                ThemeMode.LIGHT to R.string.theme_light,
+                ThemeMode.DARK to R.string.theme_dark,
+            ).forEach { (mode, label) ->
+                AppButton(stringResource(label), { app.prefs.setTheme(mode) }, Modifier.weight(1f), selected = theme == mode)
+            }
+        }
+        Row(Modifier.padding(top = Dimens.Gap), verticalAlignment = Alignment.CenterVertically) {
+            Text(stringResource(R.string.keep_screen_on), style = AppType.body, color = c.ink, modifier = Modifier.weight(1f))
+            Switch(
+                checked = keepOn,
+                onCheckedChange = { app.prefs.setKeepScreenOn(it) },
+                colors = SwitchDefaults.colors(checkedTrackColor = c.ink, checkedThumbColor = c.card),
+            )
+        }
+    }
+}
+
+@Composable
+private fun SessionCard() {
+    val app = LocalContext.current.app
+    val c = BeeTheme.colors
     var confirm by remember { mutableStateOf(false) }
-    Text(stringResource(R.string.settings_session), style = MaterialTheme.typography.titleLarge)
-    BigOutlinedButton(stringResource(R.string.new_session), { confirm = true }, Modifier.fillMaxWidth(), color = LocalStatusColors.current.danger)
+    AppCard(Modifier.fillMaxWidth()) {
+        SectionTitle(stringResource(R.string.settings_session))
+        AppButton(stringResource(R.string.new_session), { confirm = true }, kind = ButtonKind.DANGER)
+    }
     if (confirm) {
         AlertDialog(
             onDismissRequest = { confirm = false },
-            title = { Text(stringResource(R.string.new_session_title)) },
+            title = { Text(stringResource(R.string.new_session_title), style = AppType.title) },
             text = { Text(stringResource(R.string.new_session_text)) },
             confirmButton = {
                 TextButton(onClick = {
                     app.send(Event.NewSession)
                     confirm = false
-                }) { Text(stringResource(R.string.new_session)) }
+                }) { Text(stringResource(R.string.new_session), color = c.danger) }
             },
             dismissButton = { TextButton(onClick = { confirm = false }) { Text(stringResource(R.string.action_cancel)) } },
         )

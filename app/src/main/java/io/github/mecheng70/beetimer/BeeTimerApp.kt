@@ -21,7 +21,7 @@ class BeeTimerApp : Application() {
 
     val prefs by lazy { Prefs(this) }
     private val db by lazy { Room.databaseBuilder(this, BeeTimerDb::class.java, "beetimer.db").build() }
-    val repo by lazy { Repository(db, prefs) { n -> getString(R.string.hive_default_name, n) } }
+    val repo by lazy { Repository(db) { n -> getString(R.string.hive_default_name, n) } }
     val alarms by lazy { AlarmScheduler(this) }
     val engine by lazy { SchedulerEngine(repo, EffectExecutor(this, alarms, Notifier(this))) }
 

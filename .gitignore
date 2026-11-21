@@ -21,8 +21,9 @@ local.properties
 .env
 *.env
 
-# Device captures (phone screenshots show other apps' icons; the repo is public)
-docs/screenshots/
+# docs/screenshots/ is committed: app and mockup captures only, status bar cropped off
+# (it shows other apps' icons and the repo is public). Raw captures stay out:
+docs/screenshots/raw/
 
 # Agent worktrees and Claude Code's local settings
 .claude/worktrees/

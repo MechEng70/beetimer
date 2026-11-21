@@ -22,13 +22,13 @@ object AlarmText {
         return when {
             run.state == RunState.DONE -> context.getString(R.string.alarm_all_done)
             run.state == RunState.WAITING_FOR_DEVICE && current != null ->
-                context.getString(R.string.alarm_next_waiting, current.name)
+                context.getString(R.string.alarm_next_waiting, current.name.replaceFirstChar { it.lowercaseChar() })
             ringing != null && run.currentStepIndex == ringing.finishedStepIndex -> {
                 val nextStep = run.steps.getOrNull(run.currentStepIndex + 1)
                 if (nextStep == null) context.getString(R.string.alarm_all_done)
-                else context.getString(R.string.alarm_next_timed, nextStep.name)
+                else context.getString(R.string.alarm_next_timed, nextStep.name.replaceFirstChar { it.lowercaseChar() })
             }
-            current != null -> context.getString(R.string.alarm_next, current.instruction.ifBlank { current.name })
+            current != null -> context.getString(R.string.alarm_next, current.instruction.ifBlank { current.name }.trimEnd('.').replaceFirstChar { it.lowercaseChar() })
             else -> ""
         }
     }

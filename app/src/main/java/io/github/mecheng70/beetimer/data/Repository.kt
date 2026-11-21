@@ -8,8 +8,6 @@ import io.github.mecheng70.beetimer.scheduler.Step
 import io.github.mecheng70.beetimer.scheduler.Template
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
 import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.json.Json
 
@@ -17,7 +15,6 @@ data class StoredTemplate(val template: Template, val isActive: Boolean)
 
 class Repository(
     private val db: BeeTimerDb,
-    private val prefs: Prefs,
     private val defaultHiveName: (Int) -> String,
 ) {
     private val json = Json {
@@ -30,19 +27,17 @@ class Repository(
 
     val templates: Flow<List<StoredTemplate>> = db.templates().observe().map { list -> list.map { it.toStored() } }
 
-    private val seedLock = Mutex()
-
     /**
-     * First run: both presets (pan wand active) and three hives. Locked because app
-     * startup and the engine's first load both call it (regression: 6 hives seeded).
+     * First run: both presets (pan wand active) and three hives, in one transaction and
+     * only while the templates table is empty. Room runs write transactions one at a time,
+     * so a second caller sees the seeded rows and does nothing (regression: two startup
+     * callers raced and seeded 6 hives; see SeedingTest).
      */
-    suspend fun seedIfNeeded() = seedLock.withLock {
-        if (db.templates().all().isEmpty()) {
+    suspend fun seedIfNeeded() {
+        db.withTransaction {
+            if (db.templates().all().isNotEmpty()) return@withTransaction
             Presets.all.forEach { db.templates().upsert(it.toEntity(isActive = it.id == Presets.PAN_WAND_ID)) }
-        }
-        if (!prefs.seeded) {
-            if (db.hives().all().isEmpty()) addHives(DEFAULT_HIVES)
-            prefs.seeded = true
+            insertHives(DEFAULT_HIVES)
         }
     }
 
@@ -62,17 +57,20 @@ class Repository(
     }
 
     suspend fun addHives(count: Int) {
-        db.withTransaction {
-            val existing = db.hives().all()
-            var position = (existing.maxOfOrNull { it.position } ?: -1) + 1
-            var number = existing.size + 1
-            val names = existing.map { it.label }.toSet()
-            repeat(count) {
-                while (defaultHiveName(number) in names) number++
-                db.hives().insert(HiveEntity(label = defaultHiveName(number), note = null, position = position))
-                position++
-                number++
-            }
+        db.withTransaction { insertHives(count) }
+    }
+
+    /** Call inside a transaction. */
+    private suspend fun insertHives(count: Int) {
+        val existing = db.hives().all()
+        var position = (existing.maxOfOrNull { it.position } ?: -1) + 1
+        var number = existing.size + 1
+        val names = existing.map { it.label }.toSet()
+        repeat(count) {
+            while (defaultHiveName(number) in names) number++
+            db.hives().insert(HiveEntity(label = defaultHiveName(number), note = null, position = position))
+            position++
+            number++
         }
     }
 

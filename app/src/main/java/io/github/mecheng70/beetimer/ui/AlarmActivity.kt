@@ -20,7 +20,6 @@ import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -38,6 +37,7 @@ import io.github.mecheng70.beetimer.R
 import io.github.mecheng70.beetimer.alarms.AlarmText
 import io.github.mecheng70.beetimer.scheduler.Event
 import io.github.mecheng70.beetimer.ui.theme.AlarmColors
+import io.github.mecheng70.beetimer.ui.theme.AppType
 import io.github.mecheng70.beetimer.ui.theme.BeeTimerTheme
 import io.github.mecheng70.beetimer.ui.theme.Dimens
 
@@ -75,24 +75,29 @@ class AlarmActivity : ComponentActivity() {
         val id = run.hiveId
 
         Column(
-            Modifier.fillMaxSize().background(AlarmColors.Background).safeDrawingPadding().padding(Dimens.Gutter),
+            Modifier.fillMaxSize().background(AlarmColors.Background).safeDrawingPadding().padding(Dimens.CardPadding),
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            Text(labels[id].orEmpty(), color = AlarmColors.Text, style = MaterialTheme.typography.displayLarge, textAlign = TextAlign.Center)
-            Text(AlarmText.finished(context, run), color = AlarmColors.Accent, style = MaterialTheme.typography.titleMedium, textAlign = TextAlign.Center)
-            Spacer(Modifier.height(Dimens.Gutter))
-            Text(AlarmText.next(context, run), color = AlarmColors.Text, style = MaterialTheme.typography.titleLarge, textAlign = TextAlign.Center)
+            Text(labels[id].orEmpty(), color = AlarmColors.Text, style = AppType.alarmName, textAlign = TextAlign.Center)
+            Text(AlarmText.finished(context, run), color = AlarmColors.Accent, style = AppType.alarmFinished, textAlign = TextAlign.Center)
+            Text(
+                AlarmText.next(context, run),
+                color = AlarmColors.Text,
+                style = AppType.alarmNext,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.padding(top = Dimens.SectionGap),
+            )
             AlarmText.deviceHint(context, run, s, labels)?.let {
-                Text(it, color = AlarmColors.Accent, style = MaterialTheme.typography.bodyMedium, textAlign = TextAlign.Center)
+                Text(it, color = AlarmColors.Accent, style = AppType.alarmHint, textAlign = TextAlign.Center, modifier = Modifier.padding(top = Dimens.ChipPaddingH))
             }
-            Spacer(Modifier.height(Dimens.TouchAlarm))
+            Spacer(Modifier.height(Dimens.CardPadding * 2))
             Button(
                 onClick = { app.send(Event.Done(id)) },
-                modifier = Modifier.fillMaxWidth().heightIn(min = Dimens.TouchAlarm),
-                shape = RoundedCornerShape(Dimens.Corner),
+                modifier = Modifier.fillMaxWidth().heightIn(min = Dimens.AlarmButton),
+                shape = RoundedCornerShape(Dimens.AlarmCorner),
                 colors = ButtonDefaults.buttonColors(containerColor = AlarmColors.Text, contentColor = AlarmColors.Background),
-            ) { Text(stringResource(R.string.action_done), style = MaterialTheme.typography.titleLarge) }
+            ) { Text(stringResource(R.string.action_done), style = AppType.alarmButton) }
             Spacer(Modifier.height(Dimens.Gap))
             Row(horizontalArrangement = Arrangement.spacedBy(Dimens.Gap)) {
                 AlarmOutlined(stringResource(R.string.action_add_minute), Modifier.weight(1f)) { app.send(Event.AddMinute(id)) }
@@ -105,11 +110,11 @@ class AlarmActivity : ComponentActivity() {
     private fun AlarmOutlined(text: String, modifier: Modifier, onClick: () -> Unit) {
         OutlinedButton(
             onClick = onClick,
-            modifier = modifier.heightIn(min = Dimens.TouchAlarm),
-            shape = RoundedCornerShape(Dimens.Corner),
+            modifier = modifier.heightIn(min = Dimens.AlarmButton),
+            shape = RoundedCornerShape(Dimens.AlarmCorner),
             border = BorderStroke(Dimens.Border, AlarmColors.Border),
             colors = ButtonDefaults.outlinedButtonColors(contentColor = AlarmColors.Text),
-        ) { Text(text, style = MaterialTheme.typography.titleMedium) }
+        ) { Text(text, style = AppType.alarmButton) }
     }
 
     companion object {

@@ -1,7 +1,12 @@
 <resources>
-    <!-- Window themes only. Compose colors and type live in ui/theme/Theme.kt. -->
-    <style name="Theme.BeeTimer" parent="android:Theme.Material.Light.NoActionBar" />
-    <style name="Theme.BeeTimer.Alarm" parent="android:Theme.Material.NoActionBar">
+    <!-- Window themes only. Compose colors and type live in ui/theme/Theme.kt.
+         forceDarkAllowed=false: the app draws its own light and dark themes, and the alarm
+         screen must stay dark amber. Without it OxygenOS recolored the alarm window. -->
+    <style name="Theme.BeeTimer" parent="android:Theme.Material.Light.NoActionBar">
+        <item name="android:forceDarkAllowed">false</item>
+        <item name="android:windowBackground">@color/page_bg</item>
+    </style>
+    <style name="Theme.BeeTimer.Alarm" parent="Theme.BeeTimer">
         <item name="android:windowBackground">@color/alarm_bg</item>
     </style>
 </resources>

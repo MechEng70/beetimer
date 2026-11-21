@@ -19,10 +19,6 @@ class Prefs(context: Context) {
     private val _keepScreenOn = MutableStateFlow(sp.getBoolean(KEY_SCREEN_ON, true))
     val keepScreenOn: StateFlow<Boolean> = _keepScreenOn.asStateFlow()
 
-    var seeded: Boolean
-        get() = sp.getBoolean(KEY_SEEDED, false)
-        set(v) = sp.edit { putBoolean(KEY_SEEDED, v) }
-
     var batteryAsked: Boolean
         get() = sp.getBoolean(KEY_BATTERY_ASKED, false)
         set(v) = sp.edit { putBoolean(KEY_BATTERY_ASKED, v) }
@@ -44,7 +40,6 @@ class Prefs(context: Context) {
     private companion object {
         const val KEY_THEME = "theme"
         const val KEY_SCREEN_ON = "keepScreenOn"
-        const val KEY_SEEDED = "seeded"
         const val KEY_BATTERY_ASKED = "batteryAsked"
         const val KEY_PERMS_SHOWN = "permsShown"
     }

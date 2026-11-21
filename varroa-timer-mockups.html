@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Varroa OAV Timer mockups</title>
+<style>
+body{font-family:system-ui,sans-serif;background:#F4F4F2;color:#1F1F1D;margin:0;padding:24px}
+.grid{display:flex;flex-wrap:wrap;gap:24px;align-items:flex-start}
+.screen{width:360px}
+.lb{font-size:13px;color:#5F5E5A;margin:0 0 8px}
+.ph{background:#fff;border:1px solid #D3D1C7;border-radius:16px;padding:12px}
+.dev{border-radius:8px;padding:10px 12px;font-size:14px}
+.am{background:#FAEEDA;color:#633806}.tl{background:#E1F5EE;color:#085041}.gy{background:#F1EFE8;color:#5F5E5A}
+.tabs{display:flex;gap:14px;font-size:14px;border-bottom:1px solid #E5E3DC;margin:10px 0;white-space:nowrap;overflow:hidden}
+.tabs span{padding:6px 0;color:#5F5E5A}.tabs .on{color:#1F1F1D;border-bottom:2px solid #1F1F1D}
+.row{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid #EEECE6;font-size:14px}
+.pill{font-size:12px;padding:2px 8px;border-radius:8px}
+.sub{color:#5F5E5A}
+button{font:inherit;background:#fff;border:1px solid #B4B2A9;border-radius:8px;padding:8px 12px;min-height:44px}
+.big{min-height:64px;font-size:17px;font-weight:600;border-radius:12px;width:100%}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.legend{font-size:13px;color:#5F5E5A;margin-top:20px}
+</style>
+</head>
+<body>
+<div class="grid">
+
+<div class="screen"><div class="lb">1. All hives (default tab)</div><div class="ph">
+<div class="dev am">Device: Hive 2, heat and vaporize, <b>1:42</b> left<br><span style="font-size:12px">Next in queue: Hive 3</span></div>
+<div class="tabs"><span class="on">All</span><span>Hive 1</span><span>Hive 2</span><span>Hive 3</span><span>Hive 4</span></div>
+<div class="row"><span style="flex:1"><b>Hive 1</b><br><span class="sub">Keep sealed</span></span><span class="pill tl">8:15</span></div>
+<div class="row"><span style="flex:1"><b>Hive 2</b><br><span class="sub">Heat and vaporize</span></span><span class="pill am">1:42</span></div>
+<div class="row"><span style="flex:1"><b>Hive 3</b><br><span class="sub">Waiting for device</span></span><span class="pill gy">Queued</span></div>
+<div class="row" style="border:none"><span style="flex:1"><b>Hive 4</b><br><span class="sub">Not started</span></span><button>Start</button></div>
+</div></div>
+
+<div class="screen"><div class="lb">2. Hive tab while a step runs</div><div class="ph">
+<div class="tabs"><span>All</span><span>Hive 1</span><span class="on">Hive 2</span><span>Hive 3</span></div>
+<div style="text-align:center;padding:8px 0 12px"><div class="sub" style="font-size:13px">Step 3 of 7, heat and vaporize</div><div style="font-size:52px;font-weight:600;line-height:1.2">1:42</div><div class="sub" style="font-size:13px">Power on. Wand in entrance.</div></div>
+<div class="row"><span style="color:#3B6D11">&#10003;</span><span style="flex:1" class="sub">Seal hive</span></div>
+<div class="row"><span style="color:#3B6D11">&#10003;</span><span style="flex:1" class="sub">Load dose</span><span class="pill am">Device</span></div>
+<div class="row am" style="padding:10px 8px;border-radius:8px"><span>&#9654;</span><span style="flex:1">Heat and vaporize, 2:30</span><span class="pill" style="background:#FAC775;color:#633806">Device</span></div>
+<div class="row"><span>&#9675;</span><span style="flex:1">Cool in hive, 2:00</span><span class="pill am">Device</span></div>
+<div class="row"><span>&#9675;</span><span style="flex:1">Remove wand</span><span class="pill am">Device</span></div>
+<div class="row"><span>&#9675;</span><span style="flex:1">Keep sealed, 10:00</span><span class="pill tl">Passive</span></div>
+<div class="row" style="border:none"><span>&#9675;</span><span style="flex:1">Unseal</span></div>
+<div class="two" style="margin-top:10px"><button style="min-height:56px">+1 min</button><button style="min-height:56px">Skip step</button></div>
+<button style="width:100%;margin-top:8px;color:#A32D2D">Cancel run</button>
+</div></div>
+
+<div class="screen"><div class="lb">3. Alarm, full screen over lock screen</div><div class="ph" style="background:#412402;border-color:#412402">
+<div style="text-align:center;color:#FAEEDA;padding:16px 0"><div style="font-size:48px;font-weight:600;line-height:1.2">Hive 2</div><div style="font-size:16px;color:#FAC775">Cool in hive finished</div><div style="font-size:19px;margin-top:14px">Next: remove wand and reseal</div><div style="font-size:13px;color:#FAC775;margin-top:6px">Device frees when you tap Done. Hive 3 is next.</div></div>
+<button class="big" style="background:#FAEEDA;color:#412402;border:none">Done</button>
+<div class="two" style="margin-top:8px"><button class="big" style="background:transparent;color:#FAEEDA;border-color:#BA7517">+1 min</button><button class="big" style="background:transparent;color:#FAEEDA;border-color:#BA7517">Snooze 30 s</button></div>
+</div></div>
+
+<div class="screen"><div class="lb">4. Template editor</div><div class="ph">
+<div style="display:flex;gap:8px;margin-bottom:10px"><button style="flex:1;border:2px solid #1F1F1D">Pan wand</button><button style="flex:1">Gun type</button></div>
+<div class="row"><span>&#8942;&#8942;</span><span style="flex:1">Heat and vaporize<br><span class="sub" style="font-size:12px">Timed, 150 s</span></span><span class="pill am">Device</span><span>Edit</span></div>
+<div class="row"><span>&#8942;&#8942;</span><span style="flex:1">Cool in hive<br><span class="sub" style="font-size:12px">Timed, 120 s</span></span><span class="pill am">Device</span><span>Edit</span></div>
+<div class="row"><span>&#8942;&#8942;</span><span style="flex:1">Keep sealed<br><span class="sub" style="font-size:12px">Timed, 600 s</span></span><span class="pill tl">Passive</span><span>Edit</span></div>
+<button style="width:100%;margin-top:10px">+ Add step</button>
+<div class="sub" style="font-size:12px;margin-top:10px">Defaults are reference values. Follow your product label and vaporizer manual; the label is the legal use spec.</div>
+</div></div>
+
+</div>
+<div class="legend"><span class="pill am">Device</span> step holds the vaporizer &nbsp; <span class="pill tl">Passive</span> hive sealed, device free &nbsp; <span class="pill gy">Queued</span> not started or waiting</div>
+</body>
+</html>

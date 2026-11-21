@@ -12,6 +12,7 @@ object Channels {
     // channel is silent and RingService plays sound and vibration itself.
     const val ALARMS = "alarms_v2"
     const val STATUS = "status_v1"
+    const val DEVICE = "device_v1"
     private val OBSOLETE = listOf("alarms_v1")
 
     fun ensure(context: Context) {
@@ -37,6 +38,16 @@ object Channels {
             enableVibration(false)
             lockscreenVisibility = Notification.VISIBILITY_PUBLIC
         }
-        nm.createNotificationChannels(listOf(alarms, status))
+        // Default notification sound and vibration: a one-off heads-up, not a looping alarm.
+        val device = NotificationChannel(
+            DEVICE,
+            context.getString(R.string.channel_device_name),
+            NotificationManager.IMPORTANCE_HIGH,
+        ).apply {
+            description = context.getString(R.string.channel_device_desc)
+            enableVibration(true)
+            lockscreenVisibility = Notification.VISIBILITY_PUBLIC
+        }
+        nm.createNotificationChannels(listOf(alarms, status, device))
     }
 }

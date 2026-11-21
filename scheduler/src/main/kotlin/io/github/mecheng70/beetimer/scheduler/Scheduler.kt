@@ -219,12 +219,14 @@ private class Reduction(var s: SchedulerState, val now: Long) {
             val ringing = run.ringing
             val endsAt = run.stepEndsAt
             when {
-                ringing != null -> {
+                // Ring again only if its next ring is due; a snoozed or quiet alarm waits.
+                ringing != null && now >= ringing.nextRingAt -> {
                     put(run.copy(ringing = ringing.copy(nextRingAt = now + SchedulerTiming.RING_CYCLE_MS)))
                     effects += Effect.Ring(run.hiveId, ringing.finishedStepIndex, ringing.overdue)
                 }
-                run.state == RunState.RUNNING && endsAt != null && endsAt <= now ->
-                    finishTimed(run, overdue = true)
+                // The process often starts because this very alarm fired, so on time is not overdue.
+                ringing == null && run.state == RunState.RUNNING && endsAt != null && endsAt <= now ->
+                    finishTimed(run, overdue = now - endsAt > SchedulerTiming.OVERDUE_AFTER_MS)
             }
         }
         val head = s.queue.firstOrNull()

@@ -6,23 +6,120 @@
     <string name="channel_alarms_desc">Rings when a timed step ends</string>
     <string name="channel_status_name">Active hives</string>
     <string name="channel_status_desc">Shows each active hive and its next step</string>
+    <string name="channel_device_name">Device free</string>
+    <string name="channel_device_desc">Tells you which hive gets the vaporizer next</string>
+
+    <!-- Actions -->
+    <string name="action_start">Start</string>
+    <string name="action_done">Done</string>
+    <string name="action_add_minute">+1 min</string>
+    <string name="action_snooze">Snooze 30 s</string>
+    <string name="action_skip">Skip step</string>
+    <string name="action_cancel_run">Cancel run</string>
+    <string name="action_settings">Settings</string>
+    <string name="action_back">Back</string>
+    <string name="action_cancel">Cancel</string>
+    <string name="action_save">Save</string>
+    <string name="action_delete">Delete</string>
+    <string name="action_queue_skip">Skip to back</string>
+    <string name="action_queue_remove">Remove</string>
+
+    <!-- Device status bar -->
+    <string name="device_free">Device: free</string>
+    <string name="device_busy_timed">Device: %1$s, %2$s, %3$s left</string>
+    <string name="device_busy">Device: %1$s, %2$s</string>
+    <string name="device_next">Next: %1$s</string>
+    <string name="device_free_next">Device free: %1$s is next</string>
+
+    <!-- Hive states -->
+    <string name="tab_all">All</string>
+    <string name="state_not_started">Not started</string>
+    <string name="state_waiting">Waiting for device</string>
+    <string name="state_queued">Queued</string>
+    <string name="state_done">Done</string>
+    <string name="state_cancelled">Cancelled</string>
+    <string name="state_finished">%1$s finished</string>
+    <string name="pill_device">Device</string>
+    <string name="pill_passive">Passive</string>
+    <string name="pill_overdue">Overdue</string>
+    <string name="no_hives">No hives yet. Add them in Settings.</string>
+
+    <!-- Hive tab -->
+    <string name="hive_step_of">Step %1$d of %2$d, %3$s</string>
+    <string name="hive_tap_done">Tap Done when finished</string>
+    <string name="hive_waiting_head">Device free. Tap Start when the vaporizer is on this hive.</string>
+    <string name="hive_waiting">Waiting for the device</string>
+    <string name="hive_ready">Ready to start</string>
+    <string name="hive_all_done">All steps done</string>
+    <string name="step_with_duration">%1$s, %2$s</string>
 
     <!-- Alarm -->
-    <string name="alarm_stop">Stop</string>
+    <string name="alarm_finished">%1$s finished</string>
+    <string name="alarm_finished_overdue">%1$s finished (overdue)</string>
+    <string name="alarm_next">Next: %1$s</string>
+    <string name="alarm_next_timed">Next: %1$s. Starts when you tap Done.</string>
+    <string name="alarm_next_waiting">Next: %1$s. Waiting for the device.</string>
+    <string name="alarm_all_done">All steps done.</string>
+    <string name="alarm_device_frees">Device frees when you tap Done.</string>
+    <string name="alarm_device_frees_next">Device frees when you tap Done. %1$s is next.</string>
 
-    <!-- T1b alarm spike (replaced by the real UI in T7) -->
-    <string name="spike_title">Alarm test</string>
-    <string name="spike_hive_label">Test hive</string>
-    <string name="spike_alarm_text">Test alarm finished. Tap Stop.</string>
-    <string name="perm_allowed">allowed</string>
-    <string name="perm_not_allowed">NOT allowed</string>
-    <string name="perm_notifications">Notifications: %1$s</string>
-    <string name="perm_exact">Exact alarms: %1$s</string>
-    <string name="perm_fsi">Full-screen alarms: %1$s</string>
-    <string name="perm_allow_notifications">Allow notifications</string>
-    <string name="perm_open_exact">Open exact alarm setting</string>
-    <string name="perm_fsi_explain">Full-screen alarms let the alarm show over the lock screen. Turn it on in the next screen.</string>
-    <string name="perm_open_fsi">Open full-screen setting</string>
-    <string name="spike_test_in">Test alarm in %1$d s</string>
-    <string name="spike_set_for">Alarm set for %1$s. Lock the phone now.</string>
+    <!-- Status notification -->
+    <plurals name="status_title">
+        <item quantity="one">%1$d hive active</item>
+        <item quantity="other">%1$d hives active</item>
+    </plurals>
+    <string name="status_line_ends">%1$s: %2$s, ends %3$s</string>
+    <string name="status_line_done">%1$s: %2$s, tap Done</string>
+    <string name="status_line_waiting">%1$s: waiting for device</string>
+    <string name="status_line_ringing">%1$s: %2$s finished</string>
+
+    <!-- Device free notification -->
+    <string name="device_notif_title">Device free: %1$s is next</string>
+    <string name="device_notif_text">Move the vaporizer, then tap Start.</string>
+
+    <!-- Settings -->
+    <string name="settings_title">Settings</string>
+    <string name="settings_hives">Hives</string>
+    <string name="settings_add_hives">Add %1$d</string>
+    <string name="hive_default_name">Hive %1$d</string>
+    <string name="hive_edit_title">Hive</string>
+    <string name="hive_name">Name</string>
+    <string name="hive_note">Note</string>
+    <string name="hive_delete_title">Delete %1$s?</string>
+    <string name="hive_delete_text">Its run is cancelled.</string>
+    <string name="move_up">Up</string>
+    <string name="move_down">Down</string>
+    <string name="action_edit">Edit</string>
+    <string name="settings_steps">Steps</string>
+    <string name="kind_timed">Timed, %1$d s</string>
+    <string name="kind_manual">Manual</string>
+    <string name="template_reset">Reset to defaults</string>
+    <string name="template_footer">Defaults are reference values. Follow your product label and vaporizer manual; the label is the legal use spec.</string>
+    <string name="duration_title">%1$s</string>
+    <string name="duration_seconds">Seconds</string>
+    <string name="duration_invalid">Enter 1 to 86400 seconds.</string>
+    <string name="settings_display">Display</string>
+    <string name="theme_system">System</string>
+    <string name="theme_light">Light</string>
+    <string name="theme_dark">Dark</string>
+    <string name="keep_screen_on">Keep screen on during a run</string>
+    <string name="settings_alerts">Alerts</string>
+    <string name="settings_session">Session</string>
+    <string name="new_session">New session</string>
+    <string name="new_session_title">Start a new session?</string>
+    <string name="new_session_text">This clears every hive\'s run.</string>
+
+    <!-- Permissions -->
+    <string name="perms_title">Make sure alarms get through</string>
+    <string name="perm_notifications">Notifications</string>
+    <string name="perm_exact">Alarms and reminders</string>
+    <string name="perm_fsi">Full-screen alarms</string>
+    <string name="perm_fsi_explain">Shows the alarm over the lock screen. Turn on Bee Timer in the next screen.</string>
+    <string name="perm_battery">No battery limits</string>
+    <string name="perm_battery_explain">Keeps alarms on time while the phone sleeps. Asked once.</string>
+    <string name="perm_on">On</string>
+    <string name="perm_off">Off</string>
+    <string name="perm_allow">Allow</string>
+    <string name="perms_sound_note">Alarm sound follows your ringer volume. On silent it only vibrates.</string>
+    <string name="perms_continue">Continue</string>
 </resources>

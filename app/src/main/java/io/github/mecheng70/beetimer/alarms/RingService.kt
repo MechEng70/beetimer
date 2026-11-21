@@ -1,7 +1,5 @@
 package io.github.mecheng70.beetimer.alarms
 
-import android.app.Notification
-import android.app.PendingIntent
 import android.app.Service
 import android.content.Context
 import android.content.Intent
@@ -10,11 +8,12 @@ import android.os.Build
 import android.os.Handler
 import android.os.IBinder
 import android.os.Looper
-import io.github.mecheng70.beetimer.R
-import io.github.mecheng70.beetimer.ui.AlarmActivity
+import android.util.Log
 
 /**
- * Foreground service that runs only while an alarm rings.
+ * Foreground service that runs only while an alarm rings. Plays sound and vibration
+ * for every ringing hive (one loop, however many hives) and keeps each hive's alarm
+ * notification posted.
  *
  * Type systemExempted: Android allows it for apps holding USE_EXACT_ALARM that keep an
  * alarm going in the background. Needed because notification sound and vibration alone
@@ -23,32 +22,40 @@ import io.github.mecheng70.beetimer.ui.AlarmActivity
 class RingService : Service() {
     private val handler = Handler(Looper.getMainLooper())
     private lateinit var sound: AlarmSound
-    private val capRunnable = Runnable { stopRinging() }
+    private lateinit var notifier: Notifier
+    private val ringing = LinkedHashMap<Long, Pair<String, String>>()
+    private var foregroundId: Long? = null
+    private val capRunnable = Runnable { quiet() }
 
     override fun onCreate() {
         super.onCreate()
         sound = AlarmSound(this)
+        notifier = Notifier(this)
+        running = true
     }
 
     override fun onBind(intent: Intent?): IBinder? = null
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        val hiveId = intent?.getLongExtra(EXTRA_HIVE_ID, NO_HIVE) ?: NO_HIVE
         when (intent?.action) {
             ACTION_RING -> {
-                val hiveId = intent.getLongExtra(EXTRA_HIVE_ID, 0L)
-                val title = intent.getStringExtra(EXTRA_TITLE).orEmpty()
-                val text = intent.getStringExtra(EXTRA_TEXT).orEmpty()
-                val notification = buildNotification(hiveId, title, text)
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
-                    startForeground(NOTIFICATION_ID, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_SYSTEM_EXEMPTED)
-                } else {
-                    startForeground(NOTIFICATION_ID, notification)
-                }
+                ringing[hiveId] = intent.getStringExtra(EXTRA_TITLE).orEmpty() to intent.getStringExtra(EXTRA_TEXT).orEmpty()
+                promote(hiveId)
                 sound.start()
                 handler.removeCallbacks(capRunnable)
                 handler.postDelayed(capRunnable, RING_CAP_MS)
             }
-            else -> stopRinging()
+            ACTION_STOP -> {
+                ringing.remove(hiveId)
+                notifier.cancelRing(hiveId)
+                if (ringing.isEmpty()) {
+                    shutDown(removeNotification = true)
+                } else if (foregroundId == hiveId) {
+                    promote(ringing.keys.last())
+                }
+            }
+            else -> if (ringing.isEmpty()) shutDown(removeNotification = true)
         }
         return START_NOT_STICKY
     }
@@ -56,70 +63,74 @@ class RingService : Service() {
     override fun onDestroy() {
         handler.removeCallbacks(capRunnable)
         sound.stop()
+        running = false
         super.onDestroy()
     }
 
-    private fun stopRinging() {
+    /** Make [hiveId]'s notification the foreground one; keep the others posted. */
+    private fun promote(hiveId: Long) {
+        val (title, text) = ringing.getValue(hiveId)
+        val n = notifier.ringNotification(hiveId, title, text)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+            startForeground(Notifier.ringId(hiveId), n, ServiceInfo.FOREGROUND_SERVICE_TYPE_SYSTEM_EXEMPTED)
+        } else {
+            startForeground(Notifier.ringId(hiveId), n)
+        }
+        foregroundId = hiveId
+        ringing.forEach { (id, t) -> if (id != hiveId) notifier.postRing(id, notifier.ringNotification(id, t.first, t.second)) }
+    }
+
+    /** Two minutes of ringing are up: go quiet but leave the alarms on screen. */
+    private fun quiet() {
+        Log.i(TAG, "Ring cap reached for ${ringing.keys}")
+        shutDown(removeNotification = false)
+    }
+
+    private fun shutDown(removeNotification: Boolean) {
         handler.removeCallbacks(capRunnable)
         sound.stop()
-        stopForeground(STOP_FOREGROUND_REMOVE)
+        stopForeground(if (removeNotification) STOP_FOREGROUND_REMOVE else STOP_FOREGROUND_DETACH)
+        ringing.clear()
+        foregroundId = null
         stopSelf()
     }
 
-    private fun buildNotification(hiveId: Long, title: String, text: String): Notification {
-        Channels.ensure(this)
-        val fullScreen = PendingIntent.getActivity(
-            this,
-            hiveId.toInt(),
-            AlarmActivity.intent(this, hiveId, title, text),
-            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
-        )
-        val stop = PendingIntent.getService(
-            this,
-            hiveId.toInt(),
-            stopIntent(this),
-            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
-        )
-        return Notification.Builder(this, Channels.ALARMS)
-            .setSmallIcon(R.drawable.ic_stat_timer)
-            .setContentTitle(title)
-            .setContentText(text)
-            .setCategory(Notification.CATEGORY_ALARM)
-            .setVisibility(Notification.VISIBILITY_PUBLIC)
-            .setOngoing(true)
-            .setContentIntent(fullScreen)
-            .setFullScreenIntent(fullScreen, true)
-            .setForegroundServiceBehavior(Notification.FOREGROUND_SERVICE_IMMEDIATE)
-            .addAction(Notification.Action.Builder(null, getString(R.string.alarm_stop), stop).build())
-            .build()
-    }
-
     companion object {
+        private const val TAG = "RingService"
         private const val ACTION_RING = "io.github.mecheng70.beetimer.RING"
         private const val ACTION_STOP = "io.github.mecheng70.beetimer.STOP_RING"
         private const val EXTRA_HIVE_ID = "hiveId"
         private const val EXTRA_TITLE = "title"
         private const val EXTRA_TEXT = "text"
-        private const val NOTIFICATION_ID = 10_000
+        private const val NO_HIVE = -1L
 
-        /** Ring at most 2 minutes per alarm (SPEC). T6 schedules the repeat. */
+        /** Ring at most 2 minutes per alarm (SPEC). The scheduler rings again later. */
         private const val RING_CAP_MS = 2 * 60 * 1000L
 
+        @Volatile
+        var running = false
+            private set
+
         fun ring(context: Context, hiveId: Long, title: String, text: String) {
-            context.startForegroundService(
-                Intent(context, RingService::class.java)
-                    .setAction(ACTION_RING)
-                    .putExtra(EXTRA_HIVE_ID, hiveId)
-                    .putExtra(EXTRA_TITLE, title)
-                    .putExtra(EXTRA_TEXT, text),
-            )
+            runCatching {
+                context.startForegroundService(
+                    Intent(context, RingService::class.java)
+                        .setAction(ACTION_RING)
+                        .putExtra(EXTRA_HIVE_ID, hiveId)
+                        .putExtra(EXTRA_TITLE, title)
+                        .putExtra(EXTRA_TEXT, text),
+                )
+            }.onFailure { Log.e(TAG, "Could not start ring service", it) }
         }
 
-        fun stopIntent(context: Context): Intent =
-            Intent(context, RingService::class.java).setAction(ACTION_STOP)
-
-        fun stop(context: Context) {
-            context.stopService(Intent(context, RingService::class.java))
+        fun stop(context: Context, hiveId: Long) {
+            Notifier(context).cancelRing(hiveId)
+            if (!running) return
+            runCatching {
+                context.startService(
+                    Intent(context, RingService::class.java).setAction(ACTION_STOP).putExtra(EXTRA_HIVE_ID, hiveId),
+                )
+            }.onFailure { Log.w(TAG, "Could not reach ring service", it) }
         }
     }
 }

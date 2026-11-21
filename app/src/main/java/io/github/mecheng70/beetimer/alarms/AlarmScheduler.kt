@@ -4,7 +4,8 @@ import android.app.AlarmManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
-import io.github.mecheng70.beetimer.MainActivity
+import android.util.Log
+import io.github.mecheng70.beetimer.ui.MainActivity
 
 /** Thin wrapper over AlarmManager. One pending alarm per hive; scheduling again replaces it. */
 class AlarmScheduler(private val context: Context) {
@@ -13,7 +14,7 @@ class AlarmScheduler(private val context: Context) {
     fun canScheduleExact(): Boolean = am.canScheduleExactAlarms()
 
     /** Step-end alarm. setAlarmClock fires in Doze and shows the alarm icon. */
-    fun scheduleAlarmClock(hiveId: Long, atMs: Long) {
+    fun scheduleAlarmClock(hiveId: Long, atMs: Long) = guarded {
         val show = PendingIntent.getActivity(
             context,
             0,
@@ -24,12 +25,21 @@ class AlarmScheduler(private val context: Context) {
     }
 
     /** Snooze and re-ring. Exact, allowed while idle, no status bar alarm icon. */
-    fun scheduleExact(hiveId: Long, atMs: Long) {
+    fun scheduleExact(hiveId: Long, atMs: Long) = guarded {
         am.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, atMs, firePending(hiveId))
     }
 
     fun cancel(hiveId: Long) {
         am.cancel(firePending(hiveId))
+    }
+
+    private inline fun guarded(block: () -> Unit) {
+        try {
+            block()
+        } catch (e: SecurityException) {
+            // Only possible on Android 12 if exact alarm access was revoked.
+            Log.e("AlarmScheduler", "Exact alarm not allowed", e)
+        }
     }
 
     private fun firePending(hiveId: Long): PendingIntent = PendingIntent.getBroadcast(

@@ -11,8 +11,11 @@
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SYSTEM_EXEMPTED" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
 
     <application
+        android:name=".BeeTimerApp"
         android:allowBackup="false"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
@@ -20,7 +23,7 @@
         android:theme="@style/Theme.BeeTimer">
 
         <activity
-            android:name=".MainActivity"
+            android:name=".ui.MainActivity"
             android:exported="true"
             android:launchMode="singleTop">
             <intent-filter>
@@ -42,6 +45,22 @@
         <receiver
             android:name=".alarms.AlarmReceiver"
             android:exported="false" />
+
+        <receiver
+            android:name=".alarms.ActionReceiver"
+            android:exported="false" />
+
+        <!-- Exported so the system can deliver boot and clock broadcasts (all protected). -->
+        <receiver
+            android:name=".alarms.BootReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
+                <action android:name="android.intent.action.TIME_SET" />
+                <action android:name="android.intent.action.TIMEZONE_CHANGED" />
+            </intent-filter>
+        </receiver>
 
         <!-- Runs only while an alarm rings. systemExempted: allowed for USE_EXACT_ALARM apps
              that keep an alarm going in the background. -->

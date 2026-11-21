@@ -18,11 +18,9 @@ data class Step(
     val instruction: String = "",
 ) {
     val durationMs: Long get() = (durationSeconds ?: 0) * MS_PER_SECOND
-
-    private companion object {
-        const val MS_PER_SECOND = 1000L
-    }
 }
+
+private const val MS_PER_SECOND = 1000L
 
 /** An ordered list of steps shared by all hives. All edits return a new Template. */
 @Serializable

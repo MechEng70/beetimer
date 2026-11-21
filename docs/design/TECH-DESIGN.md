@@ -169,6 +169,8 @@ UI preferences (theme, keep screen on, battery prompt already shown) live in Sha
 
 ## 8. Android layer
 
+**Wiring.** `BeeTimerApp` builds the graph by hand (no DI library): Room `BeeTimerDb`, `Repository`, `Prefs`, `AlarmScheduler`, `Notifier`, `EffectExecutor`, `SchedulerEngine`. Startup seeds once (locked; two callers raced and seeded 6 hives in the first build) and loads state, which runs `restore`.
+
 **SchedulerEngine** (app singleton) is the only place events are dispatched. It does mutex, load state, `reduce(now = System.currentTimeMillis())`, persist, then execute effects. It exposes a `StateFlow<SchedulerState>` for the UI.
 
 **Alarms**
@@ -177,7 +179,11 @@ UI preferences (theme, keep screen on, battery prompt already shown) live in Sha
 - Manifest: `USE_EXACT_ALARM`. Check `canScheduleExactAlarms()` at startup anyway, and route to settings if it returns false.
 - `AlarmReceiver` uses `goAsync()` and dispatches `TimerFired` or the re-ring.
 
-**Boot and time changes.** `BootReceiver` handles `BOOT_COMPLETED`, `TIME_SET`, `TIMEZONE_CHANGED`, and `MY_PACKAGE_REPLACED`, and calls `restore`.
+**Boot and time changes.** `BootReceiver` handles `BOOT_COMPLETED`, `TIME_SET`, `TIMEZONE_CHANGED`, and `MY_PACKAGE_REPLACED`, and calls `restore`. Restore re-rings a ringing alarm only when its next ring is due (a snooze survives process death), and an alarm that starts the process on time is not overdue (60 s grace, same as a live alarm).
+
+**Multiple hives ringing.** `RingService` keeps one sound loop for all ringing hives, one notification per hive (the newest is the foreground one), and stops when the last is acknowledged. `AlarmActivity` shows the hive it was opened for, then any other ringing hive, then closes.
+
+**Device free.** Channel `device_v1` (high importance, default notification sound): "Device free: Herb is next" with a Start button. Cleared when the device is taken or the queue empties.
 
 **Ringing (revised after the T1b phone test, OnePlus CPH2583, Android 16)**
 - Findings: (1) OxygenOS replaced the channel's vibration and ignored `FLAG_INSISTENT`, so the phone buzzed once (`OplusVibrationEffectSegment ... repeat=-1`). (2) The system default alarm tone is unset on this phone (`settings get system alarm_alert` is null), so a player set to "default alarm" never started.
@@ -227,13 +233,16 @@ UI preferences (theme, keep screen on, battery prompt already shown) live in Sha
 
 ## 10. Known limitations and deferrals (alpha)
 
-- Debug build only. A release keystore comes after alpha.
-- No ktlint or detekt yet.
-- Up/down reordering, no drag.
-- The ongoing notification shows end times, not a ticking countdown per hive.
-- Removing a hive from the queue restarts its run (section 5 note).
-- No instrumented UI tests. Alarm and notification behaviour is verified with the manual phone script.
-- Audio uses the default alarm ringtone. There is no ringtone picker.
+- Debug build only, debug-signed. No release keystore yet.
+- After a reboot, alarms come back only after the first unlock (state lives in credential-protected storage). An alarm due before you unlock rings right after unlocking, marked overdue.
+- Alarm sound follows the ringer volume, so silent mode and Do Not Disturb mute it (vibration keeps going). One constant in `AlarmSound` switches it to the alarm volume.
+- The alarm tone is the phone's alarm tone if one is set, otherwise the bundled beep. No tone picker.
+- The ongoing notification shows end times per hive plus one countdown to the next end, not a ticking countdown per line.
+- Template editing in the UI is limited to TIMED durations on the two presets. The model supports add, delete and reorder.
+- No session history. No ktlint, detekt, Semgrep or Snyk yet.
+- No instrumented or UI tests. The Android layer (seeding, ringing, receivers) is checked with the manual phone script (`docs/MANUAL-TEST.md`).
+- compileSdk 36 holds Compose, core-ktx and lifecycle at older versions (section 2).
+- Removing a hive from the queue resets its run (approved).
 
 ## 11. Testing
 

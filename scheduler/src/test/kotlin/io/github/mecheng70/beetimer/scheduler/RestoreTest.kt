@@ -81,13 +81,42 @@ class RestoreTest {
     }
 
     @Test
-    fun ringingAtReboot_ringsAgain() {
+    fun ringingAtReboot_waitsForNextRing() {
         val t = Harness()
         t.heating(a)
-        t.fire(a) // ringing, not acknowledged
+        t.fire(a) // rings at 150 s, next ring at 390 s
         val fx = t.rebootAt(200)
+        assertTrue(fx.none { it is Ring })
+        assertEquals(150 * SEC + SchedulerTiming.RING_CYCLE_MS, t.alarms[a])
+    }
+
+    @Test
+    fun ringingAtReboot_ringsWhenNextRingIsDue() {
+        val t = Harness()
+        t.heating(a)
+        t.fire(a)
+        val fx = t.rebootAt(500)
         assertTrue(fx.contains(Ring(a, 2, overdue = false)))
-        assertEquals(200 * SEC + SchedulerTiming.RING_CYCLE_MS, t.alarms[a])
+        assertEquals(500 * SEC + SchedulerTiming.RING_CYCLE_MS, t.alarms[a])
+    }
+
+    @Test
+    fun snoozedAtProcessDeath_staysSnoozed() {
+        val t = Harness()
+        t.heating(a)
+        t.fire(a)
+        t.at(160).send(Event.Snooze(a)) // next ring at 190 s
+        val fx = t.rebootAt(170)
+        assertTrue(fx.none { it is Ring })
+        assertEquals(190 * SEC, t.alarms[a])
+    }
+
+    @Test
+    fun processStartedByOnTimeAlarm_isNotOverdue() {
+        val t = Harness()
+        t.heating(a)
+        val fx = t.rebootAt(155) // alarm at 150 s woke a dead process
+        assertTrue(fx.contains(Ring(a, 2, overdue = false)))
     }
 
     @Test

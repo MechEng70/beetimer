@@ -39,4 +39,4 @@ There is no account, no server and no network access. Your hives and settings st
 
 MIT. See [LICENSE](LICENSE).
 
-Building it yourself: see [docs/DEVELOPING.md](docs/DEVELOPING.md).
+Building it yourself: see [docs/DEVELOPING.md](docs/DEVELOPING.md). Phone test script: [docs/MANUAL-TEST.md](docs/MANUAL-TEST.md).

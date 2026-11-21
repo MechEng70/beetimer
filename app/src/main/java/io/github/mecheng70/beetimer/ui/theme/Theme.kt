@@ -126,6 +126,7 @@ object Dimens {
     val Gutter = 16.dp
     val Gap = 12.dp
     val Corner = 12.dp
+    val Border = 1.dp
 }
 
 val LocalStatusColors = staticCompositionLocalOf { LightStatus }

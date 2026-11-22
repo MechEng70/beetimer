@@ -5,15 +5,24 @@ Update this file at the end of each round.
 
 ## State
 
-- **Version:** 0.1.0-alpha, debug-signed. Last code change: R9 (footer copy) on `master`.
+- **Version:** 0.1.0-alpha, debug-signed. Last commit `9e12b85` (R9) on `master`.
 - **Remote:** none yet. The repo has never been pushed; GitHub is planned as `MechEng70/beetimer`.
 - **Phone:** the R9 build is installed on Jason's phone (OnePlus CPH2583, Android 16, OxygenOS, font
   scale 1.15).
 - **Gate:** `scripts/check.sh` passes, 96 tests.
-- **End to end:** 12 of 13 emulator runs pass, with 0 invariant errors (`docs/e2e/REPORT.md`). The one
-  failure is a 60x timing limit, explained below.
-- **Done:** everything in `docs/design/TASKS.md` up to R9. R7 to R9 were display only, so the E2E suite was not re-run.
+- **End to end:** 12 of 13 emulator runs pass, with 0 invariant errors (`docs/e2e/REPORT.md`, R6 build).
+  The one failure is a 60x timing limit, explained below. R7 to R9 were display only and no flow reads the
+  text they changed, so the suite was not re-run.
+- **Done:** everything in `docs/design/TASKS.md` up to R9.
 - **Waiting on:** nothing assigned. The next work is Jason's call.
+
+## Latest rounds (2026-11-22, All tab only, display only)
+
+- **R7** `3f0c6fb`: Coming up has no times and shows the next 3 events (hive and action). Hive rows drop
+  "in m:ss" from "Next:" and are larger for outdoors (name 20 sp, step 17, Next 16, countdown chip 20 bold).
+- **R8** `6f91a23`: the next step name is an outlined pill, amber for a vaporizer step, teal for passive.
+- **R9** `9e12b85`: footer "Estimated finish: 9:15 AM", "... (2 of 3 hives)", or "All hives done at 9:15 AM".
+  New screenshot `app-1-all-teal.png`.
 
 ## Read first
 
@@ -31,7 +40,8 @@ scripts/check.sh                                        # gate: all unit tests +
 adb install -r app/build/outputs/apk/debug/app-debug.apk
 scripts/build-apk.sh                                    # gate + release/beetimer-<version>.apk + sha256
 scripts/e2e/run.sh s1 ... s11 s1x10 s2x10               # emulator only; then python3 scripts/e2e/analyze.py
-scripts/e2e/screens.sh                                  # re-capture docs/screenshots/app-*.png (emulator)
+emulator -avd beetimer-api36                            # emulator for E2E and screenshots
+scripts/e2e/screens.sh                                  # re-capture docs/screenshots/app-*.png (emulator, real time)
 python3 scripts/icon/svg2vd.py && python3 scripts/icon/compare.py   # after changing the icon art
 adb logcat -s BeeTimerE2E BeeTimerInvariant             # debug builds: event log and invariant errors
 ```
@@ -50,16 +60,19 @@ Toolchain setup: `docs/DEVELOPING.md`. E2E details: `docs/e2e/README.md`.
   plays sound and vibration on the alarm stream.
 - `Delivery` decides foreground vs background behavior: in-app alarm screen and snackbar, or full-screen
   notification and "Vaporizer free" notification.
+- All tab display choices live in `ui/`, not the planner: `COMING_UP_COUNT` (3) in `MainScreen.kt` (the
+  planner's `comingUp` default stays 5), and the footer variant in `ui/Footer.kt` (`footerFor`, `FooterTest`).
+  Row sizes and pill colors are tokens in `Theme.kt`.
 - Debug-only tools (time scale, invariant and E2E logging) live in `app/src/debug/DevTools.kt`. The release
   build has a no-op twin.
 
 ## Open items
 
 Needs Jason:
-- **R7 to R9 on the phone:** look at the All tab outdoors (see TASKS.md R7 to R9). Sizes and colors are tokens
-  in `Theme.kt` (`AppType.rowHiveName`, `rowStep`, `rowNext`, `stepPill`, `timeChip`, `Dimens.TimeChip*`,
-  `Pill*`, `HiveRowPaddingV`, `deviceBorder`, `passiveBorder`). `app-1-all-teal.png` shows both pill
-  colors. The footer's "Estimated finish" without a count and "All hives done at" are unit tested only.
+- **R7 to R9 on the phone:** look at the All tab outdoors. Tokens: `AppType.rowHiveName`, `rowStep`,
+  `rowNext`, `stepPill`, `timeChip`; `Dimens.TimeChip*`, `Pill*`, `HiveRowPaddingV`; colors `deviceBorder`,
+  `passiveBorder`. Not yet seen on a screen: the footer without a count, "All hives done at", and a Done
+  button next to a long pill at font scale 1.3.
 - **Themed icons on the phone:** turn them on (Settings, Wallpapers & style, Icons, Themed icons) and look at
   the home screen. They're verified on the emulator only.
 - **Push to GitHub:** create the remote and push. Then upload `docs/icon/icon-1024.png` as the social preview
@@ -69,6 +82,10 @@ Needs Jason:
 Before the first public release:
 - **T11 release keystore:** see TASKS.md. The keystore is never committed, and how to back it up goes in
   DEVELOPING.md.
+
+Small, not urgent:
+- Kotlin warning `Condition is always 'true'` at `ui/MainScreen.kt:360` (Hive tab, `counting && ends != null`).
+  It was there before R7 and is harmless.
 
 Backlog (don't build without asking): B1 timeline chart, B2 more than one vaporizer, B3 dark theme pass, B4
 add and delete steps in the editor, B5 session history.
@@ -117,10 +134,6 @@ Build and tests:
   (`SeedingTest`).
 - **Alarm screen close:** the close logic must stay in `lifecycleScope`, not Compose. In Compose it was
   dispatcher-order dependent, and the in-app alarm closed to the launcher (`AlarmActivityCloseTest`).
-- **Coming up count:** the All tab passes `COMING_UP_COUNT` (3) to `Forecast.comingUp`; the planner's
-  default stays 5, so the planner and its test are untouched.
-- **Emulator keyboard:** Gboard on the emulator can pop a "Try out your stylus" tutorial over a text field,
-  and then `rename_hive` in `screens.sh` fails with `Argument expected after "tap"`. Tap Cancel on it and re-run.
 - **Icon render:** `IconRenderTest` needs Robolectric `GraphicsMode.NATIVE`.
 
 E2E harness:
@@ -130,6 +143,12 @@ E2E harness:
 - **Logcat:** stream it live, or the buffer rotates and loses the start of long runs.
 - **Rename hives:** do it through the shell; Maestro text input had cursor problems.
 - **Dialog buttons:** they need `testTagsAsResourceId` set on the dialog itself to be visible to Maestro.
+- **Emulator keyboard:** Gboard on the emulator can pop a "Try out your stylus" tutorial over a text field.
+  Then `rename_hive` fails with `Argument expected after "tap"`. Tap Cancel on the tutorial and re-run.
+- **Screenshot flows:** `scr-*` flows come from `gen_flows.py` (edit it, then run it; never hand-edit the
+  YAML). `screens.sh` runs at 1x and waits for real step ends; the teal scene (`scr-h0`, `scr-h`) clears
+  data again and takes about 5 minutes. To re-take only some shots, copy the part you need into a scratch
+  script.
 
 ## Doc map
 

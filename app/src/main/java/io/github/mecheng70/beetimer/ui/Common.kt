@@ -132,19 +132,20 @@ fun AppCard(modifier: Modifier = Modifier, content: @Composable ColumnScope.() -
 
 enum class ChipKind { TIME, STATE }
 
-/** Chip for a countdown or clock time ([ChipKind.TIME], bold 15 sp) or a state ([ChipKind.STATE], 14 sp). */
+/** Chip for a countdown ([ChipKind.TIME], bold 20 sp, 36 dp tall) or a state ([ChipKind.STATE], 14 sp). */
 @Composable
 fun Chip(text: String, tone: Tone, modifier: Modifier = Modifier, kind: ChipKind = ChipKind.STATE, strong: Boolean = false) {
     val (bg, fg) = toneColors(tone)
     val fill = if (strong && tone == Tone.DEVICE) BeeTheme.colors.deviceStrong else bg
+    val time = kind == ChipKind.TIME
     Box(
         modifier
-            .heightIn(min = Dimens.ChipMinHeight)
+            .heightIn(min = if (time) Dimens.TimeChipMinHeight else Dimens.ChipMinHeight)
             .background(fill, RoundedCornerShape(Dimens.SmallCorner))
-            .padding(horizontal = Dimens.ChipPaddingH, vertical = Dimens.ChipPaddingV),
+            .padding(horizontal = if (time) Dimens.TimeChipPaddingH else Dimens.ChipPaddingH, vertical = Dimens.ChipPaddingV),
         contentAlignment = Alignment.Center,
     ) {
-        Text(text, style = if (kind == ChipKind.TIME) AppType.timeChip else AppType.stateChip, color = fg, maxLines = 1)
+        Text(text, style = if (time) AppType.timeChip else AppType.stateChip, color = fg, maxLines = 1)
     }
 }
 

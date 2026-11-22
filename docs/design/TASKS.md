@@ -85,6 +85,9 @@ Each round was a review from Jason with an explicit list. TECH-DESIGN and SPEC s
 ## R6 [x] Foreground alarms, snackbar, icon (7c6bc8e)
 - App in the foreground: alarm screen opens directly, "Vaporizer free" is a snackbar. Scenario 11 (Home and lock while ringing). s2 at 10x with predicted vs actual. Fixed: in-app alarm screen closed to the launcher (`AlarmActivityCloseTest`). Stopwatch bee adaptive icon with monochrome layer, pixel-checked against the SVGs.
 
+## R7 [x] All-tab GUI cleanup
+- Display only. Coming up: no time column, next 3 events, hive and action. Hive rows: "Next: Unseal" without "in m:ss"; larger type for outdoors (name 20 sp, step 17, Next 16, countdown chip 20 bold, 36 dp tall, 12 dp padding; rows 14 dp padding). No scheduler, planner, alarm or data changes. No E2E flow read the removed text.
+
 ## After alpha
 
 ## T11 [ ] Release keystore before the first public GitHub Release

@@ -59,6 +59,8 @@ import io.github.mecheng70.beetimer.ui.theme.Dimens
 /** Placeholder swapped for the bold countdown in the status line. */
 private const val COUNTDOWN_MARK = "\u0001"
 private const val HALF = 0.5f
+/** Coming up shows only the next few events; the rows below cover the rest. */
+private const val COMING_UP_COUNT = 3
 
 @Composable
 fun MainScreen(onSettings: () -> Unit) {
@@ -219,12 +221,11 @@ private fun AllTab(hives: List<Hive>, s: SchedulerState, forecast: Forecast, now
     val fullClock = rememberClock()
     val labels = hives.associate { it.id to it.label }
 
-    val upcoming = forecast.comingUp()
+    val upcoming = forecast.comingUp(COMING_UP_COUNT)
     if (upcoming.isNotEmpty()) {
         Text(stringResource(R.string.coming_up), style = AppType.section, color = c.ink, modifier = Modifier.padding(bottom = Dimens.ChipPaddingV))
         upcoming.forEach { p ->
             Row(Modifier.fillMaxWidth().padding(vertical = Dimens.ChipPaddingV), horizontalArrangement = Arrangement.spacedBy(Dimens.Gap)) {
-                Text(remaining(p.at, p.estimated, now, stringResource(R.string.time_now)), style = AppType.comingTime, color = c.ink, modifier = Modifier.width(Dimens.ComingTimeWidth))
                 Text(
                     labels[p.hiveId].orEmpty(),
                     style = AppType.section,
@@ -249,25 +250,24 @@ private fun AllTab(hives: List<Hive>, s: SchedulerState, forecast: Forecast, now
         val plan = forecast.hives[hive.id]
         Column {
             Row(
-                Modifier.fillMaxWidth().testTag("row-${hive.label}").clickable { onSelect(hive) }.padding(vertical = Dimens.Gap),
+                Modifier.fillMaxWidth().testTag("row-${hive.label}").clickable { onSelect(hive) }.padding(vertical = Dimens.HiveRowPaddingV),
                 verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(Dimens.Gap),
             ) {
                 DragHandle(handle.testTag("drag-${hive.label}"), stringResource(R.string.action_reorder, hive.label))
                 Column(Modifier.weight(1f)) {
-                    Text(hive.label, style = AppType.hiveName, color = c.ink)
-                    Text(subtitle(run), style = AppType.body, color = c.inkMuted, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.testTag("row-sub-${hive.label}"))
+                    Text(hive.label, style = AppType.rowHiveName, color = c.ink, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    Text(subtitle(run), style = AppType.rowStep, color = c.inkMuted, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.testTag("row-sub-${hive.label}"))
                     val second = when {
                         run?.state == RunState.WAITING_FOR_DEVICE -> plan?.deviceStart?.let {
                             if (it.at <= now) stringResource(R.string.hive_starts_now)
                             else stringResource(R.string.hive_starts_in, remaining(it.at, it.estimated, now, ""))
                         }
-                        run != null && run.isActive -> plan?.next?.let {
-                            if (it.at <= now) stringResource(R.string.hive_next_now, it.stepName)
-                            else stringResource(R.string.hive_next_in, it.stepName, remaining(it.at, it.estimated, now, ""))
-                        }
+                        // The countdown chip already shows when the next step starts.
+                        run != null && run.isActive -> plan?.next?.let { stringResource(R.string.hive_next, it.stepName) }
                         else -> null
                     }
-                    if (second != null) Text(second, style = AppType.label, color = c.inkMuted, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    if (second != null) Text(second, style = AppType.rowNext, color = c.inkMuted, maxLines = 1, overflow = TextOverflow.Ellipsis)
                 }
                 Box(Modifier.testTag("row-action-${hive.label}")) {
                     RowAction(hive.id, run, s, now, onEvent = { app.send(it) })

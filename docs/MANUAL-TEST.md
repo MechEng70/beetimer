@@ -39,7 +39,7 @@ notifications, and a reboot. Run it after installing a new build. Alarm volume u
    Remove. Emory shows Keep sealed counting down. Herb has not started by itself.
 2. Tap Skip to back. Expect: "Vaporizer free: Sparky is next".
 3. Tap Start in the bar. Expect: Sparky takes the vaporizer (Load dose) while Emory counts down Keep sealed.
-   Coming up lists the next steps with countdowns; times that depend on a tap start with "~".
+   Coming up lists the next 3 steps by hive and action, no times. Each row's chip shows its countdown.
 
 ## 4. Alarm with the app open, Snooze and +1 min (3 minutes)
 

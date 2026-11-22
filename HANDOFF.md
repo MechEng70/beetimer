@@ -1,18 +1,18 @@
 # Handoff
 
-Where Bee Timer stands on 2026-11-21, for whoever picks it up next (a person or a fresh agent session).
+Where Bee Timer stands on 2026-11-22, for whoever picks it up next (a person or a fresh agent session).
 Update this file at the end of each round.
 
 ## State
 
-- **Version:** 0.1.0-alpha, debug-signed. Last code commit `7c6bc8e` on `master`.
+- **Version:** 0.1.0-alpha, debug-signed. Last code change: R7 (All-tab GUI cleanup) on `master`.
 - **Remote:** none yet. The repo has never been pushed; GitHub is planned as `MechEng70/beetimer`.
-- **Phone:** the latest build is installed on Jason's phone (OnePlus CPH2583, Android 16, OxygenOS, font
+- **Phone:** the R7 build is installed on Jason's phone (OnePlus CPH2583, Android 16, OxygenOS, font
   scale 1.15).
 - **Gate:** `scripts/check.sh` passes, 91 tests.
 - **End to end:** 12 of 13 emulator runs pass, with 0 invariant errors (`docs/e2e/REPORT.md`). The one
   failure is a 60x timing limit, explained below.
-- **Done:** everything in `docs/design/TASKS.md` up to R6.
+- **Done:** everything in `docs/design/TASKS.md` up to R7. R7 was display only, so the E2E suite was not re-run.
 - **Waiting on:** nothing assigned. The next work is Jason's call.
 
 ## Read first
@@ -20,7 +20,7 @@ Update this file at the end of each round.
 1. `CLAUDE.md`: the rules for this repo (stack, KMP-ready scheduler, strings and theme, Room, copy).
 2. `SPEC.md` section 1: product decisions. They win over the original brief below them.
 3. `docs/design/TECH-DESIGN.md`: architecture, scheduler rules, alarm layer, UI, tests.
-4. `docs/design/TASKS.md`: task history (T1 to T10, review rounds R1 to R6), T11, open checks, backlog.
+4. `docs/design/TASKS.md`: task history (T1 to T10, review rounds R1 to R7), T11, open checks, backlog.
 5. `docs/mockups/varroa-timer-mockups.html` and `docs/screenshots/`: how it must look, and how it looks now.
 
 ## Commands
@@ -31,7 +31,7 @@ scripts/check.sh                                        # gate: all unit tests +
 adb install -r app/build/outputs/apk/debug/app-debug.apk
 scripts/build-apk.sh                                    # gate + release/beetimer-<version>.apk + sha256
 scripts/e2e/run.sh s1 ... s11 s1x10 s2x10               # emulator only; then python3 scripts/e2e/analyze.py
-scripts/e2e/screens.sh                                  # re-capture docs/screenshots/app-*.png
+scripts/e2e/screens.sh                                  # re-capture docs/screenshots/app-*.png (emulator)
 python3 scripts/icon/svg2vd.py && python3 scripts/icon/compare.py   # after changing the icon art
 adb logcat -s BeeTimerE2E BeeTimerInvariant             # debug builds: event log and invariant errors
 ```
@@ -56,6 +56,8 @@ Toolchain setup: `docs/DEVELOPING.md`. E2E details: `docs/e2e/README.md`.
 ## Open items
 
 Needs Jason:
+- **R7 on the phone:** look at the All tab outdoors (see TASKS.md R7). Sizes are tokens in `Theme.kt`
+  (`AppType.rowHiveName`, `rowStep`, `rowNext`, `timeChip`, `Dimens.TimeChip*`, `HiveRowPaddingV`).
 - **Themed icons on the phone:** turn them on (Settings, Wallpapers & style, Icons, Themed icons) and look at
   the home screen. They're verified on the emulator only.
 - **Push to GitHub:** create the remote and push. Then upload `docs/icon/icon-1024.png` as the social preview
@@ -113,6 +115,8 @@ Build and tests:
   (`SeedingTest`).
 - **Alarm screen close:** the close logic must stay in `lifecycleScope`, not Compose. In Compose it was
   dispatcher-order dependent, and the in-app alarm closed to the launcher (`AlarmActivityCloseTest`).
+- **Coming up count:** the All tab passes `COMING_UP_COUNT` (3) to `Forecast.comingUp`; the planner's
+  default stays 5, so the planner and its test are untouched.
 - **Icon render:** `IconRenderTest` needs Robolectric `GraphicsMode.NATIVE`.
 
 E2E harness:

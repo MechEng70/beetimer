@@ -128,11 +128,14 @@ object AppType {
     val title = inter(18, 24, FontWeight.SemiBold)
     val section = inter(14, 20, FontWeight.SemiBold)
     val stateLine = inter(16, 22, FontWeight.SemiBold)
-    /** Countdown and clock-time chips: read at a glance in sun. */
-    val timeChip = inter(15, 20, FontWeight.Bold)
+    /** All tab hive rows: read outdoors at arm's length. */
+    val rowHiveName = inter(20, 26, FontWeight.SemiBold)
+    val rowStep = inter(17, 22)
+    val rowNext = inter(16, 21)
+    /** Countdown chips on the All tab rows: read at a glance in sun. */
+    val timeChip = inter(20, 26, FontWeight.Bold)
     /** Device, Passive, Queued chips. */
     val stateChip = inter(14, 18, FontWeight.Medium)
-    val comingTime = inter(14, 20, FontWeight.Bold)
     val countdown = TextStyle(fontFamily = Inter, fontSize = 52.sp, lineHeight = 1.2.em, fontWeight = FontWeight.Bold)
     val alarmName = TextStyle(fontFamily = Inter, fontSize = 48.sp, lineHeight = 1.15.em, fontWeight = FontWeight.Bold)
     val alarmFinished = inter(16, 22)
@@ -167,6 +170,10 @@ object Dimens {
     val ChipPaddingH = 10.dp
     val ChipPaddingV = 4.dp
     val ChipMinHeight = 28.dp
+    val TimeChipPaddingH = 12.dp
+    val TimeChipMinHeight = 36.dp
+    /** All tab hive rows, top and bottom. */
+    val HiveRowPaddingV = 14.dp
     val IconTouch = 48.dp
     val TopBarHeight = 56.dp
     val Icon = 24.dp
@@ -174,7 +181,6 @@ object Dimens {
     val StatusPaddingH = 12.dp
     val StatusPaddingV = 10.dp
     val StepIcon = 20.dp
-    val ComingTimeWidth = 64.dp
     val ComingHiveWidth = 76.dp
 }
 

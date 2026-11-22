@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
@@ -147,6 +148,24 @@ fun Chip(text: String, tone: Tone, modifier: Modifier = Modifier, kind: ChipKind
     ) {
         Text(text, style = if (time) AppType.timeChip else AppType.stateChip, color = fg, maxLines = 1)
     }
+}
+
+/** Outlined pill naming the next step: amber for a vaporizer step, teal for a passive one. No fill. */
+@Composable
+fun StepPill(text: String, deviceBound: Boolean, modifier: Modifier = Modifier) {
+    val c = BeeTheme.colors
+    val border = if (deviceBound) c.deviceBorder else c.passiveBorder
+    val fg = if (deviceBound) c.deviceFg else c.passiveFg
+    Text(
+        text,
+        style = AppType.stepPill,
+        color = fg,
+        maxLines = 1,
+        overflow = TextOverflow.Ellipsis,
+        modifier = modifier
+            .border(Dimens.PillBorder, border, RoundedCornerShape(Dimens.SmallCorner))
+            .padding(horizontal = Dimens.PillPaddingH, vertical = Dimens.PillPaddingV),
+    )
 }
 
 /** Icon with a 48 dp touch target. */

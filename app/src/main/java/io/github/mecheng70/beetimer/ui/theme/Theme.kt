@@ -41,8 +41,12 @@ data class AppColors(
     val deviceBg: Color,
     val deviceFg: Color,
     val deviceStrong: Color,
+    /** Outline of a next-step pill for a vaporizer step. */
+    val deviceBorder: Color,
     val passiveBg: Color,
     val passiveFg: Color,
+    /** Outline of a next-step pill for a passive step. */
+    val passiveBorder: Color,
     val idleBg: Color,
     val idleFg: Color,
     val danger: Color,
@@ -64,8 +68,10 @@ private val Light = AppColors(
     deviceBg = Color(0xFFFAEEDA),
     deviceFg = Color(0xFF633806),
     deviceStrong = Color(0xFFFAC775),
+    deviceBorder = Color(0xFFBA7517),
     passiveBg = Color(0xFFE1F5EE),
     passiveFg = Color(0xFF085041),
+    passiveBorder = Color(0xFF1D9E75),
     idleBg = Color(0xFFF1EFE8),
     idleFg = Color(0xFF5F5E5A),
     danger = Color(0xFFA32D2D),
@@ -87,8 +93,10 @@ private val Dark = AppColors(
     deviceBg = Color(0xFF4A2D05),
     deviceFg = Color(0xFFFAEEDA),
     deviceStrong = Color(0xFF7A4A0C),
+    deviceBorder = Color(0xFFBA7517),
     passiveBg = Color(0xFF0B3A30),
     passiveFg = Color(0xFFA8E6D2),
+    passiveBorder = Color(0xFF1D9E75),
     idleBg = Color(0xFF2C2B27),
     idleFg = Color(0xFFB4B2A9),
     danger = Color(0xFFFF8A80),
@@ -132,6 +140,8 @@ object AppType {
     val rowHiveName = inter(20, 26, FontWeight.SemiBold)
     val rowStep = inter(17, 22)
     val rowNext = inter(16, 21)
+    /** Step name in the next-step pill. */
+    val stepPill = inter(16, 21, FontWeight.SemiBold)
     /** Countdown chips on the All tab rows: read at a glance in sun. */
     val timeChip = inter(20, 26, FontWeight.Bold)
     /** Device, Passive, Queued chips. */
@@ -174,6 +184,10 @@ object Dimens {
     val TimeChipMinHeight = 36.dp
     /** All tab hive rows, top and bottom. */
     val HiveRowPaddingV = 14.dp
+    val PillBorder = 1.5.dp
+    val PillPaddingH = 8.dp
+    val PillPaddingV = 2.dp
+    val PillGap = 6.dp
     val IconTouch = 48.dp
     val TopBarHeight = 56.dp
     val Icon = 24.dp

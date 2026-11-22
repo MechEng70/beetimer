@@ -258,16 +258,23 @@ private fun AllTab(hives: List<Hive>, s: SchedulerState, forecast: Forecast, now
                 Column(Modifier.weight(1f)) {
                     Text(hive.label, style = AppType.rowHiveName, color = c.ink, maxLines = 1, overflow = TextOverflow.Ellipsis)
                     Text(subtitle(run), style = AppType.rowStep, color = c.inkMuted, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.testTag("row-sub-${hive.label}"))
-                    val second = when {
+                    val next = plan?.next
+                    when {
                         run?.state == RunState.WAITING_FOR_DEVICE -> plan?.deviceStart?.let {
-                            if (it.at <= now) stringResource(R.string.hive_starts_now)
+                            val starts = if (it.at <= now) stringResource(R.string.hive_starts_now)
                             else stringResource(R.string.hive_starts_in, remaining(it.at, it.estimated, now, ""))
+                            Text(starts, style = AppType.rowNext, color = c.inkMuted, maxLines = 1, overflow = TextOverflow.Ellipsis)
                         }
-                        // The countdown chip already shows when the next step starts.
-                        run != null && run.isActive -> plan?.next?.let { stringResource(R.string.hive_next, it.stepName) }
-                        else -> null
+                        // No time here: the countdown chip already shows when the next step starts.
+                        run != null && run.isActive && next != null -> Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(Dimens.PillGap),
+                            modifier = Modifier.testTag("row-next-${hive.label}"),
+                        ) {
+                            Text(stringResource(R.string.hive_next_label), style = AppType.rowNext, color = c.inkMuted, maxLines = 1)
+                            StepPill(next.stepName, next.deviceBound, Modifier.weight(1f, fill = false))
+                        }
                     }
-                    if (second != null) Text(second, style = AppType.rowNext, color = c.inkMuted, maxLines = 1, overflow = TextOverflow.Ellipsis)
                 }
                 Box(Modifier.testTag("row-action-${hive.label}")) {
                     RowAction(hive.id, run, s, now, onEvent = { app.send(it) })

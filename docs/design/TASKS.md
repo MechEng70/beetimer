@@ -88,6 +88,9 @@ Each round was a review from Jason with an explicit list. TECH-DESIGN and SPEC s
 ## R7 [x] All-tab GUI cleanup
 - Display only. Coming up: no time column, next 3 events, hive and action. Hive rows: "Next: Unseal" without "in m:ss"; larger type for outdoors (name 20 sp, step 17, Next 16, countdown chip 20 bold, 36 dp tall, 12 dp padding; rows 14 dp padding). No scheduler, planner, alarm or data changes. No E2E flow read the removed text.
 
+## R8 [x] Next-step pill
+- Display only. All tab hive rows: "Next:" stays secondary text; the step name is an outlined pill, amber for a vaporizer step, teal for a passive one, no fill. Tokens `deviceBorder` and `passiveBorder` in `Theme.kt`. The Hive tab has no Next line, so nothing changed there.
+
 ## After alpha
 
 ## T11 [ ] Release keystore before the first public GitHub Release

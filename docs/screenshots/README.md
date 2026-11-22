@@ -1,13 +1,13 @@
 # UI screenshots
 
-Captured 2026-11-21 on the emulator (`beetimer-api36`, Android 16, Pixel 6 size, 411 dp wide, font scale 1.15, light theme) from the current debug build by `scripts/e2e/screens.sh`. `app-1-all.png` and `app-1-all-large.png` were re-captured 2026-11-22 for R7. The status bar is cropped. The `mockup-*.png` files are the approved mockups rendered from `docs/mockups/varroa-timer-mockups.html`.
+Captured 2026-11-21 on the emulator (`beetimer-api36`, Android 16, Pixel 6 size, 411 dp wide, font scale 1.15, light theme) from the current debug build by `scripts/e2e/screens.sh`. `app-1-all.png` and `app-1-all-large.png` were re-captured 2026-11-22 for R8. The status bar is cropped. The `mockup-*.png` files are the approved mockups rendered from `docs/mockups/varroa-timer-mockups.html`.
 
 Scene: Herb holds the vaporizer (Heat and vaporize, real 1x timing), Sparky is queued, Emory is not started.
 
 | File | What it shows |
 |---|---|
-| `app-1-all.png` | All tab (R7): "Vaporizer: Herb, free in ~15:25"; Coming up shows the next 3 events, hive and action only, in a fixed-width hive column; larger hive rows (name 20 sp, step 17, Next 16, chip 20 bold); Herb "Next: Cool in hive" with the 2:25 chip; Sparky "Waiting" and "Starts in ~16:25"; footer clock in 12-hour format. |
-| `app-1-all-large.png` | Same at font scale 1.3: nothing clips, wraps or overlaps, and the step and Next lines stay clear of the chip. |
+| `app-1-all.png` | All tab (R8): "Vaporizer: Herb, free in ~15:26"; Coming up shows the next 3 events, hive and action only, in a fixed-width hive column; larger hive rows (name 20 sp, step 17, Next 16, chip 20 bold); Herb "Next:" with "Cool in hive" in an amber outlined pill (a vaporizer step) and the 2:26 chip; Sparky "Waiting" and "Starts in ~16:26"; footer clock in 12-hour format. |
+| `app-1-all-large.png` | Same at font scale 1.3: nothing clips, wraps or overlaps, and the step line and Next pill stay clear of the chip. |
 | `app-2-hive.png` | Herb's tab with the 7-step pan wand (wand stays in): Device from Load dose through Remove wand. |
 | `app-3-alarm.png` | Alarm screen: Herb, "Heat and vaporize finished", Next "Cool in hive", "2:00 timer starts when you tap Done". |
 | `app-4-template.png` | Step editor, wand stays in: "takes the vaporizer" on Load dose, "releases the vaporizer" on Remove wand, the "Vaporizer frees here" divider, display-only chips. |

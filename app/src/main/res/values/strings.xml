@@ -46,7 +46,7 @@
     <string name="tab_all">All</string>
     <string name="coming_up">Coming up</string>
     <string name="estimate_prefix">~</string>
-    <string name="hive_next">Next: %1$s</string>
+    <string name="hive_next_label">Next:</string>
     <string name="hive_starts_in">Starts in %1$s</string>
     <string name="all_done_at">Started hives done %1$s</string>
     <string name="hive_starts_now">Starts now</string>

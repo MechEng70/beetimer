@@ -139,6 +139,9 @@ Build and tests:
 - **Alarm screen close:** the close logic must stay in `lifecycleScope`, not Compose. In Compose it was
   dispatcher-order dependent, and the in-app alarm closed to the launcher (`AlarmActivityCloseTest`).
 - **Icon render:** `IconRenderTest` needs Robolectric `GraphicsMode.NATIVE`.
+- **Editing files in scripts:** never edit a file by truncating it and reading it back in the same pipeline
+  (e.g. `cmd < f > f`). Write to a temp file and move it into place, then check the result is non-empty
+  before committing. (R10 committed an empty HANDOFF.md this way; restored in `337e5ae`.)
 
 E2E harness:
 - **One batch at a time:** two `run.sh` batches at once kill the Maestro device server.

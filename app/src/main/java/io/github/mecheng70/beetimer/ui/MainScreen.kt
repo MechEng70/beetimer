@@ -37,6 +37,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -159,11 +160,6 @@ private fun estimate(text: String, estimated: Boolean): String =
 private fun remaining(at: Long, estimated: Boolean, now: Long, nowText: String): String =
     if (at <= now) nowText else estimate(formatCountdown(at - now), estimated)
 
-/** A clock time for the footer: "~12:49 PM", or [nowText] once passed. */
-@Composable
-private fun projectedClock(at: Long, estimated: Boolean, now: Long, clock: (Long) -> String, nowText: String): String =
-    if (at <= now) nowText else estimate(clock(at), estimated)
-
 @Composable
 private fun DeviceStatusBar(s: SchedulerState, labels: Map<Long, String>, now: Long, nextUp: Long?, forecast: Forecast) {
     val app = LocalContext.current.app
@@ -284,11 +280,22 @@ private fun AllTab(hives: List<Hive>, s: SchedulerState, forecast: Forecast, now
         }
     }
 
-    forecast.allDoneAt?.let {
+    footerFor(hives.map { it.id }, s.runs, forecast.allDoneAt)?.let { footer ->
+        val text = when (footer) {
+            is Footer.Estimated -> stringResource(R.string.footer_estimated, fullClock(footer.at))
+            is Footer.EstimatedPartial -> pluralStringResource(
+                R.plurals.footer_estimated_partial,
+                footer.total,
+                fullClock(footer.at),
+                footer.started,
+                footer.total,
+            )
+            is Footer.AllDone -> stringResource(R.string.footer_all_done, fullClock(footer.at))
+        }
         VSpace(Dimens.Gap)
         RowDivider()
         Text(
-            stringResource(R.string.all_done_at, projectedClock(it, forecast.allDoneEstimated, now, fullClock, stringResource(R.string.time_now_inline))),
+            text,
             style = AppType.label,
             color = c.inkMuted,
             modifier = Modifier.padding(top = Dimens.RowPadding),

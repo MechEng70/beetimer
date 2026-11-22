@@ -5,14 +5,14 @@ Update this file at the end of each round.
 
 ## State
 
-- **Version:** 0.1.0-alpha, debug-signed. Last code change: R8 (next-step pill) on `master`.
+- **Version:** 0.1.0-alpha, debug-signed. Last code change: R9 (footer copy) on `master`.
 - **Remote:** none yet. The repo has never been pushed; GitHub is planned as `MechEng70/beetimer`.
-- **Phone:** the R8 build is installed on Jason's phone (OnePlus CPH2583, Android 16, OxygenOS, font
+- **Phone:** the R9 build is installed on Jason's phone (OnePlus CPH2583, Android 16, OxygenOS, font
   scale 1.15).
-- **Gate:** `scripts/check.sh` passes, 91 tests.
+- **Gate:** `scripts/check.sh` passes, 96 tests.
 - **End to end:** 12 of 13 emulator runs pass, with 0 invariant errors (`docs/e2e/REPORT.md`). The one
   failure is a 60x timing limit, explained below.
-- **Done:** everything in `docs/design/TASKS.md` up to R8. R7 and R8 were display only, so the E2E suite was not re-run.
+- **Done:** everything in `docs/design/TASKS.md` up to R9. R7 to R9 were display only, so the E2E suite was not re-run.
 - **Waiting on:** nothing assigned. The next work is Jason's call.
 
 ## Read first
@@ -20,7 +20,7 @@ Update this file at the end of each round.
 1. `CLAUDE.md`: the rules for this repo (stack, KMP-ready scheduler, strings and theme, Room, copy).
 2. `SPEC.md` section 1: product decisions. They win over the original brief below them.
 3. `docs/design/TECH-DESIGN.md`: architecture, scheduler rules, alarm layer, UI, tests.
-4. `docs/design/TASKS.md`: task history (T1 to T10, review rounds R1 to R8), T11, open checks, backlog.
+4. `docs/design/TASKS.md`: task history (T1 to T10, review rounds R1 to R9), T11, open checks, backlog.
 5. `docs/mockups/varroa-timer-mockups.html` and `docs/screenshots/`: how it must look, and how it looks now.
 
 ## Commands
@@ -56,10 +56,10 @@ Toolchain setup: `docs/DEVELOPING.md`. E2E details: `docs/e2e/README.md`.
 ## Open items
 
 Needs Jason:
-- **R7 and R8 on the phone:** look at the All tab outdoors (see TASKS.md R7, R8). Sizes and colors are tokens
+- **R7 to R9 on the phone:** look at the All tab outdoors (see TASKS.md R7 to R9). Sizes and colors are tokens
   in `Theme.kt` (`AppType.rowHiveName`, `rowStep`, `rowNext`, `stepPill`, `timeChip`, `Dimens.TimeChip*`,
-  `Pill*`, `HiveRowPaddingV`, `deviceBorder`, `passiveBorder`). The screenshots only show an amber pill;
-  check a teal one (a passive next step, like Unseal) on the phone.
+  `Pill*`, `HiveRowPaddingV`, `deviceBorder`, `passiveBorder`). `app-1-all-teal.png` shows both pill
+  colors. The footer's "Estimated finish" without a count and "All hives done at" are unit tested only.
 - **Themed icons on the phone:** turn them on (Settings, Wallpapers & style, Icons, Themed icons) and look at
   the home screen. They're verified on the emulator only.
 - **Push to GitHub:** create the remote and push. Then upload `docs/icon/icon-1024.png` as the social preview

@@ -35,4 +35,11 @@ adb -s "$SERIAL" shell 'i=0; while [ $i -lt 240 ] && ! dumpsys activity services
 sleep 2; cap app-6-headsup
 adb -s "$SERIAL" shell input tap 540 200
 m scr-g; sleep 2; cap app-3-alarm
+# Teal Next pill: fresh data, wand comes out, Herb in Keep sealed and Sparky on Load dose.
+adb -s "$SERIAL" shell pm clear "$APP" >/dev/null
+adb -s "$SERIAL" shell pm grant "$APP" android.permission.POST_NOTIFICATIONS
+adb -s "$SERIAL" shell appops set "$APP" USE_FULL_SCREEN_INTENT allow
+m scr-h0
+for pair in "Hive 1:Emory" "Hive 2:Sparky" "Hive 3:Herb"; do rename_hive "${pair%%:*}" "${pair##*:}"; done
+m scr-h; cap app-1-all-teal
 echo "done in $(( $(date +%s) - started )) s"

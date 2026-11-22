@@ -91,6 +91,9 @@ Each round was a review from Jason with an explicit list. TECH-DESIGN and SPEC s
 ## R8 [x] Next-step pill
 - Display only. All tab hive rows: "Next:" stays secondary text; the step name is an outlined pill, amber for a vaporizer step, teal for a passive one, no fill. Tokens `deviceBorder` and `passiveBorder` in `Theme.kt`. The Hive tab has no Next line, so nothing changed there.
 
+## R9 [x] Footer copy
+- Display only. All tab footer: "Estimated finish: 9:15 AM", "Estimated finish: 9:15 AM (2 of 3 hives)" when some hives are not started, "All hives done at 9:15 AM" when every run is complete. No "~". `footerFor` is pure and unit tested (`FooterTest`). New screenshot `app-1-all-teal.png` (scr-h0, scr-h in `screens.sh`).
+
 ## After alpha
 
 ## T11 [ ] Release keystore before the first public GitHub Release

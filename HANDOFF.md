@@ -5,8 +5,9 @@ Update this file at the end of each round.
 
 ## State
 
-- **Version:** 0.1.0-alpha, debug-signed. Last round R10 (row layout and volume check) on `master`.
-- **Remote:** none yet. The repo has never been pushed; GitHub is planned as `MechEng70/beetimer`.
+- **Version:** 0.1.0-alpha, debug-signed. Last round R10 (row layout and volume check) on `main`.
+- **Remote:** `origin` is https://github.com/MechEng70/beetimer (public), default branch `main`. First
+  pushed 2026-11-22. Local `master` was renamed to `main` for the push.
 - **Phone:** the R10 build is installed on Jason's phone (OnePlus CPH2583, Android 16, OxygenOS, font
   scale 1.15).
 - **Gate:** `scripts/check.sh` passes, 101 tests.
@@ -79,8 +80,8 @@ Toolchain setup: `docs/DEVELOPING.md`. E2E details: `docs/e2e/README.md`.
 Needs Jason:
 - **Themed icons on the phone:** turn them on (Settings, Wallpapers & style, Icons, Themed icons) and look at
   the home screen. They're verified on the emulator only.
-- **Push to GitHub:** create the remote and push. Then upload `docs/icon/icon-1024.png` as the social preview
-  under Settings, General, Social preview. GitHub has no API for that.
+- **GitHub social preview:** upload `docs/icon/icon-1024.png` under Settings, General, Social preview.
+  GitHub has no API for that.
 - **Phone cleanup:** "Hive 4" on the phone: Jason deletes it himself. Don't touch it.
 
 Before the first public release:

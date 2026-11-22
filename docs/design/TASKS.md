@@ -109,7 +109,7 @@ Each round was a review from Jason with an explicit list. TECH-DESIGN and SPEC s
 
 ## Open checks (need Jason)
 - Themed icons on the OnePlus: Settings, Wallpapers & style, Icons, Themed icons, then look at Bee Timer on the home screen.
-- After the first push: upload `docs/icon/icon-1024.png` as the GitHub social preview (no API).
+- GitHub (pushed 2026-11-22): upload `docs/icon/icon-1024.png` as the GitHub social preview (no API).
 
 ## Backlog (not scheduled; do not build yet)
 

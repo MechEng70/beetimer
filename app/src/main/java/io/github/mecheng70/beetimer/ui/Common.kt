@@ -4,7 +4,6 @@ import android.content.Context
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
@@ -71,6 +70,14 @@ private const val DISABLED_ALPHA = 0.4f
 val Context.app: BeeTimerApp get() = applicationContext as BeeTimerApp
 
 fun BeeTimerApp.send(event: Event) {
+    when (event) {
+        is Event.Start -> {
+            val (volume, max) = alarmVolume()
+            if (volumeCheck.onStart(volume, max)) volumeLowInApp.tryEmit(Unit)
+        }
+        Event.NewSession -> volumeCheck.onNewSession()
+        else -> Unit
+    }
     scope.launch { engine.dispatch(event) }
 }
 
@@ -150,7 +157,7 @@ fun Chip(text: String, tone: Tone, modifier: Modifier = Modifier, kind: ChipKind
     }
 }
 
-/** Outlined pill naming the next step: amber for a vaporizer step, teal for a passive one. No fill. */
+/** Outlined pill naming the next step: amber for a vaporizer step, teal for a passive one. No fill. Never cut off: a long name wraps and the pill grows. */
 @Composable
 fun StepPill(text: String, deviceBound: Boolean, modifier: Modifier = Modifier) {
     val c = BeeTheme.colors
@@ -160,8 +167,6 @@ fun StepPill(text: String, deviceBound: Boolean, modifier: Modifier = Modifier) 
         text,
         style = AppType.stepPill,
         color = fg,
-        maxLines = 1,
-        overflow = TextOverflow.Ellipsis,
         modifier = modifier
             .border(Dimens.PillBorder, border, RoundedCornerShape(Dimens.SmallCorner))
             .padding(horizontal = Dimens.PillPaddingH, vertical = Dimens.PillPaddingV),

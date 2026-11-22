@@ -1,12 +1,14 @@
 package io.github.mecheng70.beetimer
 
 import android.app.Application
+import android.media.AudioManager
 import androidx.room.Room
 import io.github.mecheng70.beetimer.alarms.AlarmScheduler
 import io.github.mecheng70.beetimer.alarms.Channels
 import io.github.mecheng70.beetimer.alarms.EffectExecutor
 import io.github.mecheng70.beetimer.alarms.Notifier
 import io.github.mecheng70.beetimer.alarms.SchedulerEngine
+import io.github.mecheng70.beetimer.alarms.VolumeCheck
 import io.github.mecheng70.beetimer.data.BeeTimerDb
 import io.github.mecheng70.beetimer.data.MIGRATION_1_2
 import io.github.mecheng70.beetimer.data.MIGRATION_2_3
@@ -33,6 +35,21 @@ class BeeTimerApp : Application() {
     val alarms by lazy { AlarmScheduler(this) }
     /** "Vaporizer free" messages for the snackbar while the app is on screen. */
     val deviceFreeInApp = MutableSharedFlow<Pair<Long, String>>(extraBufferCapacity = 4)
+    /** "Alarm volume is low" snackbar, from the first Start of a session. */
+    val volumeLowInApp = MutableSharedFlow<Unit>(extraBufferCapacity = 1)
+    val volumeCheck by lazy {
+        VolumeCheck(object : VolumeCheck.Store {
+            override var checkedThisSession: Boolean
+                get() = prefs.volumeChecked
+                set(v) { prefs.volumeChecked = v }
+        })
+    }
+
+    /** Alarm stream volume and its maximum. Alarms ring on this stream. */
+    fun alarmVolume(): Pair<Int, Int> {
+        val audio = getSystemService(AudioManager::class.java)
+        return audio.getStreamVolume(AudioManager.STREAM_ALARM) to audio.getStreamMaxVolume(AudioManager.STREAM_ALARM)
+    }
 
     val engine by lazy {
         SchedulerEngine(

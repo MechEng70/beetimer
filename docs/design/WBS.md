@@ -23,7 +23,7 @@ Bee Timer alpha
                                           Total ~ 8.5 h
 ```
 
-After T10 (done; see TASKS.md R1 to R9):
+After T10 (done; see TASKS.md R1 to R10):
 ```
 6. Review rounds
    6.1 R1 UI rework to mockups, alarm stream
@@ -35,6 +35,7 @@ After T10 (done; see TASKS.md R1 to R9):
    6.7 R7 All-tab GUI cleanup
    6.8 R8 Next-step pill
    6.9 R9 Footer copy
+   6.10 R10 Row layout and volume check
 7. Before first public release
    7.1 T11 Release keystore
 ```

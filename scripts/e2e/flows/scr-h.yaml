@@ -21,34 +21,6 @@ appId: io.github.mecheng70.beetimer
     timeout: 630000
 - tapOn:
     id: row-action-Herb
-- extendedWaitUntil:
-    visible:
-      id: alarm-hive
-      text: ^Herb$
-    timeout: 630000
-- tapOn:
-    id: alarm-done
-- waitForAnimationToEnd
-- extendedWaitUntil:
-    visible:
-      id: alarm-hive
-      text: ^Herb$
-    timeout: 630000
-- tapOn:
-    id: alarm-done
-- waitForAnimationToEnd
-- extendedWaitUntil:
-    visible:
-      text: ^Keep sealed$
-      childOf:
-        id: row-Herb
-    timeout: 630000
-- extendedWaitUntil:
-    visible:
-      text: ^Start$
-      childOf:
-        id: row-action-Sparky
-    timeout: 630000
 - tapOn:
     id: row-action-Sparky
 - extendedWaitUntil:
@@ -61,12 +33,26 @@ appId: io.github.mecheng70.beetimer
     id: row-action-Sparky
 - extendedWaitUntil:
     visible:
-      text: ^Load dose$
+      text: ^Waiting$
       childOf:
         id: row-Sparky
     timeout: 630000
 - extendedWaitUntil:
     visible:
+      id: alarm-hive
+      text: ^Herb$
+    timeout: 630000
+- tapOn:
+    id: alarm-done
+- waitForAnimationToEnd
+- extendedWaitUntil:
+    visible:
+      text: ^Cool in hive$
+      childOf:
+        id: row-Herb
+    timeout: 630000
+- extendedWaitUntil:
+    visible:
       id: never-present
-    timeout: 12000
+    timeout: 3000
     optional: true

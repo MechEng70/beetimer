@@ -1,8 +1,8 @@
 # Manual phone test (about 15 minutes)
 
 Checks what unit tests and the emulator suite can't: real alarms on your phone, the lock screen,
-notifications, and a reboot. Run it after installing a new build. Alarm volume up (the main screen says
-"Alarm volume is low" if it isn't).
+notifications, and a reboot. Run it after installing a new build. Alarm volume up (the first Start shows
+"Alarm volume is low" at the bottom if it isn't).
 
 ## Setup (2 minutes)
 

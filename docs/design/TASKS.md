@@ -94,6 +94,11 @@ Each round was a review from Jason with an explicit list. TECH-DESIGN and SPEC s
 ## R9 [x] Footer copy
 - Display only. All tab footer: "Estimated finish: 9:15 AM", "Estimated finish: 9:15 AM (2 of 3 hives)" when some hives are not started, "All hives done at 9:15 AM" when every run is complete. No "~". `footerFor` is pure and unit tested (`FooterTest`). New screenshot `app-1-all-teal.png` (scr-h0, scr-h in `screens.sh`).
 
+## R10 [x] Row layout and volume check
+- All tab rows: line 1 handle, name, and the chip or button; lines 2 and 3 (step, Next pill or "Starts in") full width under the chip. Step names never ellipsized on the All tab; long ones wrap and the pill grows. R7 sizes, R8 pill and R9 footer unchanged.
+- The "Alarm volume is low" banner is gone. The first Start of a session with the alarm volume under half shows a 6 s bottom snackbar with Raise, at most once per session (`VolumeCheck`, `VolumeCheckTest`).
+- Screenshots: the All tab shots now come from the wand-comes-out scene (`scr-h`, `scr-h2`), with "Next: Remove wand" and "Next: Heat and vaporize" at 1.15 and 1.3. New `app-1-all-teal-large.png`.
+
 ## After alpha
 
 ## T11 [ ] Release keystore before the first public GitHub Release

@@ -1,6 +1,9 @@
 package io.github.mecheng70.beetimer.ui
 
+import android.content.Intent
 import android.os.Bundle
+import android.provider.Settings
+import kotlinx.coroutines.withTimeoutOrNull
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
@@ -40,6 +43,9 @@ import androidx.compose.ui.platform.LocalView
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.mecheng70.beetimer.ui.theme.BeeTimerTheme
 
+/** How long "Alarm volume is low" stays up. */
+private const val VOLUME_SNACKBAR_MS = 6_000L
+
 @OptIn(ExperimentalComposeUiApi::class)
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -62,7 +68,7 @@ class MainActivity : ComponentActivity() {
                         .semantics { testTagsAsResourceId = true },
                 ) {
                     Root()
-                    DeviceFreeSnackbar(Modifier.align(Alignment.BottomCenter))
+                    AppSnackbars(Modifier.align(Alignment.BottomCenter))
                 }
             }
         }
@@ -96,15 +102,18 @@ class MainActivity : ComponentActivity() {
     private enum class Screen { MAIN, SETTINGS, PERMISSIONS }
 
     /**
-     * "Vaporizer free: Herb is next" while the app is on screen, at the bottom so it never
-     * covers the top bar or the vaporizer bar's buttons. Start hands the vaporizer over.
+     * Bottom snackbars while the app is on screen, so they never cover the top bar or the vaporizer bar's
+     * buttons. "Vaporizer free: Herb is next" (Start hands the vaporizer over), and "Alarm volume is low"
+     * from the first Start of a session (Raise opens sound settings).
      */
     @Composable
-    private fun DeviceFreeSnackbar(modifier: Modifier) {
+    private fun AppSnackbars(modifier: Modifier) {
         val app = app
         val host = remember { SnackbarHostState() }
         val message = stringResource(R.string.device_free_next)
         val start = stringResource(R.string.action_start)
+        val volumeLow = stringResource(R.string.volume_low)
+        val raise = stringResource(R.string.volume_open)
         LaunchedEffect(Unit) {
             app.deviceFreeInApp.collect { (id, label) ->
                 host.currentSnackbarData?.dismiss()
@@ -112,8 +121,20 @@ class MainActivity : ComponentActivity() {
                 if (result == SnackbarResult.ActionPerformed) app.send(Event.Start(id))
             }
         }
+        LaunchedEffect(Unit) {
+            app.volumeLowInApp.collect {
+                // Gone after about 6 s; timing out cancels showSnackbar, which dismisses it.
+                val result = withTimeoutOrNull(VOLUME_SNACKBAR_MS) {
+                    host.showSnackbar(volumeLow, actionLabel = raise, duration = SnackbarDuration.Indefinite)
+                }
+                // Once per session: coming back from sound settings shows nothing, whatever the volume is now.
+                if (result == SnackbarResult.ActionPerformed) {
+                    runCatching { startActivity(Intent(Settings.ACTION_SOUND_SETTINGS)) }
+                }
+            }
+        }
         val c = BeeTheme.colors
-        SnackbarHost(host, modifier.padding(Dimens.PageMargin).testTag("snackbar-device-free")) { data ->
+        SnackbarHost(host, modifier.padding(Dimens.PageMargin).testTag("snackbar")) { data ->
             Snackbar(data, containerColor = c.ink, contentColor = c.card, actionColor = c.deviceStrong)
         }
     }

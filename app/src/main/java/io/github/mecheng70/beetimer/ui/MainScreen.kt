@@ -1,13 +1,8 @@
 package io.github.mecheng70.beetimer.ui
 
-import android.content.Intent
-import android.media.AudioManager
-import android.provider.Settings
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.lifecycle.compose.LifecycleResumeEffect
 import io.github.mecheng70.beetimer.scheduler.Forecast
 import io.github.mecheng70.beetimer.scheduler.Planner
 import io.github.mecheng70.beetimer.ui.theme.AppIcons
@@ -59,7 +54,6 @@ import io.github.mecheng70.beetimer.ui.theme.Dimens
 
 /** Placeholder swapped for the bold countdown in the status line. */
 private const val COUNTDOWN_MARK = "\u0001"
-private const val HALF = 0.5f
 /** Coming up shows only the next few events; the rows below cover the rest. */
 private const val COMING_UP_COUNT = 3
 
@@ -80,8 +74,6 @@ fun MainScreen(onSettings: () -> Unit) {
         }
         if (s == null) return@Column
         val order = hives.map { it.id }
-        val anyActive = s.runs.values.any { it.isActive }
-        if (anyActive) VolumeBanner()
         AppCard(Modifier.fillMaxWidth().padding(horizontal = Dimens.PageMargin).padding(bottom = Dimens.PageMargin)) {
             val labels = hives.associate { it.id to it.label }
             // Recomputed only when the state changes (taps, step ends, queue changes), never on
@@ -106,34 +98,6 @@ fun MainScreen(onSettings: () -> Unit) {
                 HiveTab(hives[selected - 1], s, now)
             }
         }
-    }
-}
-
-/** Shown while a run is active and the alarm stream is under half volume. */
-@Composable
-private fun VolumeBanner() {
-    val context = LocalContext.current
-    val audio = remember { context.getSystemService(AudioManager::class.java) }
-    var low by remember { mutableStateOf(false) }
-    LifecycleResumeEffect(Unit) {
-        val max = audio.getStreamMaxVolume(AudioManager.STREAM_ALARM).coerceAtLeast(1)
-        low = audio.getStreamVolume(AudioManager.STREAM_ALARM).toFloat() / max < HALF
-        onPauseOrDispose { }
-    }
-    if (!low) return
-    val (bg, fg) = toneColors(Tone.DEVICE)
-    Row(
-        Modifier.fillMaxWidth().padding(horizontal = Dimens.PageMargin).padding(bottom = Dimens.Gap)
-            .background(bg, RoundedCornerShape(Dimens.SmallCorner))
-            .padding(horizontal = Dimens.StatusPaddingH, vertical = Dimens.Gap),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(Dimens.Gap),
-    ) {
-        Text(stringResource(R.string.volume_low), style = AppType.status, color = fg, maxLines = 1, modifier = Modifier.weight(1f))
-        AppButton(stringResource(R.string.volume_open), {
-            runCatching { context.startActivity(Intent(Settings.ACTION_SOUND_SETTINGS)) }
-            // Re-checked on resume.
-        })
     }
 }
 
@@ -230,7 +194,8 @@ private fun AllTab(hives: List<Hive>, s: SchedulerState, forecast: Forecast, now
                     overflow = TextOverflow.Ellipsis,
                     modifier = Modifier.width(Dimens.ComingHiveWidth),
                 )
-                Text(p.stepName, style = AppType.body, color = c.inkMuted, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f))
+                // Step names are never cut off on the All tab; a long one wraps.
+                Text(p.stepName, style = AppType.body, color = c.inkMuted, modifier = Modifier.weight(1f))
             }
         }
         VSpace(Dimens.Gap)
@@ -245,35 +210,34 @@ private fun AllTab(hives: List<Hive>, s: SchedulerState, forecast: Forecast, now
         val run = s.runs[hive.id]
         val plan = forecast.hives[hive.id]
         Column {
-            Row(
-                Modifier.fillMaxWidth().testTag("row-${hive.label}").clickable { onSelect(hive) }.padding(vertical = Dimens.HiveRowPaddingV),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(Dimens.Gap),
-            ) {
-                DragHandle(handle.testTag("drag-${hive.label}"), stringResource(R.string.action_reorder, hive.label))
-                Column(Modifier.weight(1f)) {
-                    Text(hive.label, style = AppType.rowHiveName, color = c.ink, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                    Text(subtitle(run), style = AppType.rowStep, color = c.inkMuted, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.testTag("row-sub-${hive.label}"))
+            // Line 1: handle, name, and the chip or button. Lines 2 and 3 run the full width under the chip,
+            // so step names never share space with it. Step names are never cut off; long ones wrap.
+            Column(Modifier.fillMaxWidth().testTag("row-${hive.label}").clickable { onSelect(hive) }.padding(vertical = Dimens.HiveRowPaddingV)) {
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Dimens.Gap)) {
+                    DragHandle(handle.testTag("drag-${hive.label}"), stringResource(R.string.action_reorder, hive.label))
+                    Text(hive.label, style = AppType.rowHiveName, color = c.ink, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f))
+                    Box(Modifier.testTag("row-action-${hive.label}")) {
+                        RowAction(hive.id, run, s, now, onEvent = { app.send(it) })
+                    }
+                }
+                Column(Modifier.padding(start = Dimens.IconTouch + Dimens.Gap)) {
+                    Text(subtitle(run), style = AppType.rowStep, color = c.inkMuted, modifier = Modifier.testTag("row-sub-${hive.label}"))
                     val next = plan?.next
                     when {
                         run?.state == RunState.WAITING_FOR_DEVICE -> plan?.deviceStart?.let {
                             val starts = if (it.at <= now) stringResource(R.string.hive_starts_now)
                             else stringResource(R.string.hive_starts_in, remaining(it.at, it.estimated, now, ""))
-                            Text(starts, style = AppType.rowNext, color = c.inkMuted, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                            Text(starts, style = AppType.rowNext, color = c.inkMuted)
                         }
                         // No time here: the countdown chip already shows when the next step starts.
                         run != null && run.isActive && next != null -> Row(
-                            verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.spacedBy(Dimens.PillGap),
-                            modifier = Modifier.testTag("row-next-${hive.label}"),
+                            modifier = Modifier.padding(top = Dimens.PillPaddingV).testTag("row-next-${hive.label}"),
                         ) {
-                            Text(stringResource(R.string.hive_next_label), style = AppType.rowNext, color = c.inkMuted, maxLines = 1)
-                            StepPill(next.stepName, next.deviceBound, Modifier.weight(1f, fill = false))
+                            Text(stringResource(R.string.hive_next_label), style = AppType.rowNext, color = c.inkMuted, maxLines = 1, modifier = Modifier.alignByBaseline())
+                            StepPill(next.stepName, next.deviceBound, Modifier.weight(1f, fill = false).alignByBaseline())
                         }
                     }
-                }
-                Box(Modifier.testTag("row-action-${hive.label}")) {
-                    RowAction(hive.id, run, s, now, onEvent = { app.send(it) })
                 }
             }
             if (hive != hives.last()) RowDivider()

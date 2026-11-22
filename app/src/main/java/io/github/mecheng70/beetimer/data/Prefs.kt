@@ -27,6 +27,11 @@ class Prefs(context: Context) {
         get() = sp.getBoolean(KEY_PERMS_SHOWN, false)
         set(v) = sp.edit { putBoolean(KEY_PERMS_SHOWN, v) }
 
+    /** True once this session's low alarm volume check has run (first Start). Cleared by New session. */
+    var volumeChecked: Boolean
+        get() = sp.getBoolean(KEY_VOLUME_CHECKED, false)
+        set(v) = sp.edit { putBoolean(KEY_VOLUME_CHECKED, v) }
+
     fun setTheme(mode: ThemeMode) {
         sp.edit { putString(KEY_THEME, mode.name) }
         _theme.value = mode
@@ -42,5 +47,6 @@ class Prefs(context: Context) {
         const val KEY_SCREEN_ON = "keepScreenOn"
         const val KEY_BATTERY_ASKED = "batteryAsked"
         const val KEY_PERMS_SHOWN = "permsShown"
+        const val KEY_VOLUME_CHECKED = "volumeChecked"
     }
 }

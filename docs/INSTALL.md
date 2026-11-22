@@ -29,7 +29,7 @@ lets that happen if you allow it.
 - **No battery limits:** keeps alarms from being delayed. The app asks once.
 
 Alarms ring at your **alarm volume**, so they work on silent and in Do Not Disturb. If your alarm volume is
-low, Bee Timer shows "Alarm volume is low" with a Raise button while a hive is running.
+low when you start the first hive, Bee Timer shows "Alarm volume is low" with a Raise button for a few seconds.
 
 If alarms come late or not at all, check the battery settings for Bee Timer in your phone's settings.
 

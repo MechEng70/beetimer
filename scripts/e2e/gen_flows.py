@@ -350,17 +350,22 @@ def screens_parts():
     hold_in = [{"tapOn": {"id": "hold-stays_in"}}, "waitForAnimationToEnd", {"scrollUntilVisible": {"element": {"id": "add-hive"}, "direction": "DOWN"}}]
     back_all = ["back", "waitForAnimationToEnd"]
     alarm = [{"extendedWaitUntil": {"visible": {"id": "alarm-done"}, "timeout": 20000}}, "waitForAnimationToEnd"]
-    # Teal Next pill (fresh app data, real time): wand comes out, so Herb ends up in Keep sealed (passive) with
-    # "Next: Unseal"; Sparky then takes the vaporizer and sits on Load dose with "Next: Heat and vaporize".
+    # All tab scenes (fresh app data, real time, wand comes out). scr-h: Herb in Cool in hive with
+    # "Next: Remove wand", Sparky queued. scr-h2: Herb in Keep sealed (passive, teal "Next: Unseal"), and
+    # Sparky takes the vaporizer and sits on Load dose with "Next: Heat and vaporize".
     teal0 = ["launchApp", {"tapOn": {"text": "Continue", "optional": True}}, {"tapOn": "Settings"},
              {"tapOn": {"id": "hold-comes_out"}}, "waitForAnimationToEnd",
              {"scrollUntilVisible": {"element": {"id": "add-hive"}, "direction": "DOWN"}}]
-    teal = ["back", "waitForAnimationToEnd"]
-    teal += tap("Herb") + wait("Herb", "Seal hive") + tap("Herb") + pan_comes_out_block("Herb")
-    teal += handoff("Sparky") + wait("Sparky", "Seal hive") + tap("Sparky") + wait("Sparky", "Load dose")
+    cool = ["back", "waitForAnimationToEnd"]
+    cool += tap("Herb") + wait("Herb", "Seal hive") + tap("Herb") + wait("Herb", "Load dose") + tap("Herb")
+    cool += tap("Sparky") + wait("Sparky", "Seal hive") + tap("Sparky") + wait("Sparky", "Waiting")
+    cool += ack("Herb") + wait("Herb", "Cool in hive")  # Heat finished; Cool starts on Done
+    cool += pause(3000)
+    teal = ack("Herb") + wait("Herb", "Keep sealed")  # Cool finished; Done completes Remove wand
+    teal += handoff("Sparky") + wait("Sparky", "Load dose")  # Sparky sealed while queued, so Start goes to Load dose
     teal += pause(12000)  # let the "Vaporizer free" snackbar time out
     return {"scr-a0": a0, "scr-a": a, "scr-b": hive_tab, "scr-c": settings, "scr-d": hold_out, "scr-e": hold_in, "scr-f": back_all,
-            "scr-g": alarm, "scr-h0": teal0, "scr-h": teal}
+            "scr-g": alarm, "scr-h0": teal0, "scr-h": cool, "scr-h2": teal}
 
 
 def main():

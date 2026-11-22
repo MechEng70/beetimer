@@ -17,7 +17,12 @@ Update this file at the end of each round.
   notice changes and no flow reads what they changed, so the suite was not re-run.
 - **Done:** everything in `docs/design/TASKS.md` up to R10. Jason checked R7 to R10 on the phone on
   2026-11-22: all good.
-- **Waiting on:** nothing assigned. The next work is Jason's call.
+- **Releases:** none yet. The README and INSTALL.md link to the Releases page, which is empty until the
+  first release.
+- **Waiting on:** Jason's call on the first GitHub Release (2026-11-22: "wait"). Two ways, both asked:
+  do T11 first and publish a release-signed pre-release (recommended), or publish the debug-signed APK as
+  a pre-release, knowing a later release-signed build needs an uninstall (data lost). Don't release
+  without his go-ahead.
 
 ## Latest rounds (2026-11-22, main screen only)
 
@@ -84,8 +89,10 @@ Needs Jason:
 - **Phone cleanup:** "Hive 4" on the phone: Jason deletes it himself. Don't touch it.
 
 Before the first public release:
-- **T11 release keystore:** see TASKS.md. The keystore is never committed, and how to back it up goes in
-  DEVELOPING.md.
+- **T11 release keystore:** see TASKS.md. Plan if Jason says go: keystore and `keystore.properties` in
+  `~/.config/beetimer/` (outside the repo), signing config reads them (or env vars), backup steps in
+  DEVELOPING.md, then `scripts/build-apk.sh` builds the signed APK (it builds the debug APK today) and the
+  APK goes up as a GitHub pre-release with its sha256. Jason backs up the keystore and passwords off GitHub.
 
 Small, not urgent:
 - Kotlin warning `Condition is always 'true'` at `ui/MainScreen.kt:324` (Hive tab, `counting && ends != null`).
@@ -139,6 +146,8 @@ Build and tests:
 - **Alarm screen close:** the close logic must stay in `lifecycleScope`, not Compose. In Compose it was
   dispatcher-order dependent, and the in-app alarm closed to the launcher (`AlarmActivityCloseTest`).
 - **Icon render:** `IconRenderTest` needs Robolectric `GraphicsMode.NATIVE`.
+- **Shell is zsh:** an unquoted `$VAR` holding `adb -s emulator-5554` is not split into words, so the
+  command silently fails (output was sent to /dev/null). Write the command out in full.
 - **Editing files in scripts:** never edit a file by truncating it and reading it back in the same pipeline
   (e.g. `cmd < f > f`). Write to a temp file and move it into place, then check the result is non-empty
   before committing. (R10 committed an empty HANDOFF.md this way; restored in `337e5ae`.)

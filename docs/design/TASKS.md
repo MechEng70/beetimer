@@ -196,7 +196,7 @@ oracle. Run through all tasks in order and stop only at the brief's hard stops.
 - **Device testing (Jason):** none.
 - Done: `92d015f`.
 
-#### T-013 [ ] Full E2E at 10x (L)
+#### T-013 [~] Full E2E at 10x (L)
 - **Goal:** the whole suite at 10x on the emulator, zero invariant errors, screenshots re-captured.
 - **Files:** `docs/e2e/REPORT.md`, `docs/e2e/*`, `docs/screenshots/app-*.png`.
 - **Depends on:** T-010, T-011, T-012.
@@ -205,6 +205,19 @@ oracle. Run through all tasks in order and stop only at the brief's hard stops.
 - **Tests:** the suite.
 - **Device testing (Jason):** compare the new `docs/screenshots/app-*.png` with the previous commit's: they
   should match except the status bar crop.
+
+#### T-013a [ ] Alarm screen readability (M)
+- **Goal:** Jason's approved design change (2026-11-23), display only: finished line 24 sp, "Next for <hive>"
+  18 sp, next action 36 sp semibold (two lines, never cut off), timer line 20 sp, "Then: <hive>, <step>" 20 sp
+  when Done frees the vaporizer, hive name 56 sp, tighter space around the divider; buttons unchanged.
+- **Files:** `ui/AlarmActivity.kt`, `alarms/AlarmText.kt`, `ui/theme/Theme.kt`, `strings.xml`, tests.
+- **Depends on:** T-013.
+- **Size:** M. **Model:** main (Opus 5.5). **Parallel-safe:** no.
+- **Acceptance:** fits at font scale 1.15 and 1.3 without reaching the buttons; next action never ellipsized;
+  sizes are tokens; s6 and s11 pass at 10x; `app-3-alarm.png` re-captured at 1.15 and 1.3; SPEC section 1.
+- **Tests:** `AlarmLayoutTest`, `AlarmTextTest`; E2E s6 and s11.
+- **Device testing (Jason):** on the phone, let a step end with the screen locked; compare the alarm screen
+  with `docs/screenshots/app-3-alarm.png`: everything readable at arm's length, nothing over the buttons.
 
 ### Phase 5: release
 

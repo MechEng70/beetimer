@@ -11,9 +11,16 @@ at the brief's hard stops. No behavior change: the tag `alpha-baseline` (`571c8e
 
 - **Branch:** the brief says `master`; the branch is `main` (renamed and pushed 2026-11-22). Use `main`.
 - **Done:** T-001 (baseline tag, HANDOFF moved to `docs/HANDOFF.md`, USAGE.md), T-002 (CLAUDE.md now has the
-  playbook working, security, device, data, layout and agent rules, adapted to Kotlin).
-- **Next:** T-003 SPEC.md.
-- **Odd:** nothing yet.
+  playbook working, security, device, data, layout and agent rules, adapted to Kotlin), T-003 (SPEC in playbook
+  shape: what it does, screens, rules, decisions, failure modes, safety numbers, definition of done).
+- **Next:** T-004 TASKS.md and WBS.md.
+- **Odd / for "Found during R11"** (move into TASKS.md in T-004):
+  - Baseline: a corrupt step-list row crashes app start, and a corrupt state row silently resets all runs and
+    is overwritten on the next save (T-010 fixes both).
+  - Baseline: if exact-alarm scheduling throws `SecurityException` (Android 12 only, access revoked),
+    `AlarmScheduler.guarded` logs it and the alarm is silently not set. Not reachable on Android 13+.
+  - SPEC citations: only the 10 min sealed hold has a source (found by search, paper not read). Heat 150 s,
+    cool 120 s and gun 20 s are "citation needed (Jason)".
 
 Restart prompt (from the brief):
 

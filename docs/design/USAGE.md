@@ -8,3 +8,4 @@ session, with no subagent.
 |---|---|---|---|---|---|
 | T-001 | Opus 5.5 (main) | 2026-11-23 10:50 | 2026-11-23 10:51 | S | Tag, file move, gate re-run with `--rerun-tasks` |
 | T-002 | Opus 5.5 (main) | 2026-11-23 10:51 | 2026-11-23 10:52 | S | CLAUDE.md rewrite; docs only, gate unchanged |
+| T-003 | Opus 5.5 (main) | 2026-11-23 10:52 | 2026-11-23 10:54 | M | SPEC restructure, failure-mode table from the code, 2 web searches for citations |

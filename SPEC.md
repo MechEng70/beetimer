@@ -126,11 +126,13 @@ sets no dose.
 
 | Default | Value | Source |
 |---|---|---|
-| Keep sealed after vaporizing | 600 s (10 min) | Field study in Georgia and Alabama, 99 colonies, 2019 and 2020: seven ProVap 110 vaporizations 5 days apart, entrances kept sealed 10 min after each (https://pmc.ncbi.nlm.nih.gov/articles/PMC8825467; the same group in Bee Culture, https://beeculture.com/?p=56351). Found 2026-11-23 from a search summary; the paper itself was not read, so authors and journal are not given here (Jason to confirm). |
-| Pan wand heat | 150 s | citation needed (Jason) |
-| Pan wand cool in hive | 120 s | citation needed (Jason) |
-| Gun type vaporize | 20 s | citation needed (Jason) |
+| Keep sealed after vaporizing | 600 s (10 min) | Primary: Berry JA, Bartlett LJ, Bruckner S, Baker C, Braman SK, Delaplane KS, Williams GR. Assessing Repeated Oxalic Acid Vaporization in Honey Bee Colonies for Control of Varroa destructor. J Insect Sci. 2022;22(1):15. doi:10.1093/jisesa/ieab089. ProVap 110; seals left in place an additional 10 min per hive. Confirmed by Jason, 2026-11-23. The VARROX manual (below) also says "left shut for another 10 minutes". |
+| Pan wand heat | 150 s (2.5 min) | Primary: Andermatt BioVet AG, VARROX user instructions, May 2012, section 3.5: connect to a 12 V car battery for 2½ minutes. Read from the hosted copy (manualslib.com/manual/2159193), where "2½" sits in split text; check the PDF if it matters. Secondary, agrees: Nashville Area Beekeepers Association, "Oxalic Acid for the Treatment of Varroa" (nashbee.org/wp-content/uploads/Oxalic-acid-methods.pdf): 12 V for 2.5 min. |
+| Pan wand cool in hive | 120 s (2 min) | Primary: same VARROX manual, section 3.5: "wait for 2 minutes before the appliance is pulled out, so that the oxalic acid-vapour can settle down." Secondary, agrees: the NABA handout above (wait 2 min before removing). |
+| Gun type vaporize | 20 s | Secondary: Dadant product page for the ProVap 110 ("as little as 20 seconds per hive"), as given by Jason. The OxaVap ProVap 110 instruction guide was not readable (the hosted copy blocks automated reads), so no primary source yet. |
 | Dose | Not set by the app | Product label |
+
+The product label governs dose and use. These are reference defaults only, and every one is editable in the app.
 
 ## 6. Definition of done (0.1.0-alpha.1)
 

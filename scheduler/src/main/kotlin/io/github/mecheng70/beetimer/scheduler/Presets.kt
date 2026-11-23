@@ -10,16 +10,16 @@ object Presets {
 
     // Reference default durations in seconds; the product label governs. Sources: SPEC section 5.
 
-    /** Pan wand heat and vaporize. Citation needed (Jason). */
+    /** Pan wand heat and vaporize: 2.5 min at 12 V (Andermatt BioVet VARROX instructions, 2012). */
     const val PAN_HEAT_S = 150
 
-    /** Pan wand cool in hive. Citation needed (Jason). */
+    /** Pan wand cool in hive: 2 min before pulling it out (VARROX instructions, 2012). */
     const val PAN_COOL_S = 120
 
-    /** Gun type vaporize. Citation needed (Jason). */
+    /** Gun type vaporize: about 20 s (Dadant ProVap 110 page; secondary, no primary yet). */
     const val GUN_VAPORIZE_S = 20
 
-    /** Keep sealed after vaporizing: 10 min, from a ProVap 110 field study (SPEC section 5). */
+    /** Keep sealed after vaporizing: 10 min (Berry et al. 2022, J Insect Sci 22(1):15). */
     const val SEALED_HOLD_S = 600
 
     /** What happens to the pan wand during the sealed hold (Settings choice; read from the step list). */

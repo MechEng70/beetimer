@@ -299,8 +299,8 @@ oracle. Run through all tasks in order and stop only at the brief's hard stops.
 - **Layout audit, the rest (T-011).** Countdowns now use tabular digits (fixed). No auto-scroll anywhere. Chips
   have fixed minimum heights. A row grows when a long step name wraps (R10 decision), which happens on a state
   change, not a tick, and below the tapped control.
-- **Citations.** Only the 10 min sealed hold has a source (SPEC section 5). Heat 150 s, cool 120 s and gun
-  20 s need one from Jason.
+- **Citations.** Answered by Jason 2026-11-23 (SPEC section 5): 10 min hold (Berry et al. 2022), heat and cool
+  (VARROX manual, primary), gun 20 s (Dadant page, secondary; the OxaVap guide wasn't readable).
 
 ## Open checks (need Jason)
 

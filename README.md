@@ -51,4 +51,4 @@ There is no account, no server and no network access. Your hives and settings st
 MIT. See [LICENSE](LICENSE).
 
 Building it yourself: see [docs/DEVELOPING.md](docs/DEVELOPING.md). Phone test script: [docs/MANUAL-TEST.md](docs/MANUAL-TEST.md).
-End-to-end tests: [docs/e2e/](docs/e2e/). Where things stand: [HANDOFF.md](HANDOFF.md).
+End-to-end tests: [docs/e2e/](docs/e2e/). Where things stand: [docs/HANDOFF.md](docs/HANDOFF.md).

@@ -1,6 +1,6 @@
 # Bee Timer: technical design (alpha)
 
-Status: alpha built and on the phone (0.1.0-alpha). This doc describes the code as it is; where it and the code disagree, fix one of them. Current state and open items: `HANDOFF.md`.
+Status: alpha built and on the phone (0.1.0-alpha). This doc describes the code as it is; where it and the code disagree, fix one of them. Current state and open items: `docs/HANDOFF.md`.
 
 Source of truth for requirements: `SPEC.md` (section 1 Decisions wins over the original brief). Approved screens: `docs/mockups/varroa-timer-mockups.html`. This doc records decisions and the answers to open questions, so a fresh session can pick up any task in `TASKS.md` cold.
 

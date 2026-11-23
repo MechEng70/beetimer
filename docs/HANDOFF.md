@@ -1,7 +1,26 @@
 # Handoff
 
-Where Bee Timer stands on 2026-11-22, for whoever picks it up next (a person or a fresh agent session).
-Update this file at the end of each round.
+Where Bee Timer stands on 2026-11-23, for whoever picks it up next (a person or a fresh agent session).
+Update this file after each task.
+
+## Round R11 (in progress): playbook adoption
+
+Work order: `docs/design/PLAYBOOK-ADOPTION.md` (read it fully). Playbook: `docs/PLAYBOOK.md`. Run all tasks
+in order, commit each with its ID, update this section and `docs/design/USAGE.md` after each, and stop only
+at the brief's hard stops. No behavior change: the tag `alpha-baseline` (`571c8ee`) is the oracle.
+
+- **Branch:** the brief says `master`; the branch is `main` (renamed and pushed 2026-11-22). Use `main`.
+- **Done:** T-001 (baseline tag, HANDOFF moved to `docs/HANDOFF.md`, USAGE.md).
+- **Next:** T-002 CLAUDE.md.
+- **Odd:** nothing yet.
+
+Restart prompt (from the brief):
+
+```
+Read CLAUDE.md, docs/HANDOFF.md, docs/design/TASKS.md and docs/design/PLAYBOOK-ADOPTION.md. Run git status
+and git log -5 and tell me what's committed and what isn't. Check uncommitted work before building on it.
+Then continue round R11 from the next unfinished task, under the same rules.
+```
 
 ## State
 

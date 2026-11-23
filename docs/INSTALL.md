@@ -9,7 +9,7 @@ The wording of Android's own questions differs a little from phone to phone. The
 
 1. On your phone, open this page in your browser:
    https://github.com/MechEng70/beetimer/releases/latest
-2. Under "Assets", tap the file that ends in `.apk` (for example `beetimer-0.1.0-alpha.1.apk`). If the browser
+2. Under "Assets", tap the file that ends in `.apk` (for example `beetimer-0.1.0-alpha.2.apk`). If the browser
    warns that the file might be harmful, choose to download it anyway.
 3. When the download is done, tap "Open" (or tap the file in your notifications or your Downloads).
 4. The first time, Android says your browser is not allowed to install apps. Tap "Settings", turn on
@@ -48,5 +48,5 @@ releases install over 0.1.0-alpha.1 and keep everything.
 With USB debugging on and the phone plugged in:
 
 ```
-adb install -r beetimer-0.1.0-alpha.1.apk
+adb install -r beetimer-0.1.0-alpha.2.apk
 ```

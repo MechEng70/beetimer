@@ -110,7 +110,7 @@ Moving to compileSdk 37 unlocks the newer ones.
 
 ## Versions and releases (R11 T-014 to T-016)
 
-- **Version name:** `appVersion` in `gradle.properties` (now `0.1.0-alpha.1`). The versionCode follows the
+- **Version name:** `appVersion` in `gradle.properties` (now `0.1.0-alpha.2`). The versionCode follows the
   playbook: `(major * 10000 + minor * 100 + patch) * 1000 + stage`, with alpha.N = N, beta.N = 300 + N,
   rc.N = 600 + N, final = 999. 0.1.0-alpha.1 = 100001. Code: `buildSrc/src/main/kotlin/AppVersion.kt`, tested
   by `AppVersionTest` (the gate runs `./gradlew -p buildSrc test`). `./gradlew -q :app:printVersionCode` prints it.

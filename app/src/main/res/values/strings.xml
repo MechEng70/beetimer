@@ -24,7 +24,6 @@
     <string name="action_open">Open</string>
     <string name="action_undo">Undo</string>
     <string name="action_queue_skip">Skip to back</string>
-    <string name="action_queue_remove">Remove</string>
     <string name="action_reorder">Drag to reorder %1$s</string>
     <string name="action_delete_hive">Delete %1$s</string>
     <string name="action_move_up">Move %1$s up</string>
@@ -36,6 +35,7 @@
     <string name="device_free_now">Vaporizer: %1$s, free now</string>
     <string name="device_busy">Vaporizer: %1$s, %2$s</string>
     <string name="device_next">Next: %1$s</string>
+    <string name="device_next_tap_start">Next: %1$s. Tap Start on its row.</string>
     <string name="device_free_next">Vaporizer free: %1$s is next</string>
 
     <!-- Low alarm volume -->
@@ -45,6 +45,7 @@
     <!-- Planning (All tab) -->
     <string name="tab_all">All</string>
     <string name="coming_up">Coming up</string>
+    <string name="coming_up_empty">Start a hive to see what\'s next</string>
     <string name="estimate_prefix">~</string>
     <string name="hive_next_label">Next:</string>
     <string name="hive_starts_in">Starts in %1$s</string>

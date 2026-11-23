@@ -41,6 +41,7 @@ import io.github.mecheng70.beetimer.scheduler.Event
 import io.github.mecheng70.beetimer.scheduler.Forecast
 import io.github.mecheng70.beetimer.scheduler.Hive
 import io.github.mecheng70.beetimer.scheduler.HiveRun
+import io.github.mecheng70.beetimer.scheduler.PlannedStep
 import io.github.mecheng70.beetimer.scheduler.Planner
 import io.github.mecheng70.beetimer.scheduler.RunState
 import io.github.mecheng70.beetimer.scheduler.SchedulerState
@@ -57,7 +58,7 @@ import kotlinx.coroutines.launch
 private const val COUNTDOWN_MARK = "\u0001"
 
 /** Coming up shows only the next few events; the rows below cover the rest. */
-private const val COMING_UP_COUNT = 3
+internal const val COMING_UP_COUNT = 3
 
 @Composable
 fun MainScreen(onSettings: () -> Unit) {
@@ -126,20 +127,24 @@ private fun estimate(text: String, estimated: Boolean): String =
 private fun remaining(at: Long, estimated: Boolean, now: Long, nowText: String): String =
     if (at <= now) nowText else estimate(formatCountdown(at - now), estimated)
 
+/**
+ * The vaporizer bar: always exactly two lines, so nothing under it moves when the vaporizer changes hands
+ * (playbook layout rule; Jason, 2026-11-23). Start for the next hive is on its row and in the snackbar.
+ */
 @Composable
-private fun DeviceStatusBar(
+internal fun DeviceStatusBar(
     s: SchedulerState,
     labels: Map<Long, String>,
     now: Long,
     nextUp: Long?,
     forecast: Forecast,
 ) {
-    val app = LocalContext.current.app
     val holder = s.lockHolder?.let { s.runs[it] }
     val head = s.queue.firstOrNull()
     val (bg, fg) = toneColors(if (holder != null) Tone.DEVICE else Tone.IDLE)
     Column(
         Modifier.fillMaxWidth()
+            .testTag("vaporizer-bar")
             .background(bg, RoundedCornerShape(Dimens.SmallCorner))
             .padding(horizontal = Dimens.StatusPaddingH, vertical = Dimens.StatusPaddingV),
     ) {
@@ -174,33 +179,68 @@ private fun DeviceStatusBar(
             else -> AnnotatedString(stringResource(R.string.device_free))
         }
         Text(line, style = AppType.status, color = fg, maxLines = 1, overflow = TextOverflow.Ellipsis)
-        val showNext = nextUp != null && nextUp != holder?.hiveId && !(holder == null && head != null)
-        if (showNext) {
-            Text(
-                stringResource(R.string.device_next, labels[nextUp].orEmpty()),
-                style = AppType.statusSub,
-                color = fg,
-                maxLines = 1,
-            )
+        val second = when {
+            holder == null && head != null -> stringResource(R.string.device_next_tap_start, labels[head].orEmpty())
+            nextUp != null && nextUp != holder?.hiveId -> stringResource(R.string.device_next, labels[nextUp].orEmpty())
+            else -> ""
         }
-        if (holder == null && head != null) {
-            VSpace(Dimens.Gap)
-            Row(horizontalArrangement = Arrangement.spacedBy(Dimens.Gap)) {
-                AppButton(stringResource(R.string.action_start), {
-                    app.send(Event.Start(head))
-                }, Modifier.testTag("bar-start"), kind = ButtonKind.FILLED)
-                if (s.queue.size >
-                    1
-                ) {
-                    AppButton(stringResource(R.string.action_queue_skip), {
-                        app.send(Event.QueueSkipHead)
-                    }, Modifier.testTag("bar-skip"))
+        // Always one line, even when empty, so the bar's height never changes.
+        Text(
+            second,
+            style = AppType.statusSub,
+            color = fg,
+            minLines = 1,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            modifier = Modifier.testTag("vaporizer-bar-next"),
+        )
+    }
+}
+
+/**
+ * Coming up: always shown, always [COMING_UP_COUNT] rows, so the hive rows under it never move when runs start
+ * or finish (playbook layout rule; Jason, 2026-11-23). With nothing coming up, row 1 says how to start.
+ */
+@Composable
+internal fun ComingUp(upcoming: List<PlannedStep>, labels: Map<Long, String>) {
+    val c = BeeTheme.colors
+    Column(Modifier.fillMaxWidth().testTag("coming-up")) {
+        Text(
+            stringResource(R.string.coming_up),
+            style = AppType.section,
+            color = c.ink,
+            modifier = Modifier.padding(bottom = Dimens.ChipPaddingV),
+        )
+        repeat(COMING_UP_COUNT) { i ->
+            val p = upcoming.getOrNull(i)
+            Row(
+                Modifier.fillMaxWidth().padding(vertical = Dimens.ChipPaddingV),
+                horizontalArrangement = Arrangement.spacedBy(Dimens.Gap),
+            ) {
+                when {
+                    p != null -> {
+                        Text(
+                            labels[p.hiveId].orEmpty(),
+                            style = AppType.section,
+                            color = c.ink,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                            modifier = Modifier.width(Dimens.ComingHiveWidth),
+                        )
+                        // Step names are never cut off on the All tab; a long one wraps.
+                        Text(p.stepName, style = AppType.body, color = c.inkMuted, modifier = Modifier.weight(1f))
+                    }
+
+                    i == 0 && upcoming.isEmpty() ->
+                        Text(stringResource(R.string.coming_up_empty), style = AppType.body, color = c.inkMuted)
+
+                    // A blank row keeps its height.
+                    else -> Text("", style = AppType.body, minLines = 1)
                 }
-                AppButton(stringResource(R.string.action_queue_remove), {
-                    app.send(Event.QueueRemoveHead)
-                }, Modifier.testTag("bar-remove"))
             }
         }
+        VSpace(Dimens.Gap)
+        RowDivider()
     }
 }
 
@@ -211,34 +251,7 @@ private fun AllTab(hives: List<Hive>, s: SchedulerState, forecast: Forecast, now
     val fullClock = rememberClock()
     val labels = hives.associate { it.id to it.label }
 
-    val upcoming = forecast.comingUp(COMING_UP_COUNT)
-    if (upcoming.isNotEmpty()) {
-        Text(
-            stringResource(R.string.coming_up),
-            style = AppType.section,
-            color = c.ink,
-            modifier = Modifier.padding(bottom = Dimens.ChipPaddingV),
-        )
-        upcoming.forEach { p ->
-            Row(
-                Modifier.fillMaxWidth().padding(vertical = Dimens.ChipPaddingV),
-                horizontalArrangement = Arrangement.spacedBy(Dimens.Gap),
-            ) {
-                Text(
-                    labels[p.hiveId].orEmpty(),
-                    style = AppType.section,
-                    color = c.ink,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.width(Dimens.ComingHiveWidth),
-                )
-                // Step names are never cut off on the All tab; a long one wraps.
-                Text(p.stepName, style = AppType.body, color = c.inkMuted, modifier = Modifier.weight(1f))
-            }
-        }
-        VSpace(Dimens.Gap)
-        RowDivider()
-    }
+    ComingUp(forecast.comingUp(COMING_UP_COUNT), labels)
 
     ReorderableColumn(
         items = hives,
@@ -536,6 +549,12 @@ private fun HiveActions(hiveId: Long, run: HiveRun?, s: SchedulerState, onEvent:
             AppButton(stringResource(R.string.action_start), {
                 onEvent(Event.Start(hiveId))
             }, full.testTag("hive-start"), kind = ButtonKind.FILLED, enabled = ready)
+            // Every queued hive can go to the back; it's greyed out, not hidden, when it's already last, so the
+            // buttons under it never move (Jason, 2026-11-23).
+            val behind = s.queue.indexOf(hiveId).let { it >= 0 && it < s.queue.lastIndex }
+            AppButton(stringResource(R.string.action_queue_skip), {
+                onEvent(Event.SkipToBack(hiveId))
+            }, full.testTag("hive-skip-to-back"), enabled = behind)
             if (run.ringing !=
                 null
             ) {

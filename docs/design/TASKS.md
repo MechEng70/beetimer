@@ -289,13 +289,10 @@ oracle. Run through all tasks in order and stop only at the brief's hard stops.
 - **Exact alarm refused (baseline).** If scheduling throws `SecurityException` (Android 12 only, access
   revoked), `AlarmScheduler.guarded` logs it and the alarm is silently not set. Not reachable on Android 13+,
   where `USE_EXACT_ALARM` can't be revoked. Not fixed: it would add UI.
-- **Layout rule: the vaporizer bar grows (baseline, design).** When the vaporizer frees for a queued hive, the
-  bar adds a row of buttons (Start, Skip to back, Remove), and its "Next:" line comes and goes. Tapping Done on
-  the holder's row (which frees the vaporizer) pushes that row and everything below it down by about one
-  button height. Not fixed: reserving the space or moving the buttons changes the mockup. Jason to decide.
-- **Layout rule: Coming up appears on the first Start (baseline, design).** The section shows only when
-  something is running, so the first Start on the All tab pushes the hive rows down under the finger. Same
-  reason, same question.
+- **Layout rule: vaporizer bar and Coming up (baseline, design).** The bar grew by a button row when the
+  vaporizer freed, and Coming up appeared on the first Start; both moved the control just tapped. Jason,
+  2026-11-23: change the design. Done: the bar is two fixed lines with no buttons, Coming up is always 3 rows,
+  Skip to back moved to every queued hive's tab (`Event.SkipToBack`), Remove is Cancel run (`FixedLayoutTest`).
 - **Layout audit, the rest (T-011).** Countdowns now use tabular digits (fixed). No auto-scroll anywhere. Chips
   have fixed minimum heights. A row grows when a long step name wraps (R10 decision), which happens on a state
   change, not a tick, and below the tapped control.

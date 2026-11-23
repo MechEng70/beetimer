@@ -90,9 +90,14 @@ class PropertyTest {
                     t.send(Event.Cancel(h))
                 }
 
-                roll < 85 -> {
+                roll < 83 -> {
                     label = "QueueSkipHead"
                     t.send(Event.QueueSkipHead)
+                }
+
+                roll < 85 -> {
+                    label = "SkipToBack($h)"
+                    t.send(Event.SkipToBack(h))
                 }
 
                 roll < 88 -> {

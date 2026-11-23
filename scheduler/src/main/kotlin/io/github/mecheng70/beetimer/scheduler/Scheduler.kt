@@ -10,6 +10,9 @@ sealed interface Event {
     data class Skip(val hiveId: Long) : Event
     data class Cancel(val hiveId: Long) : Event
     data object QueueSkipHead : Event
+
+    /** Moves any queued hive to the back of the queue (Hive tab, R11). The head behaves as [QueueSkipHead]. */
+    data class SkipToBack(val hiveId: Long) : Event
     data object QueueRemoveHead : Event
     data object NewSession : Event
     data class TemplateChanged(val template: Template) : Event
@@ -69,6 +72,7 @@ class DefaultScheduler : Scheduler {
             is Event.Skip -> r.skip(event.hiveId)
             is Event.Cancel -> r.cancel(event.hiveId)
             Event.QueueSkipHead -> r.queueSkipHead()
+            is Event.SkipToBack -> r.skipToBack(event.hiveId)
             Event.QueueRemoveHead -> r.queueRemoveHead()
             Event.NewSession -> r.newSession()
             is Event.TemplateChanged -> r.s = r.s.copy(template = event.template)
@@ -200,6 +204,12 @@ private class Reduction(var s: SchedulerState, val now: Long) {
         val head = s.queue.first()
         s = s.copy(queue = s.queue.drop(1) + head)
         if (s.lockHolder == null) effects += Effect.NotifyDeviceFree(s.queue.first())
+    }
+
+    fun skipToBack(h: Long) {
+        val i = s.queue.indexOf(h)
+        if (i < 0 || i == s.queue.lastIndex) return
+        if (i == 0) queueSkipHead() else s = s.copy(queue = s.queue - h + h)
     }
 
     fun queueRemoveHead() {

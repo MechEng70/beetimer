@@ -355,6 +355,47 @@ class SchedulerTest {
     }
 
     @Test
+    fun skipToBack_movesAQueuedHiveBehindTheOthersWithoutAlerting() {
+        val t = Harness()
+        listOf(a, b, c).forEach {
+            t.send(Start(it))
+            t.send(Done(it))
+        }
+        assertEquals(a, t.state.lockHolder)
+        assertEquals(listOf(b, c), t.state.queue)
+        val fx = t.send(Event.SkipToBack(b))
+        assertEquals(listOf(c, b), t.state.queue)
+        assertEquals(emptyList<Effect>(), fx.filterIsInstance<NotifyDeviceFree>())
+        t.assertAt(b, "Load dose", WAITING_FOR_DEVICE)
+    }
+
+    @Test
+    fun skipToBack_onTheHeadWhileFreeAlertsTheNewHead() {
+        val t = Harness()
+        listOf(a, b, c).forEach {
+            t.send(Start(it))
+            t.send(Done(it))
+        }
+        t.send(Cancel(a))
+        val fx = t.send(Event.SkipToBack(b))
+        assertEquals(listOf(c, b), t.state.queue)
+        assertEquals(listOf(NotifyDeviceFree(c)), fx.filterIsInstance<NotifyDeviceFree>())
+    }
+
+    @Test
+    fun skipToBack_onTheLastOrAnUnqueuedHiveChangesNothing() {
+        val t = Harness()
+        listOf(a, b, c).forEach {
+            t.send(Start(it))
+            t.send(Done(it))
+        }
+        val before = t.state
+        assertEquals(emptyList<Effect>(), t.send(Event.SkipToBack(c)))
+        assertEquals(emptyList<Effect>(), t.send(Event.SkipToBack(a)))
+        assertEquals(before, t.state)
+    }
+
+    @Test
     fun queueRemoveHead_resetsThatHive() {
         val t = Harness()
         listOf(a, b, c).forEach {

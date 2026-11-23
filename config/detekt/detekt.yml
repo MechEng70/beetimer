@@ -15,8 +15,10 @@ complexity:
     ignoreAnnotated: ['Composable']
     excludes: ['**/test/**']
   CyclomaticComplexMethod:
-    # Same for branches in a composable: they're layout choices (state chips, buttons per state).
+    # Same for branches in a composable: they're layout choices (state chips, buttons per state). A test's
+    # random-event switch (PropertyTest) is one branch per event on purpose.
     ignoreAnnotated: ['Composable']
+    excludes: ['**/test/**']
   LongParameterList:
     # Compose components take their options as parameters with defaults.
     ignoreAnnotated: ['Composable']

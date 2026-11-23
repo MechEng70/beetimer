@@ -230,6 +230,7 @@ oracle. Run through all tasks in order and stop only at the brief's hard stops.
   `AlarmText.info` folded its two release branches into `releaseLines` (detekt complexity). For Jason: when Done
   frees the vaporizer, the alarm shows both "Then: Hive 2, load dose" and the existing "Vaporizer frees when you
   tap Done. Hive 2 is next." Keep both, or drop the second?
+- Done: `24359d6`.
 
 ### Phase 5: release
 

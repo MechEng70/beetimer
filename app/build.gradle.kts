@@ -69,3 +69,21 @@ dependencies {
     testImplementation(libs.androidx.test.core)
     testImplementation(libs.room.testing)
 }
+
+// R11 T-007: Android lint and Room's KSP processor pull in library versions with known high and critical issues
+// (Snyk). None of them ship in the APK (releaseRuntimeClasspath has none). Upgrade them wherever they're resolved.
+val patchedToolLibraries = mapOf(
+    "com.google.guava:guava" to "33.7.2-jre",
+    "org.apache.commons:commons-lang3" to "3.18.0",
+    "org.bouncycastle:bcprov-jdk18on" to "1.86",
+    "org.bouncycastle:bcpkix-jdk18on" to "1.86",
+    "org.bouncycastle:bcutil-jdk18on" to "1.86",
+)
+configurations.configureEach {
+    resolutionStrategy.eachDependency {
+        patchedToolLibraries["${requested.group}:${requested.name}"]?.let {
+            useVersion(it)
+            because("Snyk high or critical in the older version (R11 T-007)")
+        }
+    }
+}

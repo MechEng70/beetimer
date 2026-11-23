@@ -93,3 +93,16 @@ Moving to compileSdk 37 unlocks the newer ones.
   Transient units leave nothing installed and are gone after logout or reboot. `dashboard.py --timer` stops
   the timer itself if the repo has had no commit for 12 hours. The timer never commits.
 
+## Security scanners (gate)
+
+- `scripts/security.sh semgrep | snyk-oss | snyk-code`, run by `scripts/check.sh`. Semgrep uses the `p/kotlin`
+  and `p/secrets` rulesets; Snyk open source tests all Gradle projects at high and above; Snyk Code at high.
+- Each fails on any finding, and also when the tool is missing, Snyk isn't logged in (`snyk auth`), the scan
+  errors out, or it covers less than exists (Kotlin in both modules; the root plus every Gradle project; every
+  tracked `.kt` file). Network errors get one retry.
+- Install: Semgrep with `pipx install semgrep` (here: `~/.local/bin/semgrep`); Snyk CLI from snyk.io, then
+  `snyk auth`. The Snyk org lives in the Snyk CLI config, never in the repo.
+- Build tools pull in old guava, commons-lang3, bouncycastle and logback (Android lint, Room's KSP processor,
+  ktlint). `app/build.gradle.kts` and `build.gradle.kts` upgrade them; none of them ship in the APK.
+- Open findings that can't be fixed: `docs/design/SECURITY-EXCEPTIONS.md` with scope and expiry.
+

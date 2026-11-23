@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
 # Quality gate. Every step runs; the gate fails if any step fails.
 # Writes per-step results to build/gate/last.tsv (step, pass or fail, seconds) for scripts/dashboard.py.
-# R11 T-007 and T-008 add Semgrep and Snyk.
 set -uo pipefail
 cd "$(dirname "$0")/.."
 
@@ -30,6 +29,9 @@ step ktlint ./gradlew ktlintCheck
 step detekt ./gradlew detekt
 step lint ./gradlew lint
 step tests ./gradlew test --rerun-tasks
+step semgrep scripts/security.sh semgrep
+step snyk-oss scripts/security.sh snyk-oss
+step snyk-code scripts/security.sh snyk-code
 
 printf 'finished\t%s\t%s\n' "$(date -Iseconds)" "$fail" >>"$res"
 mv "$res" "$out/last.tsv"

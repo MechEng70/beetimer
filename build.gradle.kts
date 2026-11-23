@@ -10,6 +10,14 @@ plugins {
 // Format and lint (R11 T-006): ktlint and detekt run as their CLIs, so their own Kotlin parsers never clash with
 // AGP's built-in Kotlin. Config: .editorconfig (ktlint) and config/detekt/detekt.yml. No baseline files.
 val ktlint: Configuration = configurations.create("ktlint")
+
+// ktlint 1.8.0 bundles logback 1.3.16 (Snyk high). Upgrade it on the ktlint classpath only (R11 T-007).
+ktlint.resolutionStrategy.eachDependency {
+    if (requested.group == "ch.qos.logback") {
+        useVersion("1.5.36")
+        because("Snyk high in logback-core 1.3.16")
+    }
+}
 val detekt: Configuration = configurations.create("detekt")
 
 dependencies {

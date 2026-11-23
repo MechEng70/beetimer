@@ -55,8 +55,8 @@ break the Maestro device server. A full run takes about 35 minutes; each scenari
 - Committed per run, in `docs/e2e/latest/fs<scale>/<s>/`: screenshots with the status bar cropped off, and the
   Maestro transcript. The event log is copied there only when the run failed, as `log-failed.txt`, with token
   patterns redacted by `redact.py`.
-- The per-scenario folders `docs/e2e/s1/` to `docs/e2e/s2x10/` are from the R6 run (60x, uncropped
-  screenshots, logs). They're kept until Jason says to remove them.
+- The R6 per-scenario folders (`docs/e2e/s1/` to `docs/e2e/s2x10/`, 60x, uncropped screenshots, logs) were
+  removed on 2026-11-23 with Jason's yes. They remain in git history.
 
 `analyze.py` fails a scenario on any invariant error, a failed flow, a crash, the vaporizer moving between
 hives without being freed, or a failed scenario check. It reports the planner's predicted vs actual times for

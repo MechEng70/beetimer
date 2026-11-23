@@ -346,7 +346,7 @@ oracle. Run through all tasks in order and stop only at the brief's hard stops.
 
 Small round from Jason's answers to the R11 final report: gate, commit, push, no new release.
 
-#### T-021 [ ] Alarm screen: Then line only (S)
+#### T-021 [x] Alarm screen: Then line only (S)
 - **Goal:** when the "Then:" line shows, drop "Vaporizer frees when you tap Done. <hive> is next." (Jason).
 - **Files:** `alarms/AlarmText.kt`, `ui/AlarmActivity.kt` if needed, tests, `docs/screenshots/app-3-alarm*.png`,
   SPEC section 1.
@@ -356,6 +356,12 @@ Small round from Jason's answers to the R11 final report: gate, commit, push, no
   before; tests updated; s6 and s11 pass at 10x; `app-3-alarm.png` re-captured.
 - **Tests:** `AlarmTextTest`, `AlarmLayoutTest`; E2E s6 and s11.
 - **Device testing (Jason):** let a vaporizer-freeing step end on the phone: only the Then line shows.
+- Result: `AlarmText.releaseLines` gives the Then line, or the plain "Vaporizer frees when you tap Done." when
+  no hive is next, never both; the unused "... <hive> is next." string is gone. Tests changed first and failed
+  (2 of 4), then pass; new tests for the note without a Then line (text and layout at 1.3). s6 and s11 pass at
+  font 1.15 and 1.3, 0 invariant errors. `app-3-alarm.png` and `-large` now show a vaporizer-freeing alarm
+  ("Cool in hive finished", "Then: Sparky, load dose"), captured by the new `scr-h1` scene. SPEC section 1 and
+  TECH-DESIGN updated; the mockup still shows the old note, SPEC wins.
 
 #### T-022 [x] Remove s1x10 and s2x10 (S)
 - **Goal:** delete the two duplicate flows (Jason's yes).

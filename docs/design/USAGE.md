@@ -30,3 +30,7 @@ Throttle is the decision taken before the task (playbook section 9). "n/a": trac
 | T-018 | Opus 5.5 | main | 2026-11-23 17:40 | 2026-11-23 17:46 | S | 4 | 4 | 64 | 64 | normal (wide open) | History scan (names, secret patterns, password values, PNG heights), push, snyk monitor |
 | T-019 | Opus 5.5 | main | 2026-11-23 17:47 | 2026-11-23 17:52 | S | 4 | 4 | 64 | 65 | normal (wide open) | Asked Jason first (yes); release.sh at HEAD, pre-release published and verified |
 | T-020 | Opus 5.5 | main | 2026-11-23 17:52 | 2026-11-23 17:58 | S | 4 | 4 | 65 | 65 | normal (wide open) | Final report in HANDOFF, gate, push, timer stopped |
+| R12 start | Opus 5.5 | main | 2026-11-23 17:55 | 2026-11-23 17:55 | S | 4 | 4 | 65 | 65 | wide open (day 7, budget 100) | Timer started |
+| T-021 | Opus 5.5 | main | 2026-11-23 17:56 | 2026-11-23 18:30 | S | 4 | 6 | 65 | 65 | wide open | Then line only; tests first; new scr-h1 scene for app-3-alarm; s6 and s11 at both scales |
+| T-022 | Opus 5.5 | main | 2026-11-23 18:00 | 2026-11-23 18:05 | S | 4 | 5 | 65 | 65 | wide open | Flows deleted; first commit swept them into T-023 (whole index), rebuilt locally before push |
+| T-023 | Opus 5.5 | main | 2026-11-23 18:00 | 2026-11-23 18:05 | S | 4 | 5 | 65 | 65 | wide open | CLAUDE.md rule; probe shows the gate fails at 3 of 4 |

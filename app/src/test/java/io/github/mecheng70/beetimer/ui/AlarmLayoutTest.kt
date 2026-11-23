@@ -38,7 +38,8 @@ class AlarmLayoutTest {
         finishedStep = "Remove wand",
         nextAction = "Load cap and inject a new dose",
         timerLine = "10:00 timer starts when you tap Done",
-        deviceNote = "Vaporizer frees when you tap Done. Sparky is next.",
+        // R12 (Jason): the Then line replaces the device note; they never show together.
+        deviceNote = null,
         thenLine = "Then: Sparky, load dose",
     )
 
@@ -59,7 +60,6 @@ class AlarmLayoutTest {
             "Next for Emory",
             "10:00 timer starts when you tap Done",
             "Then: Sparky, load dose",
-            "Vaporizer frees when you tap Done. Sparky is next.",
         ).forEach {
             compose.onNodeWithText(it).assertIsDisplayed()
         }
@@ -72,7 +72,7 @@ class AlarmLayoutTest {
 
         val info = compose.onNodeWithTag("alarm-info").getBoundsInRoot()
         val done = compose.onNodeWithTag("alarm-done").getBoundsInRoot()
-        val lastText = compose.onNodeWithText("Vaporizer frees when you tap Done. Sparky is next.").getBoundsInRoot()
+        val lastText = compose.onNodeWithText("Then: Sparky, load dose").getBoundsInRoot()
         assertTrue("info runs into Done at $fontScale", info.bottom <= done.top)
         assertTrue("last line runs past the info block at $fontScale", lastText.bottom <= info.bottom)
     }
@@ -82,6 +82,18 @@ class AlarmLayoutTest {
 
     @Test
     fun fitsAtFontScale130() = check(1.3f)
+
+    @Test
+    fun noteWithoutThenLineFitsAtFontScale130() {
+        // Done frees the vaporizer but no hive is next: the plain note shows in place of the Then line.
+        show(1.3f, full.copy(thenLine = null, deviceNote = "Vaporizer frees when you tap Done."))
+        compose.onNodeWithTag("alarm-then").assertDoesNotExist()
+        val note = compose.onNodeWithText("Vaporizer frees when you tap Done.").assertIsDisplayed().getBoundsInRoot()
+        assertTrue(
+            "note runs past the info block",
+            note.bottom <= compose.onNodeWithTag("alarm-info").getBoundsInRoot().bottom,
+        )
+    }
 
     @Test
     fun thenLineOnlyWhenGiven() {

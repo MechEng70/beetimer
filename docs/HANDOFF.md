@@ -3,6 +3,20 @@
 Where Bee Timer stands on 2026-11-23, for whoever picks it up next (a person or a fresh agent session).
 Update this file after each task.
 
+## Round R12 (done 2026-11-23): Jason's decisions on the R11 report
+
+Small round: gate, commit, push, no new release. Tasks T-021 to T-023 (TASKS.md, Phase 8).
+- **T-021:** the alarm shows "Then: <hive>, <step>" and no longer "Vaporizer frees when you tap Done. <hive> is
+  next."; with no hive next it shows "Vaporizer frees when you tap Done." `app-3-alarm.png` (and `-large`) now
+  show that alarm. Not in the published 0.1.0-alpha.1 APK; it ships with the next release.
+- **T-022:** s1x10 and s2x10 deleted.
+- **T-023:** CLAUDE.md: `snyk test` and `snyk monitor` cover `buildSrc` by file; the gate fails on fewer.
+- Gate passes; s6 and s11 pass at both font scales; pushed; `snyk monitor` run for all 4 projects. Dashboard
+  timer started at the start and stopped at the end.
+
+**On the phone (Jason):** the R11 list below still stands. Item 2 (alarm screen) now applies to the next
+release, since 0.1.0-alpha.1 still shows both lines.
+
 ## Round R11 (done 2026-11-23): playbook adoption
 
 Work order: `docs/design/PLAYBOOK-ADOPTION.md` (read it fully). Playbook: `docs/PLAYBOOK.md`. Run all tasks
@@ -49,12 +63,7 @@ sha256 (downloaded and checked); `snyk monitor` run for all 4 projects. Docs cur
    commit's (T-013; compared already: only clock values and a 4 px scroll offset differ).
 
 **Decisions for Jason:**
-- **Alarm screen "Then:" line (T-013a).** When Done frees the vaporizer, the alarm shows "Then: Hive 2, load
-  dose" and also the older "Vaporizer frees when you tap Done. Hive 2 is next." Keep both, or drop the second?
-- **s1x10 and s2x10 (T-013).** The suite is 10x now, so these flows are the same as s1 and s2 and aren't run.
-  Delete the two flow files and their generator lines (tracked files, so Jason's call)?
-- **Snyk monitor and buildSrc.** `snyk monitor --all-projects` skips `buildSrc`, so
-  `snyk monitor --file=buildSrc/build.gradle.kts` was run too. Add that to the CLAUDE.md rule?
+- Decided in R12: Then line only (T-021); s1x10 and s2x10 deleted (T-022); Snyk buildSrc rule (T-023).
 
 **Hard stops:** none open. Keystore made and backed up (Jason confirmed); the two emulator uninstalls in T-017
 had Jason's yes.

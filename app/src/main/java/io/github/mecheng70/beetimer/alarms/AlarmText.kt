@@ -19,7 +19,7 @@ data class AlarmInfo(
     val nextAction: String,
     /** "10:00 timer starts when you tap Done" when the next step is timed and waits for Done. */
     val timerLine: String?,
-    /** "Vaporizer frees when you tap Done. Hive 2 is next." when Done releases the vaporizer. */
+    /** "Vaporizer frees when you tap Done." when Done releases the vaporizer and no hive is next (R12). */
     val deviceNote: String?,
     /** "Then: Hive 2, load dose": who gets the vaporizer when Done frees it, and the step they start on. */
     val thenLine: String? = null,
@@ -67,16 +67,19 @@ object AlarmText {
     fun notificationBody(context: Context, info: AlarmInfo): String =
         context.getString(R.string.alarm_notif_body, info.finished, info.nextAction)
 
-    /** The device note and the "Then:" line, both only when Done on this alarm frees the vaporizer. */
+    /**
+     * When Done on this alarm frees the vaporizer: the "Then:" line if a hive is next, else the plain device note.
+     * Never both (Jason, R12). Neither when Done frees nothing.
+     */
     private fun releaseLines(
         context: Context,
         run: HiveRun,
         state: SchedulerState,
         labels: Map<Long, String>,
-    ): Pair<String?, String?> = if (doneReleases(run)) {
-        deviceNote(context, state, labels) to thenLine(context, run, state, labels)
-    } else {
-        null to null
+    ): Pair<String?, String?> {
+        if (!doneReleases(run)) return null to null
+        val then = thenLine(context, run, state, labels)
+        return (if (then == null) context.getString(R.string.alarm_device_frees) else null) to then
     }
 
     /** Done on this alarm completes the run's last vaporizer step, so it frees the vaporizer. */
@@ -101,15 +104,6 @@ object AlarmText {
             context.getString(R.string.alarm_then, label, step.name.midSentence())
         } else {
             null
-        }
-    }
-
-    private fun deviceNote(context: Context, state: SchedulerState, labels: Map<Long, String>): String {
-        val nextLabel = state.queue.firstOrNull()?.let { labels[it] }
-        return if (nextLabel != null) {
-            context.getString(R.string.alarm_device_frees_next, nextLabel)
-        } else {
-            context.getString(R.string.alarm_device_frees)
         }
     }
 }

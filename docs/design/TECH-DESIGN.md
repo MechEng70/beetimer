@@ -248,7 +248,7 @@ app shows nothing. Tests: `QuarantineTest`.
 
 **AlarmActivity**
 - `setShowWhenLocked(true)`, `setTurnScreenOn(true)`. Dark amber in both themes.
-- Shows the hive label huge, "<step> finished", "Next" and the next step, and the vaporizer hint ("Vaporizer frees when you tap Done. Herb is next.").
+- Shows the hive label huge, "<step> finished", "Next" and the next step, and, when Done frees the vaporizer, "Then: <hive>, <step>" for the hive that gets it next, or "Vaporizer frees when you tap Done." if none (R12).
 - Closes when nothing is ringing. The close logic runs in `lifecycleScope` (not Compose). When the app opened it (`returnToApp`), closing goes back to MainActivity instead of the launcher (regression: `AlarmActivityCloseTest`).
 - Buttons Done / +1 min / Snooze 30 s, each at least 64 dp.
 

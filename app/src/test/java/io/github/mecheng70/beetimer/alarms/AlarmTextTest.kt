@@ -44,6 +44,8 @@ class AlarmTextTest {
         assertEquals(listOf(SPARKY), s.queue)
         val info = AlarmText.info(context, s.runs.getValue(EMORY), s, labels)
         assertEquals("Then: Sparky, load cap and inject", info.thenLine)
+        // R12 (Jason): the Then line replaces "Vaporizer frees when you tap Done. Sparky is next."
+        assertNull(info.deviceNote)
     }
 
     @Test
@@ -51,6 +53,16 @@ class AlarmTextTest {
         val s = gun.then(Event.Start(EMORY), Event.Done(EMORY), Event.Done(EMORY)).vaporizeEnds(EMORY)
         val info = AlarmText.info(context, s.runs.getValue(EMORY), s, labels)
         assertEquals("Then: Sparky, seal hive", info.thenLine)
+        assertNull(info.deviceNote)
+    }
+
+    @Test
+    fun withNoOtherHiveTheNoteShowsWithoutAThenLine() {
+        // Only Emory: Done still frees the vaporizer, but nobody is next, so the plain note shows instead.
+        val s = gun.then(Event.Start(EMORY), Event.Done(EMORY), Event.Done(EMORY)).vaporizeEnds(EMORY)
+        val info = AlarmText.info(context, s.runs.getValue(EMORY), s, linkedMapOf(EMORY to "Emory"))
+        assertNull(info.thenLine)
+        assertEquals("Vaporizer frees when you tap Done.", info.deviceNote)
     }
 
     @Test

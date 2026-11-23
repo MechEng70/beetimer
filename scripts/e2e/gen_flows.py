@@ -373,11 +373,15 @@ def screens_parts():
     cool += tap("Sparky") + wait("Sparky", "Seal hive") + tap("Sparky") + wait("Sparky", "Waiting")
     cool += ack("Herb") + wait("Herb", "Cool in hive")  # Heat finished; Cool starts on Done
     cool += pause(3000)
+    # scr-h1 (R12): Cool finished, the alarm whose Done frees the vaporizer, so it shows "Then: Sparky, load dose"
+    # (app-3-alarm.png). scr-h2 then taps Done on it.
+    then = [{"extendedWaitUntil": {"visible": {"id": "alarm-hive", "text": exact("Herb")}, "timeout": WAIT}},
+            {"extendedWaitUntil": {"visible": {"id": "alarm-then"}, "timeout": 10000}}, "waitForAnimationToEnd"]
     teal = ack("Herb") + wait("Herb", "Keep sealed")  # Cool finished; Done completes Remove wand
     teal += handoff("Sparky") + wait("Sparky", "Load dose")  # Sparky sealed while queued, so Start goes to Load dose
     teal += pause(12000)  # let the "Vaporizer free" snackbar time out
     return {"scr-a0": a0, "scr-a": a, "scr-b": hive_tab, "scr-c": settings, "scr-d": hold_out, "scr-e": hold_in, "scr-f": back_all,
-            "scr-g": alarm, "scr-h0": teal0, "scr-h": cool, "scr-h2": teal}
+            "scr-g": alarm, "scr-h0": teal0, "scr-h": cool, "scr-h1": then, "scr-h2": teal}
 
 
 def main():

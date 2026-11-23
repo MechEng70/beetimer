@@ -87,7 +87,6 @@
     <string name="alarm_all_done">All steps done</string>
     <string name="alarm_timer_starts">%1$s timer starts when you tap Done</string>
     <string name="alarm_device_frees">Vaporizer frees when you tap Done.</string>
-    <string name="alarm_device_frees_next">Vaporizer frees when you tap Done. %1$s is next.</string>
     <string name="alarm_notif_body">%1$s. Next: %2$s</string>
 
     <!-- Status notification -->

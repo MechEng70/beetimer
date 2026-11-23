@@ -34,10 +34,7 @@ adb -s "$SERIAL" shell input keyevent KEYCODE_HOME
 adb -s "$SERIAL" shell 'i=0; while [ $i -lt 240 ] && ! dumpsys activity services '"$APP"' | grep -q RingService; do sleep 1; i=$((i+1)); done'
 sleep 2; cap app-6-headsup
 adb -s "$SERIAL" shell input tap 540 200
-m scr-g; sleep 2; cap app-3-alarm
-# T-013a: the alarm screen must also fit at font scale 1.3.
-adb -s "$SERIAL" shell settings put system font_scale 1.3; sleep 2; cap app-3-alarm-large
-adb -s "$SERIAL" shell settings put system font_scale 1.15
+m scr-g
 # All tab: fresh data, wand comes out. Herb in Cool in hive ("Next: Remove wand"), then Herb in Keep sealed
 # (teal pill) with Sparky on Load dose ("Next: Heat and vaporize"). Each at font scale 1.15 and 1.3.
 adb -s "$SERIAL" shell pm clear "$APP" >/dev/null
@@ -47,6 +44,11 @@ m scr-h0
 for pair in "Hive 1:Emory" "Hive 2:Sparky" "Hive 3:Herb"; do rename_hive "${pair%%:*}" "${pair##*:}"; done
 m scr-h; cap app-1-all
 adb -s "$SERIAL" shell settings put system font_scale 1.3; sleep 2; cap app-1-all-large
+adb -s "$SERIAL" shell settings put system font_scale 1.15; sleep 2
+# Alarm (R12): Herb's Cool ends; Done there frees the vaporizer, so it shows "Then: Sparky, load dose".
+# T-013a: it must also fit at font scale 1.3.
+m scr-h1; sleep 2; cap app-3-alarm
+adb -s "$SERIAL" shell settings put system font_scale 1.3; sleep 2; cap app-3-alarm-large
 adb -s "$SERIAL" shell settings put system font_scale 1.15; sleep 2
 m scr-h2; cap app-1-all-teal
 adb -s "$SERIAL" shell settings put system font_scale 1.3; sleep 2; cap app-1-all-teal-large

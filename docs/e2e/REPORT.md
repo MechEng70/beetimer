@@ -1,6 +1,6 @@
 # End-to-end results
 
-Emulator: beetimer-api36 (Android 16, API 36), debug builds, 2026-11-23. Time scale 10x for every scenario (analyze.py fails any run that wasn't). Raw runs in build/e2e (not committed); screenshots and failed-run logs in docs/e2e/latest/. s1 to s5 and s7 to s10: T-013 build (three batches; flow changes between them in FIXES.md, R11 T-013). s6 and s11: re-run on the T-013a build (alarm screen text). s1x10 and s2x10 are now the same as s1 and s2 and were not run. Differences from alpha-baseline: Jason's approved vaporizer bar change (s4) and alarm screen text (T-013a); no other behavior differed.
+Emulator: beetimer-api36 (Android 16, API 36), debug builds, 2026-11-23. Time scale 10x for every scenario (analyze.py fails any run that wasn't). Raw runs in build/e2e (not committed); screenshots and failed-run logs in docs/e2e/latest/. s1 to s5 and s7 to s10: T-013 build (three batches; flow changes between them in FIXES.md, R11 T-013). s6 and s11: re-run on the R12 build (alarm shows the Then line instead of the device note). Differences from alpha-baseline: Jason's approved vaporizer bar change (s4) and alarm screen text (T-013a, R12); no other behavior differed.
 
 ## Font scale 1.15
 
@@ -11,12 +11,12 @@ Emulator: beetimer-api36 (Android 16, API 36), debug builds, 2026-11-23. Time sc
 | s3 Gun type, 3 hives | PASS | 0 | ok | 259 s | - |
 | s4 Queue: skip to back, remove, fourth hive | PASS | 0 | ok | 91 s | - |
 | s5 Cancel the vaporizer holder mid-block | PASS | 0 | ok | 48 s | - |
-| s6 Alarms: +1 min, Snooze, two close together | PASS | 0 | ok | 307 s | - |
+| s6 Alarms: +1 min, Snooze, two close together | PASS | 0 | ok | 306 s | - |
 | s7 Screen off through a timed step | PASS | 0 | ok | 138 s | - |
 | s8 Process death mid-run | PASS | 0 | ok | 145 s | - |
 | s9 Editing while runs are active | PASS | 0 | ok | 83 s | - |
 | s10 Hive management: cap, drag order, New session | PASS | 0 | ok | 92 s | - |
-| s11 App open: alarm screen in app, Home, lock, snackbar | PASS | 0 | ok | 124 s | - |
+| s11 App open: alarm screen in app, Home, lock, snackbar | PASS | 0 | ok | 123 s | - |
 
 ## Font scale 1.3
 
@@ -27,12 +27,12 @@ Emulator: beetimer-api36 (Android 16, API 36), debug builds, 2026-11-23. Time sc
 | s3 Gun type, 3 hives | PASS | 0 | ok | 259 s | - |
 | s4 Queue: skip to back, remove, fourth hive | PASS | 0 | ok | 97 s | - |
 | s5 Cancel the vaporizer holder mid-block | PASS | 0 | ok | 47 s | - |
-| s6 Alarms: +1 min, Snooze, two close together | PASS | 0 | ok | 299 s | - |
+| s6 Alarms: +1 min, Snooze, two close together | PASS | 0 | ok | 301 s | - |
 | s7 Screen off through a timed step | PASS | 0 | ok | 140 s | - |
 | s8 Process death mid-run | PASS | 0 | ok | 148 s | - |
 | s9 Editing while runs are active | PASS | 0 | ok | 89 s | - |
 | s10 Hive management: cap, drag order, New session | PASS | 0 | ok | 96 s | - |
-| s11 App open: alarm screen in app, Home, lock, snackbar | PASS | 0 | ok | 125 s | - |
+| s11 App open: alarm screen in app, Home, lock, snackbar | PASS | 0 | ok | 123 s | - |
 
 Invariant errors across all runs: **0**.
 
@@ -162,5 +162,15 @@ No assertion changed.
   subtracts 600 s / scale. Same limit (under 2 s late).
 - s6's "+1 min extended the hold" threshold was 10.5 s, right for 60x but a no-op at 10x (the hold alone is
   60 s). It is now (600 + 30) s / scale: the hold plus half the minute, as before.
+
+## R11 T-017: upgrade path (release builds, emulator)
+
+Not a Maestro scenario; run once by hand on the emulator with Jason's yes for the two uninstalls (emulator only).
+- The release APK (0.1.0-alpha.1) over the debug build: refused, `INSTALL_FAILED_UPDATE_INCOMPATIBLE`
+  (signatures do not match). The same will happen on Jason's phone: one uninstall, hive names lost.
+- Fresh install of 0.1.0-alpha.1 (100001), Hive 1 renamed to Emory, its run started (Seal hive).
+- 0.1.0-alpha.2 (100002, built with `-PappVersion=0.1.0-alpha.2`, same certificate) installed over it with
+  `adb install -r`: no onboarding, Emory still on Seal hive, Hive 2 still there, no crash.
+- The debug build was put back afterwards for the E2E suite.
 
 

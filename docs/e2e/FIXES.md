@@ -36,3 +36,15 @@ No other app or scheduler defects were found: every other failure traced to the 
 | 16 | s1x10 (first rerun) | Maestro's connection to the emulator died at startup (`DeviceServerDiedException`), before any step ran. Rerun unchanged. | No. |
 | 17 | Runner | Each scenario has a 25-minute timeout, so a stuck flow fails instead of hanging (the scenario 2 autopilot hung for an hour on the home screen before bug 1 was found). | No. |
 | 18 | Autopilot | Tapped a finished hive's "Done" status chip, which falls through to the row and opens that hive's tab, where the loop could see no rows (s2 timed out at 25 min). Now skips finished hives and taps the All tab at the start of each pass if visible. | No. Same exit condition. |
+
+## R11 T-012: harness rules (2026-11-23)
+
+No check or assertion changed. What changed is where output goes and how runs are set up: raw logs in
+`build/e2e/` (local), cropped screenshots and failed-run logs (redacted) in `docs/e2e/latest/`, logcat cleared
+before and after each run, every scenario at font scale 1.15 and 1.3, emulator settings restored on exit.
+`analyze.py` reads `build/e2e/fs<scale>/` and writes one table per font scale.
+
+First try (s5 only, 60x): passed at 1.15; at 1.3 the flow failed to tap the All tab because Hive 1's 2.5 s
+heat (rings at about 5 s, the exact-alarm floor) ended while the flow was still on its way there, so the alarm
+screen was up. A timing race at 60x, not an app fault; the full suite runs at 10x in T-013.
+

@@ -6,12 +6,17 @@ Real app, real AlarmManager alarms, on an emulator (never a phone), driven by Ma
 ## Run
 
 ```
-./gradlew assembleDebug && adb -s emulator-5554 install -r app/build/outputs/apk/debug/app-debug.apk
+./gradlew assembleDebug                   # build first: the emulator script stops the Gradle daemons
+scripts/e2e/emulator.sh start             # stops Gradle and Kotlin daemons, boots beetimer-api36
+adb -s emulator-5554 install -r app/build/outputs/apk/debug/app-debug.apk
 python3 scripts/e2e/gen_flows.py          # regenerate flows after changing the generator
-scripts/e2e/run.sh s1 s2 s3 s4 s5 s6 s7 s8 s9 s10 s11 s1x10 s2x10
+scripts/e2e/run.sh s1 s2 s3 s4 s5 s6 s7 s8 s9 s10 s11 s1x10 s2x10   # each at font scale 1.15 and 1.3
 python3 scripts/e2e/analyze.py            # writes docs/e2e/REPORT.md
 scripts/e2e/screens.sh                    # re-captures docs/screenshots/app-*.png
+scripts/e2e/emulator.sh stop
 ```
+
+`FONT_SCALES="1.15" scripts/e2e/run.sh s5` runs one scale only.
 
 Needs: a booted emulator (`emulator-5554`, AVD `beetimer-api36`, Android 16), the debug APK installed, and
 Maestro. `run.sh` refuses any serial that is not an emulator. Run one batch at a time: two `run.sh` at once
@@ -42,9 +47,16 @@ break the Maestro device server. A full run takes about 35 minutes; each scenari
   tapping Done on alarms and Start/Done on rows until every hive is done, for the overlapping scenarios.
 - Scenarios 7, 8, 10 and 11 have a shell part (`flows/s7.sh` and so on) for screen off, process kill, the
   long-press drag, and Home/lock checks. Shared shell checks are in `lib.sh`.
-- `run.sh` streams logcat live (the buffer rotates otherwise) and writes per scenario to `docs/e2e/<s>/`:
-  `log.txt` (the app's `BeeTimerE2E` event log and any `BeeTimerInvariant` errors) and screenshots. Raw
-  Maestro output is git-ignored.
+- Device rules (playbook, R11 T-012): `run.sh` clears logcat before and after each run, runs every scenario at
+  font scale 1.15 and 1.3, and puts back every setting it changed (font scale, screen timeout, stay awake) on
+  exit, even after a failure. Gradle and Kotlin daemons are stopped before the emulator boots.
+- Raw output stays local in `build/e2e/fs<scale>/<s>/` (git-ignored): the streamed app event log
+  (`BeeTimerE2E`, `BeeTimerInvariant`, crashes) and Maestro's output. `analyze.py` reads it there.
+- Committed per run, in `docs/e2e/latest/fs<scale>/<s>/`: screenshots with the status bar cropped off, and the
+  Maestro transcript. The event log is copied there only when the run failed, as `log-failed.txt`, with token
+  patterns redacted by `redact.py`.
+- The per-scenario folders `docs/e2e/s1/` to `docs/e2e/s2x10/` are from the R6 run (60x, uncropped
+  screenshots, logs). They're kept until Jason says to remove them.
 
 `analyze.py` fails a scenario on any invariant error, a failed flow, a crash, the vaporizer moving between
 hives without being freed, or a failed scenario check. It reports the planner's predicted vs actual times for

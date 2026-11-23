@@ -1,4 +1,38 @@
 # Shared shell helpers for E2E scripts (emulator only). Needs SERIAL.
+
+# Emulator settings a run may change; saved before and put back after (playbook device rules).
+_SETTINGS_FILE="${TMPDIR:-/tmp}/beetimer-e2e-settings.$$"
+save_settings() {
+  {
+    echo "system font_scale $(adb -s "$SERIAL" shell settings get system font_scale | tr -d '\r')"
+    echo "system screen_off_timeout $(adb -s "$SERIAL" shell settings get system screen_off_timeout | tr -d '\r')"
+    echo "global stay_on_while_plugged_in $(adb -s "$SERIAL" shell settings get global stay_on_while_plugged_in | tr -d '\r')"
+  } > "$_SETTINGS_FILE"
+}
+restore_settings() {
+  [ -f "$_SETTINGS_FILE" ] || return 0
+  while read -r ns key val; do
+    if [ "$val" = "null" ]; then
+      adb -s "$SERIAL" shell settings delete "$ns" "$key" >/dev/null
+    else
+      adb -s "$SERIAL" shell settings put "$ns" "$key" "$val"
+    fi
+  done < "$_SETTINGS_FILE"
+  echo "restored: $(tr '\n' ' ' < "$_SETTINGS_FILE")"
+  rm -f "$_SETTINGS_FILE"
+}
+
+# Status bar height in px (from the window manager), for cropping screenshots. Falls back to 80.
+statusbar_height() {
+  local h
+  h=$(adb -s "$SERIAL" shell dumpsys window | grep -oE "statusBars.*frame=\[0,0\]\[[0-9]+,[0-9]+\]" | grep -oE "[0-9]+\]$" | tr -d ']' | head -1)
+  echo "${h:-80}"
+}
+
+# crop_top <in.png> <px> <out.png>: drops the top <px> rows (the status bar).
+crop_top() {
+  python3 -I -c "import sys; from PIL import Image; im=Image.open(sys.argv[1]); im.crop((0,int(sys.argv[2]),im.width,im.height)).save(sys.argv[3])" "$1" "$2" "$3"
+}
 _bounds() {
   adb -s "$SERIAL" shell uiautomator dump /sdcard/ui.xml >/dev/null
   adb -s "$SERIAL" shell cat /sdcard/ui.xml | tr '>' '\n' | grep -E "$1" | head -1 |

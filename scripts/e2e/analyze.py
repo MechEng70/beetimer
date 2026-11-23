@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Checks the E2E logs in docs/e2e/<scenario>/ and writes docs/e2e/REPORT.md.
+"""Checks the E2E runs in build/e2e/fs<font scale>/<scenario>/ and writes docs/e2e/REPORT.md.
 
 Every scenario: Maestro passed, zero BeeTimerInvariant errors, no crash, and the vaporizer
 only ever moves free -> holder -> free (never straight from one hive to another).
@@ -10,8 +10,16 @@ import os
 import re
 import sys
 
-ROOT = os.path.join(os.path.dirname(__file__), "..", "..", "docs", "e2e")
+REPO = os.path.join(os.path.dirname(__file__), "..", "..")
+ROOT = os.path.join(REPO, "docs", "e2e")
+# Raw runs (git-ignored): build/e2e/fs<scale>/<scenario>/, written by run.sh.
+RUNS = os.path.join(REPO, "build", "e2e")
 LINE = re.compile(r"BeeTimerE2E: (\w+) t=(\d+) ?(.*)$")
+HEADER = os.environ.get(
+    "E2E_HEADER",
+    "Emulator: beetimer-api36 (Android 16, API 36), debug build. Raw runs in build/e2e (not committed); "
+    "screenshots and failed-run logs in docs/e2e/latest/.",
+)
 NAMES = {
     "s1": "Pan wand, wand stays in, 3 hives (60x)",
     "s1x10": "Scenario 1 repeated at 10x",
@@ -29,8 +37,8 @@ NAMES = {
 }
 
 
-def load(s):
-    d = os.path.join(ROOT, s)
+def load(s, fs):
+    d = os.path.join(RUNS, f"fs{fs}", s)
     if not os.path.isfile(os.path.join(d, "log.txt")) or not os.path.isfile(os.path.join(d, "maestro-exit")):
         return None
     log = open(os.path.join(d, "log.txt"), errors="replace").read().splitlines()
@@ -237,41 +245,51 @@ def fmt(t, t0, scale):
     return f"{(t - t0) / 1000:.1f} s"
 
 
+def scales_run():
+    if not os.path.isdir(RUNS):
+        return []
+    return sorted(d[2:] for d in os.listdir(RUNS) if d.startswith("fs"))
+
+
 def main():
     order = ["s1", "s2", "s3", "s4", "s5", "s6", "s7", "s8", "s9", "s10", "s11", "s1x10", "s2x10"]
-    out = ["# End-to-end results", "", "Emulator: beetimer-api36 (Android 16, API 36), debug build, time scale 60x (s3, s1x10 and s2x10 at 10x).", ""]
-    out += ["| Scenario | Result | Invariant errors | Maestro | Time | Problems |", "|---|---|---|---|---|---|"]
+    out = ["# End-to-end results", "", HEADER, ""]
     total_inv = 0
+    all_passed = True
     results = {}
-    for s in order:
-        r = load(s)
-        if r is None:
-            out.append(f"| {s} {NAMES[s]} | NOT RUN | | | | |")
+    for fs in scales_run():
+        out += [f"## Font scale {fs}", "", "| Scenario | Result | Invariant errors | Maestro | Time | Problems |",
+                "|---|---|---|---|---|---|"]
+        for s in order:
+            r = load(s, fs)
+            if r is None:
+                continue
+            problems = scenario_checks(s, r)
+            ok_lock, why = lock_transitions_ok(r["events"])
+            if not ok_lock:
+                problems.append(why)
+            if r["exit"] != "0":
+                problems.append("Maestro flow failed")
+            if r["crash"]:
+                problems.append("app crashed")
+            total_inv += len(r["invariant"])
+            passed = not problems and not r["invariant"]
+            all_passed = all_passed and passed
+            results[(s, fs)] = r
+            out.append(
+                f"| {s} {NAMES[s]} | {'PASS' if passed else 'FAIL'} | {len(r['invariant'])} | "
+                f"{'ok' if r['exit'] == '0' else 'failed'} | {r['seconds']} s | {'; '.join(problems) or '-'} |"
+            )
+        out.append("")
+    out += [f"Invariant errors across all runs: **{total_inv}**.", ""]
+    for (s, fs), r in results.items():
+        if s not in ("s1", "s1x10", "s2", "s2x10"):
             continue
-        problems = scenario_checks(s, r)
-        ok_lock, why = lock_transitions_ok(r["events"])
-        if not ok_lock:
-            problems.append(why)
-        if r["exit"] != "0":
-            problems.append("Maestro flow failed")
-        if r["crash"]:
-            problems.append("app crashed")
-        total_inv += len(r["invariant"])
-        passed = not problems and not r["invariant"]
-        results[s] = (r, passed)
-        out.append(
-            f"| {s} {NAMES[s]} | {'PASS' if passed else 'FAIL'} | {len(r['invariant'])} | "
-            f"{'ok' if r['exit'] == '0' else 'failed'} | {r['seconds']} s | {'; '.join(problems) or '-'} |"
-        )
-    out += ["", f"Invariant errors across all runs: **{total_inv}**.", ""]
-    for s in ("s1", "s1x10", "s2", "s2x10"):
-        if s not in results:
-            continue
-        pva = predicted_vs_actual(s, results[s][0])
+        pva = predicted_vs_actual(s, r)
         if not pva:
             continue
         t0, scale, rows = pva
-        out += [f"## Planner predicted vs actual: {s} ({NAMES[s]}, {scale}x)", "",
+        out += [f"## Planner predicted vs actual: {s} ({NAMES[s]}, {scale}x, font {fs})", "",
                 "Forecast taken right after the third Start; real seconds from the first Start.", "",
                 "| Hive | Gets vaporizer: predicted | actual | Finishes: predicted | actual |", "|---|---|---|---|---|"]
         for h, pl, al, pd, ad in rows:
@@ -282,7 +300,7 @@ def main():
         out += ["", open(fixes).read()]
     open(os.path.join(ROOT, "REPORT.md"), "w").write("\n".join(out) + "\n")
     print("\n".join(out))
-    return 0 if all(p for _, p in results.values()) else 1
+    return 0 if results and all_passed else 1
 
 
 if __name__ == "__main__":

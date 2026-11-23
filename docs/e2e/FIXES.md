@@ -48,3 +48,39 @@ First try (s5 only, 60x): passed at 1.15; at 1.3 the flow failed to tap the All 
 heat (rings at about 5 s, the exact-alarm floor) ended while the flow was still on its way there, so the alarm
 screen was up. A timing race at 60x, not an app fault; the full suite runs at 10x in T-013.
 
+## R11: vaporizer bar without buttons (Jason, 2026-11-23)
+
+The bar lost its button row (layout rule). Scenario 4 now skips the head to the back from that hive's tab
+(`hive-skip-to-back`) and removes it with Cancel run (`hive-cancel`), which Jason confirmed covers Remove. Same
+assertions as before (who is next, Hive 3 back to Not started), plus the bar's new line 2, "Next: Hive 2. Tap
+Start on its row." Nothing was loosened.
+
+## R11 T-013: the whole suite at 10x
+
+`gen_flows.py` sets every scenario to 10x (`SUITE_SCALE`); waits scale with it as before. The s7 and s8 shell
+parts wait 600 s / scale + 3 s instead of a fixed 13 s. `analyze.py` names drop the "(60x)" and "(10x)" tags.
+s1x10 and s2x10 are now the same flows as s1 and s2, so they aren't run (the files stay until Jason decides).
+No assertion changed.
+
+## R11 T-013: alarm opening during a row tap; emulator crash
+
+- s2 failed at both font scales at about 79 s: Hive 1's heat (15 s at 10x) rang between the autopilot's "row
+  button visible" check and its tap, so the tap found the alarm screen instead. The event log was correct (0
+  invariant errors). The autopilot's row tap is now optional; the next pass taps Done on the alarm. The loop
+  still runs until the last hive is Done, and analyze.py checks every rule as before. No assertion changed.
+- The emulator segfaulted twice in long runs (`qemu-system-x86_64` SIGSEGV in gfxstream's host GL path,
+  `ColorBufferGl` and `TextureResize`, after "null ctx" GL errors). `emulator.sh` now boots with
+  `-gpu swiftshader_indirect` (override with `EMULATOR_GPU`).
+
+## R11 T-013: lost time scale tap at font 1.3; 60x numbers in the analyzer
+
+- At font scale 1.3, s2, s7, s9, s10 and s11 ran at 1x. The scroll to the time scale buttons stopped with them
+  under the gesture bar, and Maestro's tap there was lost (it reported COMPLETED). Probe on the emulator: 6 of
+  10 taps took; with `centerElement: true` on that scroll, 10 of 10. `setup()` now centers it. s9 and s10
+  "passed" at 1x; those runs don't count.
+- New check (stricter): `analyze.py` fails any scenario whose first Start didn't run at 10x.
+- s7's lateness check subtracted 10 s, Keep sealed at 60x, so at 10x an on-time alarm read "50 s late". It now
+  subtracts 600 s / scale. Same limit (under 2 s late).
+- s6's "+1 min extended the hold" threshold was 10.5 s, right for 60x but a no-op at 10x (the hold alone is
+  60 s). It is now (600 + 30) s / scale: the hold plus half the minute, as before.
+

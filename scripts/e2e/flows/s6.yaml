@@ -12,10 +12,11 @@ appId: io.github.mecheng70.beetimer
     id: hold-comes_out
 - scrollUntilVisible:
     element:
-      id: dev-scale-60
+      id: dev-scale-10
     direction: DOWN
+    centerElement: true
 - tapOn:
-    id: dev-scale-60
+    id: dev-scale-10
 - back
 - waitForAnimationToEnd
 - tapOn:
@@ -29,7 +30,7 @@ appId: io.github.mecheng70.beetimer
       text: ^Seal hive$
       childOf:
         id: row-Hive 1
-    timeout: 40000
+    timeout: 90000
 - tapOn:
     id: row-action-Hive 1
 - extendedWaitUntil:
@@ -37,7 +38,7 @@ appId: io.github.mecheng70.beetimer
       text: ^Seal hive$
       childOf:
         id: row-Hive 2
-    timeout: 40000
+    timeout: 90000
 - tapOn:
     id: row-action-Hive 2
 - extendedWaitUntil:
@@ -45,7 +46,7 @@ appId: io.github.mecheng70.beetimer
       text: ^Seal hive$
       childOf:
         id: row-Hive 3
-    timeout: 40000
+    timeout: 90000
 - tapOn:
     id: row-action-Hive 3
 - extendedWaitUntil:
@@ -53,14 +54,14 @@ appId: io.github.mecheng70.beetimer
       text: ^Load dose$
       childOf:
         id: row-Hive 1
-    timeout: 40000
+    timeout: 90000
 - tapOn:
     id: row-action-Hive 1
 - extendedWaitUntil:
     visible:
       id: alarm-hive
       text: ^Hive 1$
-    timeout: 40000
+    timeout: 90000
 - tapOn:
     id: alarm-done
 - waitForAnimationToEnd
@@ -68,7 +69,7 @@ appId: io.github.mecheng70.beetimer
     visible:
       id: alarm-hive
       text: ^Hive 1$
-    timeout: 40000
+    timeout: 90000
 - tapOn:
     id: alarm-done
 - waitForAnimationToEnd
@@ -77,7 +78,7 @@ appId: io.github.mecheng70.beetimer
       text: ^Keep sealed$
       childOf:
         id: row-Hive 1
-    timeout: 40000
+    timeout: 90000
 - tapOn:
     id: row-Hive 1
 - waitForAnimationToEnd
@@ -90,7 +91,7 @@ appId: io.github.mecheng70.beetimer
     visible:
       id: alarm-hive
       text: ^Hive 1$
-    timeout: 40000
+    timeout: 90000
 - tapOn:
     id: alarm-snooze
 - extendedWaitUntil:
@@ -102,7 +103,7 @@ appId: io.github.mecheng70.beetimer
     visible:
       id: alarm-hive
       text: ^Hive 1$
-    timeout: 40000
+    timeout: 90000
 - tapOn:
     id: alarm-done
 - waitForAnimationToEnd
@@ -111,13 +112,13 @@ appId: io.github.mecheng70.beetimer
       text: ^Done$
       childOf:
         id: row-Hive 1
-    timeout: 40000
+    timeout: 90000
 - extendedWaitUntil:
     visible:
       text: ^Start$
       childOf:
         id: row-action-Hive 2
-    timeout: 40000
+    timeout: 90000
 - tapOn:
     id: row-action-Hive 2
 - extendedWaitUntil:
@@ -125,14 +126,14 @@ appId: io.github.mecheng70.beetimer
       text: ^Load dose$
       childOf:
         id: row-Hive 2
-    timeout: 40000
+    timeout: 90000
 - tapOn:
     id: row-action-Hive 2
 - extendedWaitUntil:
     visible:
       id: alarm-hive
       text: ^Hive 2$
-    timeout: 40000
+    timeout: 90000
 - tapOn:
     id: alarm-done
 - waitForAnimationToEnd
@@ -140,7 +141,7 @@ appId: io.github.mecheng70.beetimer
     visible:
       id: alarm-hive
       text: ^Hive 2$
-    timeout: 40000
+    timeout: 90000
 - tapOn:
     id: alarm-done
 - waitForAnimationToEnd
@@ -149,13 +150,13 @@ appId: io.github.mecheng70.beetimer
       text: ^Keep sealed$
       childOf:
         id: row-Hive 2
-    timeout: 40000
+    timeout: 90000
 - extendedWaitUntil:
     visible:
       text: ^Start$
       childOf:
         id: row-action-Hive 3
-    timeout: 40000
+    timeout: 90000
 - tapOn:
     id: row-action-Hive 3
 - extendedWaitUntil:
@@ -163,28 +164,28 @@ appId: io.github.mecheng70.beetimer
       text: ^Load dose$
       childOf:
         id: row-Hive 3
-    timeout: 40000
+    timeout: 90000
 - tapOn:
     id: row-action-Hive 3
 - extendedWaitUntil:
     visible:
       id: alarm-hive
       text: ^Hive 3$
-    timeout: 40000
+    timeout: 90000
 - tapOn:
     id: alarm-done
 - extendedWaitUntil:
     visible:
       id: alarm-hive
       text: ^Hive 3$
-    timeout: 40000
+    timeout: 90000
 - tapOn:
     id: alarm-done
 - extendedWaitUntil:
     visible:
       id: alarm-hive
       text: ^Hive 3$
-    timeout: 40000
+    timeout: 90000
 - takeScreenshot: s6-01-two-alarms-ringing
 - tapOn:
     id: alarm-done
@@ -192,7 +193,7 @@ appId: io.github.mecheng70.beetimer
     visible:
       id: alarm-hive
       text: ^Hive 2$
-    timeout: 40000
+    timeout: 90000
 - takeScreenshot: s6-02-second-alarm-shown
 - tapOn:
     id: alarm-done
@@ -202,10 +203,10 @@ appId: io.github.mecheng70.beetimer
       text: ^Done$
       childOf:
         id: row-Hive 2
-    timeout: 40000
+    timeout: 90000
 - extendedWaitUntil:
     visible:
       text: ^Done$
       childOf:
         id: row-Hive 3
-    timeout: 40000
+    timeout: 90000

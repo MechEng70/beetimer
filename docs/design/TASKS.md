@@ -196,7 +196,7 @@ oracle. Run through all tasks in order and stop only at the brief's hard stops.
 - **Device testing (Jason):** none.
 - Done: `92d015f`.
 
-#### T-013 [~] Full E2E at 10x (L)
+#### T-013 [x] Full E2E at 10x (L)
 - **Goal:** the whole suite at 10x on the emulator, zero invariant errors, screenshots re-captured.
 - **Files:** `docs/e2e/REPORT.md`, `docs/e2e/*`, `docs/screenshots/app-*.png`.
 - **Depends on:** T-010, T-011, T-012.
@@ -205,6 +205,11 @@ oracle. Run through all tasks in order and stop only at the brief's hard stops.
 - **Tests:** the suite.
 - **Device testing (Jason):** compare the new `docs/screenshots/app-*.png` with the previous commit's: they
   should match except the status bar crop.
+- Result: 22 of 22 runs pass (s1 to s11 at font 1.15 and 1.3, 10x), 0 invariant errors (`docs/e2e/REPORT.md`).
+  No app bug found. Harness fixes (FIXES.md, R11 T-013): autopilot row tap optional (an alarm could open between
+  check and tap), time scale scroll centered (at 1.3 the tap was lost under the gesture bar), analyzer s6 and s7
+  thresholds from the time scale instead of 60x numbers, a new check that every run is at 10x, emulator on the
+  software GPU (host GPU segfaulted twice). s1x10 and s2x10 now duplicate s1 and s2 and weren't run.
 
 #### T-013a [ ] Alarm screen readability (M)
 - **Goal:** Jason's approved design change (2026-11-23), display only: finished line 24 sp, "Next for <hive>"
@@ -296,6 +301,12 @@ oracle. Run through all tasks in order and stop only at the brief's hard stops.
 - **Device testing (Jason):** the list.
 
 ## Found during R11 (for Jason; not fixed in R11 unless a task above covers it)
+
+- **Dashboard missed T-013a (fixed).** `dashboard.py` only matched `T-` plus three digits, so T-013a was left
+  out and its fields overwrote T-013's; the status line had the same pattern. Fixed with a regression test
+  (`scripts/tests/test_dashboard.py`). Jason, 2026-11-23: Python tests are now a gate step (`py-tests`).
+- **s1x10 and s2x10 (for Jason).** Since T-013 they are the same flows as s1 and s2. Delete the two flow
+  files and their generator lines? Tracked files, so not deleted without a yes.
 
 - **Corrupt rows (baseline).** A corrupt step-list row crashed app start. A corrupt state row was read as
   empty and overwritten on the next save. Fixed in T-010 (quarantine; regression tests in `QuarantineTest`).

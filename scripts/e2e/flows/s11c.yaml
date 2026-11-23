@@ -5,7 +5,7 @@ appId: io.github.mecheng70.beetimer
     visible:
       id: alarm-hive
       text: ^Hive 1$
-    timeout: 40000
+    timeout: 90000
 - tapOn:
     id: alarm-add-minute
 - waitForAnimationToEnd
@@ -15,7 +15,7 @@ appId: io.github.mecheng70.beetimer
     visible:
       id: alarm-hive
       text: ^Hive 1$
-    timeout: 40000
+    timeout: 90000
 - takeScreenshot: s11-02-reopened-after-plus-minute
 - tapOn:
     id: alarm-snooze

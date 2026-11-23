@@ -12,10 +12,11 @@ appId: io.github.mecheng70.beetimer
     id: hold-stays_in
 - scrollUntilVisible:
     element:
-      id: dev-scale-60
+      id: dev-scale-10
     direction: DOWN
+    centerElement: true
 - tapOn:
-    id: dev-scale-60
+    id: dev-scale-10
 - back
 - waitForAnimationToEnd
 - tapOn:
@@ -29,7 +30,7 @@ appId: io.github.mecheng70.beetimer
       text: ^Seal hive$
       childOf:
         id: row-Hive 1
-    timeout: 40000
+    timeout: 90000
 - tapOn:
     id: row-action-Hive 1
 - extendedWaitUntil:
@@ -37,7 +38,7 @@ appId: io.github.mecheng70.beetimer
       text: ^Seal hive$
       childOf:
         id: row-Hive 2
-    timeout: 40000
+    timeout: 90000
 - tapOn:
     id: row-action-Hive 2
 - extendedWaitUntil:
@@ -45,7 +46,7 @@ appId: io.github.mecheng70.beetimer
       text: ^Seal hive$
       childOf:
         id: row-Hive 3
-    timeout: 40000
+    timeout: 90000
 - tapOn:
     id: row-action-Hive 3
 - extendedWaitUntil:
@@ -53,13 +54,13 @@ appId: io.github.mecheng70.beetimer
       text: ^Waiting$
       childOf:
         id: row-Hive 2
-    timeout: 40000
+    timeout: 90000
 - extendedWaitUntil:
     visible:
       text: ^Waiting$
       childOf:
         id: row-Hive 3
-    timeout: 40000
+    timeout: 90000
 - tapOn:
     id: row-Hive 1
 - waitForAnimationToEnd
@@ -84,29 +85,49 @@ appId: io.github.mecheng70.beetimer
 - extendedWaitUntil:
     visible:
       text: '^Vaporizer free: Hive 2 is next$'
-    timeout: 40000
+    timeout: 90000
 - takeScreenshot: s4-01-head-offered
+- extendedWaitUntil:
+    visible:
+      text: '^Next: Hive 2. Tap Start on its row.$'
+    timeout: 90000
 - extendedWaitUntil:
     notVisible:
       text: ^Move the vaporizer, then tap Start.$
     timeout: 20000
 - tapOn:
-    id: bar-skip
+    id: row-Hive 2
+- waitForAnimationToEnd
+- tapOn:
+    id: hive-skip-to-back
+- tapOn:
+    text: ^All$
+- waitForAnimationToEnd
 - extendedWaitUntil:
     visible:
       text: '^Vaporizer free: Hive 3 is next$'
-    timeout: 40000
+    timeout: 90000
+- extendedWaitUntil:
+    visible:
+      text: '^Next: Hive 3. Tap Start on its row.$'
+    timeout: 90000
 - takeScreenshot: s4-02-skipped-to-back
 - extendedWaitUntil:
     notVisible:
       text: ^Move the vaporizer, then tap Start.$
     timeout: 20000
 - tapOn:
-    id: bar-remove
+    id: row-Hive 3
+- waitForAnimationToEnd
+- tapOn:
+    id: hive-cancel
+- tapOn:
+    text: ^All$
+- waitForAnimationToEnd
 - extendedWaitUntil:
     visible:
       text: '^Vaporizer free: Hive 2 is next$'
-    timeout: 40000
+    timeout: 90000
 - assertVisible:
     text: ^Not started$
     childOf:
@@ -133,7 +154,7 @@ appId: io.github.mecheng70.beetimer
       text: ^Seal hive$
       childOf:
         id: row-Hive 4
-    timeout: 40000
+    timeout: 90000
 - tapOn:
     id: row-action-Hive 4
 - extendedWaitUntil:
@@ -141,18 +162,18 @@ appId: io.github.mecheng70.beetimer
       text: ^Waiting$
       childOf:
         id: row-Hive 4
-    timeout: 40000
+    timeout: 90000
 - extendedWaitUntil:
     visible:
       text: '^Vaporizer free: Hive 2 is next$'
-    timeout: 40000
+    timeout: 90000
 - takeScreenshot: s4-04-fourth-hive-queued
 - extendedWaitUntil:
     visible:
       text: ^Start$
       childOf:
         id: row-action-Hive 2
-    timeout: 40000
+    timeout: 90000
 - tapOn:
     id: row-action-Hive 2
 - extendedWaitUntil:
@@ -160,7 +181,7 @@ appId: io.github.mecheng70.beetimer
       text: ^Load dose$
       childOf:
         id: row-Hive 2
-    timeout: 40000
+    timeout: 90000
 - assertVisible:
     text: ^Waiting$
     childOf:

@@ -20,3 +20,5 @@ Throttle is the decision taken before the task (playbook section 9). "n/a": trac
 | T-010 | Opus 5.5 | main | 2026-11-23 11:28 | 2026-11-23 11:32 | M | 10 | 11 | 62 | 62 | normal | Room v4 quarantine, safe reads, 7 tests; regression shown failing on old decode |
 | T-011 | Opus 5.5 | main | 2026-11-23 11:32 | 2026-11-23 11:36 | S | 11 | 12 | 62 | 62 | normal | tnum on ticking text, glyph-width test; 2 design cases logged for Jason |
 | T-012 | Opus 5.5 | main | 2026-11-23 11:37 | 2026-11-23 11:43 | M | 12 | 0 | 62 | 62 | normal | Harness rules, emulator.sh, redact.py; s5 tried at 2 font scales (1.3 timing race at 60x) |
+| T-013 | Opus 5.5 | main | 2026-11-23 11:43 | 2026-11-23 16:25 | L | 12 | 10 | 62 | 64 | normal (restart 13:38: 5h 5, Wk 63, day 7, budget 100: wide open) | Paused 12:45 to 13:38. 22 of 22 runs pass, 0 invariant errors. Harness fixes: autopilot race, scale tap lost at 1.3, analyzer 60x numbers, scale check, software GPU after 2 emulator crashes |
+| T-008 fix | Opus 5.5 | main | 2026-11-23 15:55 | 2026-11-23 16:22 | S | 9 | 10 | 64 | 64 | normal | Dashboard missed T-013a (regression test); py-tests gate step (Jason) |

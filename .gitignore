@@ -31,3 +31,4 @@ docs/screenshots/raw/
 
 # E2E: raw Maestro debug output (key screenshots, logs and transcripts are kept)
 docs/e2e/*/maestro/
+__pycache__/

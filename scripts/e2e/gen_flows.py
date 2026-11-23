@@ -12,6 +12,8 @@ APP = "io.github.mecheng70.beetimer"
 OUT = os.path.join(os.path.dirname(__file__), "flows")
 H1, H2, H3, H4 = "Hive 1", "Hive 2", "Hive 3", "Hive 4"
 WAIT = 30000  # set per scenario in scaled(); the longest step (Keep sealed) is 600 s / scale
+# R11 T-013: the whole suite runs at 10x (at 60x, steps under 5 s hit the exact-alarm floor).
+SUITE_SCALE = 10
 HEADSUP_TEXT = "Move the vaporizer, then tap Start."
 
 
@@ -24,7 +26,7 @@ def exact(text):
     return "^" + text.replace("+", "\\+") + "$"
 
 
-def setup(preset="oav-pan-wand", scale=60, hold=None):
+def setup(preset="oav-pan-wand", scale=SUITE_SCALE, hold=None):
     steps = [
         "launchApp",
         {"tapOn": {"text": "Continue", "optional": True}},
@@ -34,7 +36,9 @@ def setup(preset="oav-pan-wand", scale=60, hold=None):
     if hold:
         steps.append({"tapOn": {"id": f"hold-{hold}"}})
     steps += [
-        {"scrollUntilVisible": {"element": {"id": f"dev-scale-{scale}"}, "direction": "DOWN"}},
+        # Centered: at font scale 1.3 the scroll can stop with the buttons under the gesture bar, and the tap
+        # is lost (R11 T-013; the run then stays at 1x, which analyze.py now fails).
+        {"scrollUntilVisible": {"element": {"id": f"dev-scale-{scale}"}, "direction": "DOWN", "centerElement": True}},
         {"tapOn": {"id": f"dev-scale-{scale}"}},
         "back",
         "waitForAnimationToEnd",
@@ -112,7 +116,9 @@ def autopilot(hives, last):
             "when": {"notVisible": {"id": f"row-sub-{h}", "text": "^Done$"}},
             "commands": [{"runFlow": {
                 "when": {"visible": {"text": "^(Start|Done)$", "childOf": {"id": f"row-action-{h}"}}},
-                "commands": [{"tapOn": {"id": f"row-action-{h}"}}, "waitForAnimationToEnd"],
+                # Optional: at 10x an alarm can open between the check above and this tap (R11 T-013, s2).
+                # The next pass taps Done on it; analyze.py still checks every rule from the event log.
+                "commands": [{"tapOn": {"id": f"row-action-{h}", "optional": True}}, "waitForAnimationToEnd"],
             }}],
         }})
     # A 0.5 s pause per pass keeps the loop from spinning; 3000 passes (about 25 min) is only a
@@ -190,7 +196,7 @@ def scenario1(scale):
     return s
 
 
-def scenario2(scale=60):
+def scenario2(scale=SUITE_SCALE):
     scaled(scale)
     s = setup(scale=scale, hold="comes_out")
     s += start_and_seal([H1, H2, H3]) + shot("s2-01-sealed")
@@ -220,8 +226,14 @@ def scenario4():
         s += tag("hive-skip") + ["waitForAnimationToEnd"]
     s += all_tab()
     s += see_text("Vaporizer free: Hive 2 is next") + shot("s4-01-head-offered")
-    s += headsup_gone() + tag("bar-skip") + see_text("Vaporizer free: Hive 3 is next") + shot("s4-02-skipped-to-back")
-    s += headsup_gone() + tag("bar-remove") + see_text("Vaporizer free: Hive 2 is next") + see(H3, "Not started") + shot("s4-03-removed")
+    s += see_text("Next: Hive 2. Tap Start on its row.")
+    # R11 (Jason, 2026-11-23): the bar has no buttons. Skip to back is on the queued hive's tab; Remove is
+    # Cancel run there.
+    s += headsup_gone() + open_tab(H2) + tag("hive-skip-to-back") + all_tab()
+    s += see_text("Vaporizer free: Hive 3 is next") + see_text("Next: Hive 3. Tap Start on its row.")
+    s += shot("s4-02-skipped-to-back")
+    s += headsup_gone() + open_tab(H3) + tag("hive-cancel") + all_tab()
+    s += see_text("Vaporizer free: Hive 2 is next") + see(H3, "Not started") + shot("s4-03-removed")
     # A fourth hive mid-session. Remove posted a new "Vaporizer free" heads-up over the gear.
     s += headsup_gone() + [{"tapOn": "Settings"}, {"scrollUntilVisible": {"element": {"id": "add-hive"}, "direction": "DOWN"}}]
     s += tag("add-hive") + [{"tapOn": "Save"}, "back", "waitForAnimationToEnd"]
@@ -279,7 +291,7 @@ def scenario8_parts():
 
 
 def scenario9():
-    s = setup(scale=60, hold="stays_in")
+    s = setup(hold="stays_in")
     s += start_and_seal([H1]) + wait(H1, "Load dose")  # Hive 1 snapshots "wand stays in"
     s += [{"tapOn": "Settings"}, {"tapOn": "Move Remove wand up"}, "waitForAnimationToEnd"]
     # Keep sealed is now below the release: Passive, divider moved, choice reads "comes out".
@@ -373,11 +385,11 @@ def main():
     for name, steps in screens_parts().items():
         flow(name, steps)
     flow("s1x10", scenario1(10))
-    flow("s1", scenario1(60))
-    flow("s2", scenario2(60))
+    flow("s1", scenario1(SUITE_SCALE))
+    flow("s2", scenario2(SUITE_SCALE))
     flow("s3", scenario3())
     flow("s2x10", scenario2(10))
-    scaled(60)
+    scaled(SUITE_SCALE)
     for name, steps in scenario11_parts().items():
         flow(name, steps)
     flow("s4", scenario4())

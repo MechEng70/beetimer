@@ -19,6 +19,7 @@ fi
 echo "pid before: '$pid'"
 echo "pid after kill: '$(adb -s "$SERIAL" shell pidof "$APP")'"
 echo "killed at $(date +%s%3N)"
-sleep 13
+# Wait out Keep sealed (600 s / time scale) plus 3 s.
+sleep $((600 / ${E2E_SCALE:-10} + 3))
 echo "pid after alarm: '$(adb -s "$SERIAL" shell pidof "$APP")'"
 m s8b

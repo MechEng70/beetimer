@@ -4,7 +4,7 @@ appId: io.github.mecheng70.beetimer
 - extendedWaitUntil:
     visible:
       text: '^Next: Hive 3$'
-    timeout: 40000
+    timeout: 90000
 - takeScreenshot: s10-03-next-follows-drag-order
 - tapOn:
     id: row-action-Emory
@@ -13,7 +13,7 @@ appId: io.github.mecheng70.beetimer
       text: ^Seal hive$
       childOf:
         id: row-Emory
-    timeout: 40000
+    timeout: 90000
 - tapOn: Settings
 - scrollUntilVisible:
     element:

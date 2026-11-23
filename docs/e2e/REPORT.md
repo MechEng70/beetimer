@@ -1,64 +1,80 @@
 # End-to-end results
 
-Emulator: beetimer-api36 (Android 16, API 36), debug build, time scale 60x (s3, s1x10 and s2x10 at 10x).
+Emulator: beetimer-api36 (Android 16, API 36), debug build of the T-013 tree, 2026-11-23. Time scale 10x for every scenario (analyze.py fails any run that wasn't). Raw runs in build/e2e (not committed); screenshots and failed-run logs in docs/e2e/latest/. Three batches: the first full run (host GPU; it crashed during s7 at 1.3), then s2 and s3 at both scales after the autopilot fix, then s2, s7, s9, s10 and s11 at 1.3 after the scale-tap fix (software GPU). Flow changes between batches: FIXES.md, R11 T-013. s1x10 and s2x10 are now the same as s1 and s2 and were not run. Differences from alpha-baseline: only Jason's approved vaporizer bar change (s4 drives Skip to back and Cancel run from the hive's tab); no other behavior differed.
+
+## Font scale 1.15
 
 | Scenario | Result | Invariant errors | Maestro | Time | Problems |
 |---|---|---|---|---|---|
-| s1 Pan wand, wand stays in, 3 hives (60x) | PASS | 0 | ok | 152 s | - |
-| s2 Pan wand, wand comes out, 3 hives | FAIL | 0 | ok | 257 s | Hive 1's sealed hold did not overlap Hive 2's heat |
-| s3 Gun type, 3 hives (10x) | PASS | 0 | ok | 259 s | - |
-| s4 Queue: skip to back, remove, fourth hive | PASS | 0 | ok | 87 s | - |
-| s5 Cancel the vaporizer holder mid-block | PASS | 0 | ok | 51 s | - |
-| s6 Alarms: +1 min, Snooze, two close together | PASS | 0 | ok | 141 s | - |
-| s7 Screen off through a timed step | PASS | 0 | ok | 71 s | - |
-| s8 Process death mid-run | PASS | 0 | ok | 81 s | - |
-| s9 Editing while runs are active | PASS | 0 | ok | 86 s | - |
-| s10 Hive management: cap, drag order, New session | PASS | 0 | ok | 90 s | - |
-| s11 App open: alarm screen in app, Home, lock, snackbar | PASS | 0 | ok | 109 s | - |
-| s1x10 Scenario 1 repeated at 10x | PASS | 0 | ok | 349 s | - |
-| s2x10 Scenario 2 repeated at 10x | PASS | 0 | ok | 326 s | - |
+| s1 Pan wand, wand stays in, 3 hives | PASS | 0 | ok | 349 s | - |
+| s2 Pan wand, wand comes out, 3 hives | PASS | 0 | ok | 337 s | - |
+| s3 Gun type, 3 hives | PASS | 0 | ok | 259 s | - |
+| s4 Queue: skip to back, remove, fourth hive | PASS | 0 | ok | 91 s | - |
+| s5 Cancel the vaporizer holder mid-block | PASS | 0 | ok | 48 s | - |
+| s6 Alarms: +1 min, Snooze, two close together | PASS | 0 | ok | 294 s | - |
+| s7 Screen off through a timed step | PASS | 0 | ok | 138 s | - |
+| s8 Process death mid-run | PASS | 0 | ok | 145 s | - |
+| s9 Editing while runs are active | PASS | 0 | ok | 83 s | - |
+| s10 Hive management: cap, drag order, New session | PASS | 0 | ok | 92 s | - |
+| s11 App open: alarm screen in app, Home, lock, snackbar | PASS | 0 | ok | 123 s | - |
+
+## Font scale 1.3
+
+| Scenario | Result | Invariant errors | Maestro | Time | Problems |
+|---|---|---|---|---|---|
+| s1 Pan wand, wand stays in, 3 hives | PASS | 0 | ok | 346 s | - |
+| s2 Pan wand, wand comes out, 3 hives | PASS | 0 | ok | 334 s | - |
+| s3 Gun type, 3 hives | PASS | 0 | ok | 259 s | - |
+| s4 Queue: skip to back, remove, fourth hive | PASS | 0 | ok | 97 s | - |
+| s5 Cancel the vaporizer holder mid-block | PASS | 0 | ok | 47 s | - |
+| s6 Alarms: +1 min, Snooze, two close together | PASS | 0 | ok | 295 s | - |
+| s7 Screen off through a timed step | PASS | 0 | ok | 140 s | - |
+| s8 Process death mid-run | PASS | 0 | ok | 148 s | - |
+| s9 Editing while runs are active | PASS | 0 | ok | 89 s | - |
+| s10 Hive management: cap, drag order, New session | PASS | 0 | ok | 96 s | - |
+| s11 App open: alarm screen in app, Home, lock, snackbar | PASS | 0 | ok | 124 s | - |
 
 Invariant errors across all runs: **0**.
 
-## Planner predicted vs actual: s1 (Pan wand, wand stays in, 3 hives (60x), 60x)
+## Planner predicted vs actual: s1 (Pan wand, wand stays in, 3 hives, 10x, font 1.15)
 
 Forecast taken right after the third Start; real seconds from the first Start.
 
 | Hive | Gets vaporizer: predicted | actual | Finishes: predicted | actual |
 |---|---|---|---|---|
-| Hive 1 | 5.3 s | 7.6 s | 22.8 s | 48.8 s |
-| Hive 2 | 22.8 s | 51.7 s | 40.3 s | 86.7 s |
-| Hive 3 | 40.3 s | 89.5 s | 57.8 s | 124.3 s |
+| Hive 1 | 6.0 s | 6.5 s | 111.0 s | 114.9 s |
+| Hive 2 | 111.0 s | 117.5 s | 216.0 s | 218.5 s |
+| Hive 3 | 216.0 s | 220.4 s | 321.0 s | 321.4 s |
 
-## Planner predicted vs actual: s1x10 (Scenario 1 repeated at 10x, 10x)
-
-Forecast taken right after the third Start; real seconds from the first Start.
-
-| Hive | Gets vaporizer: predicted | actual | Finishes: predicted | actual |
-|---|---|---|---|---|
-| Hive 1 | 6.0 s | 7.2 s | 111.0 s | 114.4 s |
-| Hive 2 | 111.0 s | 117.0 s | 216.0 s | 219.8 s |
-| Hive 3 | 216.0 s | 222.1 s | 321.0 s | 323.7 s |
-
-## Planner predicted vs actual: s2 (Pan wand, wand comes out, 3 hives, 60x)
+## Planner predicted vs actual: s2 (Pan wand, wand comes out, 3 hives, 10x, font 1.15)
 
 Forecast taken right after the third Start; real seconds from the first Start.
 
 | Hive | Gets vaporizer: predicted | actual | Finishes: predicted | actual |
 |---|---|---|---|---|
-| Hive 1 | 5.2 s | 8.0 s | 22.7 s | 69.9 s |
-| Hive 2 | 12.7 s | 83.2 s | 30.2 s | 146.5 s |
-| Hive 3 | 20.2 s | 160.6 s | 37.7 s | 219.0 s |
+| Hive 1 | 5.9 s | 7.2 s | 110.9 s | 156.7 s |
+| Hive 2 | 50.9 s | 82.5 s | 155.9 s | 244.1 s |
+| Hive 3 | 95.9 s | 172.4 s | 200.9 s | 298.0 s |
 
-## Planner predicted vs actual: s2x10 (Scenario 2 repeated at 10x, 10x)
+## Planner predicted vs actual: s1 (Pan wand, wand stays in, 3 hives, 10x, font 1.3)
 
 Forecast taken right after the third Start; real seconds from the first Start.
 
 | Hive | Gets vaporizer: predicted | actual | Finishes: predicted | actual |
 |---|---|---|---|---|
-| Hive 1 | 6.0 s | 7.2 s | 111.0 s | 153.6 s |
-| Hive 2 | 51.0 s | 80.0 s | 155.9 s | 238.2 s |
-| Hive 3 | 96.0 s | 168.9 s | 200.9 s | 289.8 s |
+| Hive 1 | 6.0 s | 5.6 s | 111.0 s | 112.7 s |
+| Hive 2 | 111.0 s | 115.4 s | 216.0 s | 216.5 s |
+| Hive 3 | 216.0 s | 218.5 s | 321.0 s | 319.5 s |
+
+## Planner predicted vs actual: s2 (Pan wand, wand comes out, 3 hives, 10x, font 1.3)
+
+Forecast taken right after the third Start; real seconds from the first Start.
+
+| Hive | Gets vaporizer: predicted | actual | Finishes: predicted | actual |
+|---|---|---|---|---|
+| Hive 1 | 5.9 s | 7.3 s | 110.9 s | 156.5 s |
+| Hive 2 | 50.9 s | 81.9 s | 155.9 s | 240.9 s |
+| Hive 3 | 95.9 s | 171.8 s | 200.9 s | 294.0 s |
 
 
 ## Bugs found and fixes
@@ -99,4 +115,52 @@ No other app or scheduler defects were found: every other failure traced to the 
 | 16 | s1x10 (first rerun) | Maestro's connection to the emulator died at startup (`DeviceServerDiedException`), before any step ran. Rerun unchanged. | No. |
 | 17 | Runner | Each scenario has a 25-minute timeout, so a stuck flow fails instead of hanging (the scenario 2 autopilot hung for an hour on the home screen before bug 1 was found). | No. |
 | 18 | Autopilot | Tapped a finished hive's "Done" status chip, which falls through to the row and opens that hive's tab, where the loop could see no rows (s2 timed out at 25 min). Now skips finished hives and taps the All tab at the start of each pass if visible. | No. Same exit condition. |
+
+## R11 T-012: harness rules (2026-11-23)
+
+No check or assertion changed. What changed is where output goes and how runs are set up: raw logs in
+`build/e2e/` (local), cropped screenshots and failed-run logs (redacted) in `docs/e2e/latest/`, logcat cleared
+before and after each run, every scenario at font scale 1.15 and 1.3, emulator settings restored on exit.
+`analyze.py` reads `build/e2e/fs<scale>/` and writes one table per font scale.
+
+First try (s5 only, 60x): passed at 1.15; at 1.3 the flow failed to tap the All tab because Hive 1's 2.5 s
+heat (rings at about 5 s, the exact-alarm floor) ended while the flow was still on its way there, so the alarm
+screen was up. A timing race at 60x, not an app fault; the full suite runs at 10x in T-013.
+
+## R11: vaporizer bar without buttons (Jason, 2026-11-23)
+
+The bar lost its button row (layout rule). Scenario 4 now skips the head to the back from that hive's tab
+(`hive-skip-to-back`) and removes it with Cancel run (`hive-cancel`), which Jason confirmed covers Remove. Same
+assertions as before (who is next, Hive 3 back to Not started), plus the bar's new line 2, "Next: Hive 2. Tap
+Start on its row." Nothing was loosened.
+
+## R11 T-013: the whole suite at 10x
+
+`gen_flows.py` sets every scenario to 10x (`SUITE_SCALE`); waits scale with it as before. The s7 and s8 shell
+parts wait 600 s / scale + 3 s instead of a fixed 13 s. `analyze.py` names drop the "(60x)" and "(10x)" tags.
+s1x10 and s2x10 are now the same flows as s1 and s2, so they aren't run (the files stay until Jason decides).
+No assertion changed.
+
+## R11 T-013: alarm opening during a row tap; emulator crash
+
+- s2 failed at both font scales at about 79 s: Hive 1's heat (15 s at 10x) rang between the autopilot's "row
+  button visible" check and its tap, so the tap found the alarm screen instead. The event log was correct (0
+  invariant errors). The autopilot's row tap is now optional; the next pass taps Done on the alarm. The loop
+  still runs until the last hive is Done, and analyze.py checks every rule as before. No assertion changed.
+- The emulator segfaulted twice in long runs (`qemu-system-x86_64` SIGSEGV in gfxstream's host GL path,
+  `ColorBufferGl` and `TextureResize`, after "null ctx" GL errors). `emulator.sh` now boots with
+  `-gpu swiftshader_indirect` (override with `EMULATOR_GPU`).
+
+## R11 T-013: lost time scale tap at font 1.3; 60x numbers in the analyzer
+
+- At font scale 1.3, s2, s7, s9, s10 and s11 ran at 1x. The scroll to the time scale buttons stopped with them
+  under the gesture bar, and Maestro's tap there was lost (it reported COMPLETED). Probe on the emulator: 6 of
+  10 taps took; with `centerElement: true` on that scroll, 10 of 10. `setup()` now centers it. s9 and s10
+  "passed" at 1x; those runs don't count.
+- New check (stricter): `analyze.py` fails any scenario whose first Start didn't run at 10x.
+- s7's lateness check subtracted 10 s, Keep sealed at 60x, so at 10x an on-time alarm read "50 s late". It now
+  subtracts 600 s / scale. Same limit (under 2 s late).
+- s6's "+1 min extended the hold" threshold was 10.5 s, right for 60x but a no-op at 10x (the hold alone is
+  60 s). It is now (600 + 30) s / scale: the hold plus half the minute, as before.
+
 

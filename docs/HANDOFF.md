@@ -12,8 +12,8 @@ stops and the usage throttle (playbook section 9). No behavior change: the tag `
 is the oracle.
 
 - **Branch:** the brief says `master`; the branch is `main` (renamed and pushed 2026-11-22). Use `main`.
-- **Done:** T-001 to T-012. Status per task is in `docs/design/TASKS.md` (R11 section).
-- **Next:** T-013 full E2E (re-run the whole suite), then T-013a, T-014, T-015, T-016 verify. See "Paused" below.
+- **Done:** T-001 to T-013. Status per task is in `docs/design/TASKS.md` (R11 section).
+- **Next:** T-013a alarm screen readability (in `git stash`), then T-014, T-015 (in `git stash`), T-016 verify. See "Work in stashes" below.
 - **Found during R11:** listed in TASKS.md under that heading.
 - **Brief updated mid-round:** Jason's chat updated the playbook and brief at about 10:56, after T-001 to T-005
   were committed. T-001 gained usage tracking (done in a follow-up T-001 commit); CLAUDE.md, TASKS.md and
@@ -29,40 +29,34 @@ Usage tracking (set up in T-001):
 - Timer: `scripts/dashboard-timer.sh start | stop | status`. Start it at the start of every session; stop it
   as the last step before the final handoff of the round.
 
-### Paused 2026-11-23 12:45 (Jason asked for a pause)
+### Work in stashes (2026-11-23 16:25)
 
-Committed: T-001 to T-012 and Jason's three answers (layout, old E2E folders, citations). Last commit is this
-HANDOFF update. Not committed, in the working tree on purpose (untested code stays off `main`); check it with
-`git status` before building on it:
-- **T-013 (in progress):** suite switched to 10x (`gen_flows.py` SUITE_SCALE, s7 and s8 sleeps, analyze names,
-  `screens.sh` saves and restores settings) and scenario 4 updated for the bar without buttons (FIXES.md). The
-  first full run hit an ANR in s1 and s2 and then the emulator crashed: the dropbox ANR shows the app's main
-  thread idle, the emulator log shows gfxstream GL errors, and another VM was using memory. Re-run on a fresh
-  emulator: s1 and s2 pass at 1.15 (349 s, 337 s, 0 invariant errors, no new ANR). Still to do: the whole
-  suite at 1.15 and 1.3, `analyze.py`, `screens.sh`, commit.
-- **Comment cleanup (Jason):** hive names in comments replaced by "Hive 1"/"Hive 2" in `MainActivity.kt`,
-  `Model.kt`, `Notifier.kt` (commit with T-013) and `AlarmText.kt` (commit with T-013a, same file).
-- **T-013a (approved, written, not built):** alarm screen readability. `AlarmContent` in `AlarmActivity.kt`,
-  tokens in `Theme.kt` (name 56 sp, finished 24, "Next for <hive>" 18, next action 36 auto-size to 24, timer
-  20, Then 20, divider gap 16 dp), strings, `AlarmText.thenLine`, tests `AlarmLayoutTest` and `AlarmTextTest`.
-  Then: build, gate, re-run s6 and s11 at 10x, re-capture `app-3-alarm.png` at 1.15 and 1.3, SPEC section 1.
-- **T-014 (written, not built):** `buildSrc/` (`AppVersion`, `AppVersionTest`), `appVersion=0.1.0-alpha.1` in
-  `gradle.properties`, versionCode from it in `app/build.gradle.kts`, ktlint and detekt cover buildSrc,
-  `check.sh` runs `./gradlew -p buildSrc test`.
-- **T-015 (written, not built):** signing config reading the repo-root `keystore.properties`,
-  `:app:printVersionCode`, `scripts/release.sh`, `scripts/build-apk.sh` reads the new version; DEVELOPING.md
-  release section (fingerprint still `CERT_PENDING`).
+T-013 is committed. The written-but-unbuilt work for the next tasks is in two stashes, so each task's build and
+E2E test only its own code (`git stash list`):
+- `stash@{0}` **T-013a (approved, written, not built):** alarm screen readability. `AlarmContent` in
+  `AlarmActivity.kt`, tokens in `Theme.kt` (name 56 sp, finished 24, "Next for <hive>" 18, next action 36
+  auto-size to 24, timer 20, Then 20, divider gap 16 dp), strings, `AlarmText.thenLine` (and the hive-name
+  comment cleanup in `AlarmText.kt`), tests `AlarmLayoutTest` and `AlarmTextTest`. Then: build, gate, re-run s6
+  and s11 at 10x, re-capture `app-3-alarm.png` at 1.15 and 1.3, SPEC section 1. Imports in `AlarmActivity.kt`
+  need ktlint ordering.
+- `stash@{1}` **T-014 and T-015 (written, not built):** `buildSrc/` (`AppVersion`, `AppVersionTest`),
+  `appVersion=0.1.0-alpha.1` in `gradle.properties`, versionCode in `app/build.gradle.kts`, signing config,
+  `:app:printVersionCode`, `scripts/release.sh`, `scripts/build-apk.sh`, DEVELOPING.md release section,
+  `check.sh` step `buildsrc-tests`. `check.sh` and DEVELOPING.md changed since (py-tests), so expect a small
+  merge when popping. `buildSrc/build` (ignored output) was moved to the session scratchpad; Gradle rebuilds it.
 - **T-016:** Jason made the keystore (`~/keys/beetimer-release.jks`, alias `beetimer`, `keystore.properties`
   in the repo root). Checked: git-ignored, mode 600, standard key names, never in history. Still to do with
   the emulator off: release build signs, record the certificate SHA-256 in DEVELOPING.md and
   `config/release-cert-sha256.txt`. Never print passwords.
-- Emulator: stopped for the pause (`scripts/e2e/emulator.sh start` to bring it back). Dashboard timer: left
-  running (it stops itself after 12 hours without a commit).
+
+T-013 notes: the emulator now boots on the software GPU (`-gpu swiftshader_indirect`); the host GPU segfaulted
+twice in long runs. A full run at 10x takes about 2 hours for both font scales. Never `pkill -f run.sh` from a
+shell whose own command line contains that text (it kills itself). Emulator: stopped. Dashboard timer: running.
 
 ### Waiting on Jason
 
 Not blocking; collected for the end of the round (details in TASKS.md, "Found during R11"):
-- Nothing open.
+- s1x10 and s2x10 now duplicate s1 and s2 (T-013). Delete the two flow files and their generator lines?
 
 Restart prompt (from the brief):
 
@@ -80,10 +74,9 @@ Then continue round R11 from the next unfinished task, under the same rules.
   `docs/icon/icon-1024.png` (uploaded by hand; GitHub has no API for it).
 - **Phone:** the R10 build is installed on Jason's phone (OnePlus CPH2583, Android 16, OxygenOS, font
   scale 1.15).
-- **Gate:** `scripts/check.sh` passes, 101 tests.
-- **End to end:** 12 of 13 emulator runs pass, with 0 invariant errors (`docs/e2e/REPORT.md`, R6 build).
-  The one failure is a 60x timing limit, explained below. R7 to R10 were display or in-app
-  notice changes and no flow reads what they changed, so the suite was not re-run.
+- **Gate:** `scripts/check.sh` passes (R11 adds ktlint, detekt, py-tests, Semgrep, Snyk).
+- **End to end:** 22 of 22 runs pass (s1 to s11 at font 1.15 and 1.3, 10x), 0 invariant errors
+  (`docs/e2e/REPORT.md`, R11 T-013).
 - **Done:** everything in `docs/design/TASKS.md` up to R10. Jason checked R7 to R10 on the phone on
   2026-11-22: all good.
 - **Releases:** none yet. The README and INSTALL.md link to the Releases page, which is empty until the
@@ -116,7 +109,7 @@ Then continue round R11 from the next unfinished task, under the same rules.
 ## Commands
 
 ```
-scripts/check.sh                                        # gate: ktlint, detekt, lint, tests, Semgrep, Snyk (no APK)
+scripts/check.sh                                        # gate: ktlint, detekt, lint, tests, py-tests, Semgrep, Snyk
 ./gradlew assembleDebug                                 # always before an install
 adb install -r app/build/outputs/apk/debug/app-debug.apk
 scripts/build-apk.sh                                    # gate + release/beetimer-<version>.apk + sha256

@@ -8,7 +8,7 @@ appId: io.github.mecheng70.beetimer
       text: ^Unseal$
       childOf:
         id: row-Hive 1
-    timeout: 40000
+    timeout: 90000
 - takeScreenshot: s8-01-restored-after-kill
 - tapOn:
     id: row-action-Hive 1
@@ -17,4 +17,4 @@ appId: io.github.mecheng70.beetimer
       text: ^Done$
       childOf:
         id: row-Hive 1
-    timeout: 40000
+    timeout: 90000

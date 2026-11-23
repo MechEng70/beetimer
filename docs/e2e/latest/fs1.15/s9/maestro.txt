@@ -1,0 +1,60 @@
+Running on beetimer-api36
+ > Flow s9
+Launch app "io.github.mecheng70.beetimer"... COMPLETED
+Tap on (Optional) "Continue"... COMPLETED
+Tap on "Settings"... COMPLETED
+Tap on id: preset-oav-pan-wand... COMPLETED
+Tap on id: hold-stays_in... COMPLETED
+Scrolling DOWN until id: dev-scale-10 is visible with speed 40, visibility percentage 100%, timeout 20000 ms, with centering disabled... COMPLETED
+Tap on id: dev-scale-10... COMPLETED
+Press back... COMPLETED
+Wait for animation to end... COMPLETED
+Tap on id: row-action-Hive 1... COMPLETED
+Assert that "^Seal hive$", Child of: id: row-Hive 1 is visible... COMPLETED
+Tap on id: row-action-Hive 1... COMPLETED
+Assert that "^Load dose$", Child of: id: row-Hive 1 is visible... COMPLETED
+Tap on "Settings"... COMPLETED
+Tap on "Move Remove wand up"... COMPLETED
+Wait for animation to end... COMPLETED
+Assert that "^Passive$", Child of: id: step-chip-5 is visible... COMPLETED
+Assert that id: frees-here, Below id: step-4 is visible... COMPLETED
+Take screenshot s9-01-remove-wand-above-keep-sealed... COMPLETED
+Tap on id: step-2... COMPLETED
+Tap on "Seconds"... COMPLETED
+Erase 10 characters... COMPLETED
+Input text 300... COMPLETED
+Tap on "Save"... COMPLETED
+Assert that "Timed, 5:00" is visible... COMPLETED
+Press back... COMPLETED
+Wait for animation to end... COMPLETED
+Tap on id: row-action-Hive 2... COMPLETED
+Assert that "^Seal hive$", Child of: id: row-Hive 2 is visible... COMPLETED
+Tap on id: row-action-Hive 2... COMPLETED
+Assert that "^Waiting$", Child of: id: row-Hive 2 is visible... COMPLETED
+Tap on id: row-Hive 2... COMPLETED
+Wait for animation to end... COMPLETED
+Assert that "Heat and vaporize, 5:00" is visible... COMPLETED
+Take screenshot s9-02-new-run-uses-edit... COMPLETED
+Tap on "^All$"... COMPLETED
+Wait for animation to end... COMPLETED
+Tap on id: row-Hive 1... COMPLETED
+Wait for animation to end... COMPLETED
+Assert that "Heat and vaporize, 2:30" is visible... COMPLETED
+Take screenshot s9-03-active-run-keeps-snapshot... COMPLETED
+Tap on "^All$"... COMPLETED
+Wait for animation to end... COMPLETED
+Tap on "Settings"... COMPLETED
+Tap on id: hold-stays_in... COMPLETED
+Tap on "Replace"... COMPLETED
+Wait for animation to end... COMPLETED
+Assert that "^Device$", Child of: id: step-chip-4 is visible... COMPLETED
+Tap on "Move Remove wand up"... COMPLETED
+Tap on "Move Remove wand up"... COMPLETED
+Tap on "Move Remove wand up"... COMPLETED
+Tap on "Move Remove wand up"... COMPLETED
+Tap on "Move Remove wand up"... COMPLETED
+Assert that id: release-error is visible... COMPLETED
+Take screenshot s9-04-release-above-take-rejected... COMPLETED
+Tap on "Undo"... COMPLETED
+Assert that id: release-error is not visible... COMPLETED
+Press back... COMPLETED

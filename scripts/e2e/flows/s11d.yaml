@@ -5,7 +5,7 @@ appId: io.github.mecheng70.beetimer
     visible:
       id: alarm-hive
       text: ^Hive 1$
-    timeout: 40000
+    timeout: 90000
 - tapOn:
     id: alarm-done
 - waitForAnimationToEnd

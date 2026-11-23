@@ -12,6 +12,7 @@ appId: io.github.mecheng70.beetimer
     element:
       id: dev-scale-10
     direction: DOWN
+    centerElement: true
 - tapOn:
     id: dev-scale-10
 - back
@@ -84,6 +85,7 @@ appId: io.github.mecheng70.beetimer
             commands:
             - tapOn:
                 id: row-action-Hive 1
+                optional: true
             - waitForAnimationToEnd
     - runFlow:
         when:
@@ -100,6 +102,7 @@ appId: io.github.mecheng70.beetimer
             commands:
             - tapOn:
                 id: row-action-Hive 2
+                optional: true
             - waitForAnimationToEnd
     - runFlow:
         when:
@@ -116,6 +119,7 @@ appId: io.github.mecheng70.beetimer
             commands:
             - tapOn:
                 id: row-action-Hive 3
+                optional: true
             - waitForAnimationToEnd
     - extendedWaitUntil:
         visible:

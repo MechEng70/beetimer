@@ -93,7 +93,7 @@ data class Template(val id: String, val name: String, val steps: List<Step>) {
 @Serializable
 data class Hive(
     val id: Long,
-    /** Free text chosen by the user, for example "Emory". */
+    /** Free text chosen by the user, for example "Hive 1" or a name. */
     val label: String,
     val note: String? = null,
     val position: Int = 0,

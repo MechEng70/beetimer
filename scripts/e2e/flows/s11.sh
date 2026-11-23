@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Scenario 11: app open and unlocked when steps end (wand comes out, 60x).
+# Scenario 11: app open and unlocked when steps end (wand comes out, 10x).
 set -u
 source scripts/e2e/lib.sh
 m() { maestro --device "$SERIAL" test "scripts/e2e/flows/$1.yaml" --test-output-dir "$OUT/maestro"; }

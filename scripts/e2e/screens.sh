@@ -4,6 +4,9 @@ set -euo pipefail
 SERIAL="${SERIAL:-emulator-5554}"; APP=io.github.mecheng70.beetimer
 cd "$(dirname "$0")/../.."
 case "$SERIAL" in emulator-*) ;; *) echo "emulator only"; exit 2 ;; esac
+source scripts/e2e/lib.sh
+save_settings
+trap restore_settings EXIT
 TMP="$(mktemp -d)"
 m() { maestro --device "$SERIAL" test "scripts/e2e/flows/$1.yaml" --test-output-dir "$TMP/m" >> "$TMP/maestro.txt" 2>&1; }
 cap() {
@@ -16,7 +19,6 @@ adb -s "$SERIAL" shell pm clear "$APP" >/dev/null
 adb -s "$SERIAL" shell pm grant "$APP" android.permission.POST_NOTIFICATIONS
 adb -s "$SERIAL" shell appops set "$APP" USE_FULL_SCREEN_INTENT allow
 adb -s "$SERIAL" shell settings put system font_scale 1.15
-source scripts/e2e/lib.sh
 started=$(date +%s)
 m scr-a0
 for pair in "Hive 1:Emory" "Hive 2:Sparky" "Hive 3:Herb"; do rename_hive "${pair%%:*}" "${pair##*:}"; done

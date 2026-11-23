@@ -116,7 +116,7 @@ class MainActivity : ComponentActivity() {
 
     /**
      * Bottom snackbars while the app is on screen, so they never cover the top bar or the vaporizer bar's
-     * buttons. "Vaporizer free: Herb is next" (Start hands the vaporizer over), and "Alarm volume is low"
+     * buttons. "Vaporizer free: Hive 2 is next" (Start hands the vaporizer over), and "Alarm volume is low"
      * from the first Start of a session (Raise opens sound settings).
      */
     @Composable

@@ -18,13 +18,13 @@ LINE = re.compile(r"BeeTimerE2E: (\w+) t=(\d+) ?(.*)$")
 HEADER = os.environ.get(
     "E2E_HEADER",
     "Emulator: beetimer-api36 (Android 16, API 36), debug build. Raw runs in build/e2e (not committed); "
-    "screenshots and failed-run logs in docs/e2e/latest/.",
+    "screenshots and failed-run logs in docs/e2e/latest/. Time scale 10x for every scenario.",
 )
 NAMES = {
-    "s1": "Pan wand, wand stays in, 3 hives (60x)",
+    "s1": "Pan wand, wand stays in, 3 hives",
     "s1x10": "Scenario 1 repeated at 10x",
     "s2": "Pan wand, wand comes out, 3 hives",
-    "s3": "Gun type, 3 hives (10x)",
+    "s3": "Gun type, 3 hives",
     "s4": "Queue: skip to back, remove, fourth hive",
     "s5": "Cancel the vaporizer holder mid-block",
     "s6": "Alarms: +1 min, Snooze, two close together",
@@ -102,9 +102,26 @@ def check(cond, msg, problems):
         problems.append(msg)
 
 
+# R11 T-013: every scenario runs at this time scale (gen_flows.py SUITE_SCALE). A run at any other scale fails.
+SUITE_SCALE = 10
+
+
+def run_scale(ev):
+    """The time scale in effect at the first Start, or None if nothing started."""
+    for k, t, rest in ev:
+        if k == "EVENT" and " Start(" in f" {rest.split(' ', 1)[-1]}":
+            m = re.search(r"scale=(\d+)", rest)
+            return int(m.group(1)) if m else None
+    return None
+
+
 def scenario_checks(s, r):
     ev = r["events"]
     p = []
+    scale = run_scale(ev)
+    if scale is not None:
+        check(scale == SUITE_SCALE, f"ran at {scale}x, not {SUITE_SCALE}x (the time scale tap was lost)", p)
+    scale = scale or SUITE_SCALE
     if s in ("s1", "s1x10"):
         l1, l2, l3 = (first(ev, hive=h, step="Load dose") for h in ("Hive 1", "Hive 2", "Hive 3"))
         rel1, rel2 = first(ev, hive="Hive 1", step="Unseal"), first(ev, hive="Hive 2", step="Unseal")
@@ -159,7 +176,8 @@ def scenario_checks(s, r):
         ks1 = first(ev, hive="Hive 1", step="Keep sealed")
         ring1 = [t for t in steps(ev, hive="Hive 1", kind="RING") if ks1 and t > ks1]
         if ks1 and ring1:
-            check(ring1[0] - ks1 >= 10_500, f"+1 min did not extend the hold ({(ring1[0]-ks1)/1000:.1f} s)", p)
+            # Keep sealed (600 s) plus +1 min (60 s), scaled; half the +1 min is the margin.
+            check(ring1[0] - ks1 >= (600 + 30) * 1000 / scale, f"+1 min did not extend the hold ({(ring1[0]-ks1)/1000:.1f} s)", p)
         r2 = [t for t in steps(ev, hive="Hive 2", kind="RING")]
         r3 = [t for t in steps(ev, hive="Hive 3", kind="RING")]
         d2 = first(ev, hive="Hive 2", kind="DONE")
@@ -170,7 +188,7 @@ def scenario_checks(s, r):
         rings = [t for t in steps(ev, hive="Hive 1", kind="RING") if ks and t > ks]
         check(bool(rings), "no alarm with the screen off", p)
         if ks and rings:
-            late = (rings[0] - ks) / 1000 - 10
+            late = (rings[0] - ks) / 1000 - 600 / scale  # Keep sealed is 600 s, scaled
             check(late < 2, f"alarm {late:.1f} s late", p)
         check("AlarmActivity" in r["maestro"], "full-screen alarm was not in front", p)
         check("mWakefulness=Awake" in r["maestro"].split("screen off at")[-1], "screen did not wake", p)

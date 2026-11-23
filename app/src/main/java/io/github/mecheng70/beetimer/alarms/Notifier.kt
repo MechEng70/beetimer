@@ -21,7 +21,7 @@ class Notifier(private val context: Context) {
 
     /**
      * Alarm notification for one hive: full-screen intent when locked, heads-up when unlocked.
-     * Title is the hive name ("Herb"), body "Heat and vaporize finished. Next: Cool in hive"
+     * Title is the hive name ("Hive 1"), body "Heat and vaporize finished. Next: Cool in hive"
      * (BigText), actions Done and +1 min. Snooze is on the alarm screen.
      */
     fun ringNotification(hiveId: Long, title: String, text: String, quiet: Boolean = false): Notification {

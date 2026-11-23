@@ -12,10 +12,11 @@ appId: io.github.mecheng70.beetimer
     id: hold-stays_in
 - scrollUntilVisible:
     element:
-      id: dev-scale-60
+      id: dev-scale-10
     direction: DOWN
+    centerElement: true
 - tapOn:
-    id: dev-scale-60
+    id: dev-scale-10
 - back
 - waitForAnimationToEnd
 - tapOn: Settings

@@ -12,10 +12,11 @@ appId: io.github.mecheng70.beetimer
     id: hold-comes_out
 - scrollUntilVisible:
     element:
-      id: dev-scale-60
+      id: dev-scale-10
     direction: DOWN
+    centerElement: true
 - tapOn:
-    id: dev-scale-60
+    id: dev-scale-10
 - back
 - waitForAnimationToEnd
 - tapOn:
@@ -29,7 +30,7 @@ appId: io.github.mecheng70.beetimer
       text: ^Seal hive$
       childOf:
         id: row-Hive 1
-    timeout: 40000
+    timeout: 90000
 - tapOn:
     id: row-action-Hive 1
 - extendedWaitUntil:
@@ -37,7 +38,7 @@ appId: io.github.mecheng70.beetimer
       text: ^Seal hive$
       childOf:
         id: row-Hive 2
-    timeout: 40000
+    timeout: 90000
 - tapOn:
     id: row-action-Hive 2
 - extendedWaitUntil:
@@ -45,7 +46,7 @@ appId: io.github.mecheng70.beetimer
       text: ^Seal hive$
       childOf:
         id: row-Hive 3
-    timeout: 40000
+    timeout: 90000
 - tapOn:
     id: row-action-Hive 3
 - takeScreenshot: s2-01-sealed
@@ -86,6 +87,7 @@ appId: io.github.mecheng70.beetimer
             commands:
             - tapOn:
                 id: row-action-Hive 1
+                optional: true
             - waitForAnimationToEnd
     - runFlow:
         when:
@@ -102,6 +104,7 @@ appId: io.github.mecheng70.beetimer
             commands:
             - tapOn:
                 id: row-action-Hive 2
+                optional: true
             - waitForAnimationToEnd
     - runFlow:
         when:
@@ -118,6 +121,7 @@ appId: io.github.mecheng70.beetimer
             commands:
             - tapOn:
                 id: row-action-Hive 3
+                optional: true
             - waitForAnimationToEnd
     - extendedWaitUntil:
         visible:

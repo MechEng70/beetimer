@@ -4,7 +4,7 @@ appId: io.github.mecheng70.beetimer
 - extendedWaitUntil:
     visible:
       id: alarm-done
-    timeout: 40000
+    timeout: 90000
 - takeScreenshot: s7-01-alarm-over-lock
 - tapOn:
     id: alarm-done

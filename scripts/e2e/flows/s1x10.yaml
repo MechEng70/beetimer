@@ -14,6 +14,7 @@ appId: io.github.mecheng70.beetimer
     element:
       id: dev-scale-10
     direction: DOWN
+    centerElement: true
 - tapOn:
     id: dev-scale-10
 - back

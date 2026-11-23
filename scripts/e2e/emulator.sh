@@ -27,7 +27,9 @@ start)
         exit 0
     fi
     stop_daemons
-    nohup "$EMULATOR" -avd "$AVD" -no-snapshot-save -no-boot-anim >"build/emulator.log" 2>&1 &
+    # Software GPU: the host GL path (gfxstream) segfaulted twice in long runs (R11 T-013). EMULATOR_GPU overrides.
+    nohup "$EMULATOR" -avd "$AVD" -no-snapshot-save -no-boot-anim -gpu "${EMULATOR_GPU:-swiftshader_indirect}" \
+        >"build/emulator.log" 2>&1 &
     adb -s "$SERIAL" wait-for-device
     for _ in $(seq 1 180); do
         [ "$(adb -s "$SERIAL" shell getprop sys.boot_completed 2>/dev/null | tr -d '\r')" = 1 ] && break

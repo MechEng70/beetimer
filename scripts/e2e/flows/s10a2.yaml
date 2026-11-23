@@ -6,5 +6,5 @@ appId: io.github.mecheng70.beetimer
 - extendedWaitUntil:
     visible:
       text: '^Next: Emory$'
-    timeout: 40000
+    timeout: 90000
 - takeScreenshot: s10-02-renamed

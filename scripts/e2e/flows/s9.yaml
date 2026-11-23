@@ -12,10 +12,11 @@ appId: io.github.mecheng70.beetimer
     id: hold-stays_in
 - scrollUntilVisible:
     element:
-      id: dev-scale-60
+      id: dev-scale-10
     direction: DOWN
+    centerElement: true
 - tapOn:
-    id: dev-scale-60
+    id: dev-scale-10
 - back
 - waitForAnimationToEnd
 - tapOn:
@@ -25,7 +26,7 @@ appId: io.github.mecheng70.beetimer
       text: ^Seal hive$
       childOf:
         id: row-Hive 1
-    timeout: 40000
+    timeout: 90000
 - tapOn:
     id: row-action-Hive 1
 - extendedWaitUntil:
@@ -33,7 +34,7 @@ appId: io.github.mecheng70.beetimer
       text: ^Load dose$
       childOf:
         id: row-Hive 1
-    timeout: 40000
+    timeout: 90000
 - tapOn: Settings
 - tapOn: Move Remove wand up
 - waitForAnimationToEnd
@@ -63,7 +64,7 @@ appId: io.github.mecheng70.beetimer
       text: ^Seal hive$
       childOf:
         id: row-Hive 2
-    timeout: 40000
+    timeout: 90000
 - tapOn:
     id: row-action-Hive 2
 - extendedWaitUntil:
@@ -71,7 +72,7 @@ appId: io.github.mecheng70.beetimer
       text: ^Waiting$
       childOf:
         id: row-Hive 2
-    timeout: 40000
+    timeout: 90000
 - tapOn:
     id: row-Hive 2
 - waitForAnimationToEnd

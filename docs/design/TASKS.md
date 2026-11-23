@@ -296,10 +296,11 @@ oracle. Run through all tasks in order and stop only at the brief's hard stops.
   (`INSTALL_FAILED_UPDATE_INCOMPATIBLE`); alpha.1 installs fresh (100001); alpha.2 (100002, same certificate)
   installs over it with Emory's name and started run kept, no crash. Debug build put back afterwards.
   `docs/INSTALL.md` explains the one-time uninstall; details in `docs/e2e/FIXES.md`.
+- Done: `0164ca2`.
 
 ### Phase 6: GitHub
 
-#### T-018 [ ] Push (S)
+#### T-018 [x] Push (S)
 - **Goal:** `main` and tags on GitHub, nothing that shouldn't be public.
 - **Files:** none.
 - **Depends on:** T-017.
@@ -308,6 +309,11 @@ oracle. Run through all tasks in order and stop only at the brief's hard stops.
   and the tags pushed. Anything bad in history is a stop, not a rewrite.
 - **Tests:** history scan.
 - **Device testing (Jason):** none.
+- Result (2026-11-23 17:45): origin is `MechEng70/beetimer`. Scan of every commit: no keystore, properties,
+  `.env` or key files; no secret patterns (the only hits are the Gradle code reading the property names); the
+  keystore password values appear nowhere in history or the tree. All 151 PNG versions in the 41 new commits
+  are cropped (2272 px tall). The R6 uncropped emulator captures in older history were already public. Pushed
+  `main` and the tag `alpha-baseline`; `snyk monitor --all-projects` after the push.
 
 #### T-019 [ ] Release (S)
 - **Goal:** GitHub pre-release `v0.1.0-alpha.1` with the APK and sha256.

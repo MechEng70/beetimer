@@ -27,3 +27,4 @@ Throttle is the decision taken before the task (playbook section 9). "n/a": trac
 | T-015 | Opus 5.5 | main | 2026-11-23 17:06 | 2026-11-23 17:12 | M | 1 | 2 | 64 | 64 | normal (wide open) | Written in the earlier session; ~/ expansion added; refusal shown three ways; backup wording marked pending |
 | T-016 | Opus 5.5 | main | 2026-11-23 17:12 | 2026-11-23 17:20 | S | 2 | 3 | 64 | 64 | normal (wide open) | Signed build, cert recorded, release.sh end to end; SIGPIPE bug fixed with regression test; waits on Jason's backup confirmation |
 | T-017 | Opus 5.5 | main | 2026-11-23 17:21 | 2026-11-23 17:40 | M | 3 | 4 | 64 | 64 | normal (wide open) | Emulator uninstall blocked by the classifier; asked Jason (yes, emulator only). Upgrade alpha.1 to alpha.2 keeps data |
+| T-018 | Opus 5.5 | main | 2026-11-23 17:40 | 2026-11-23 17:46 | S | 4 | 4 | 64 | 64 | normal (wide open) | History scan (names, secret patterns, password values, PNG heights), push, snyk monitor |

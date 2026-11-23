@@ -281,9 +281,8 @@ oracle. Run through all tasks in order and stop only at the brief's hard stops.
 
 ## Found during R11 (for Jason; not fixed in R11 unless a task above covers it)
 
-- **Corrupt rows (baseline).** A corrupt step-list row crashes app start. A corrupt state row is read as
-  empty, so all runs go back to Not started, and the bad row is overwritten on the next save. T-010 covers
-  both.
+- **Corrupt rows (baseline).** A corrupt step-list row crashed app start. A corrupt state row was read as
+  empty and overwritten on the next save. Fixed in T-010 (quarantine; regression tests in `QuarantineTest`).
 - **Exact alarm refused (baseline).** If scheduling throws `SecurityException` (Android 12 only, access
   revoked), `AlarmScheduler.guarded` logs it and the alarm is silently not set. Not reachable on Android 13+,
   where `USE_EXACT_ALARM` can't be revoked. Not fixed: it would add UI.

@@ -22,7 +22,7 @@ class Repository(private val db: BeeTimerDb, private val defaultHiveName: (Int) 
 
     val hives: Flow<List<Hive>> = db.hives().observe().map { list -> list.map { it.toHive() } }
 
-    val templates: Flow<List<StoredTemplate>> = db.templates().observe().map { list -> list.map { it.toStored() } }
+    val templates: Flow<List<StoredTemplate>> = db.templates().observe().map { readTemplates(it) }
 
     /**
      * First run: both presets (pan wand active) and three hives, in one transaction and
@@ -40,17 +40,29 @@ class Repository(private val db: BeeTimerDb, private val defaultHiveName: (Int) 
 
     suspend fun hiveList(): List<Hive> = db.hives().all().map { it.toHive() }
 
-    suspend fun allTemplates(): List<StoredTemplate> = db.templates().all().map { it.toStored() }
+    suspend fun allTemplates(): List<StoredTemplate> = readTemplates(db.templates().all())
 
     suspend fun activeTemplate(): Template {
         seedIfNeeded()
-        val all = db.templates().all()
-        return (all.firstOrNull { it.isActive } ?: all.first()).toStored().template
+        val all = readTemplates(db.templates().all())
+        return (all.firstOrNull { it.isActive } ?: all.first()).template
     }
 
-    suspend fun loadState(): SchedulerState? = db.state().get()?.let {
-        runCatching { json.decodeFromString(SchedulerState.serializer(), it.json) }.getOrNull()
+    /**
+     * The saved scheduler state, or null if there is none. A row that can't be read is quarantined first and then
+     * treated as no state, so runs start over, as before R11, but the data is kept.
+     */
+    suspend fun loadState(): SchedulerState? {
+        val row = db.state().get() ?: return null
+        return runCatching { json.decodeFromString(SchedulerState.serializer(), row.json) }
+            .getOrElse { e ->
+                quarantine(SOURCE_STATE, row.json, e)
+                null
+            }
     }
+
+    /** Rows that couldn't be read, oldest first. Kept for export; the app doesn't show them. */
+    suspend fun quarantined(): List<QuarantineEntity> = db.quarantine().all()
 
     suspend fun saveState(state: SchedulerState) {
         db.state().put(StateEntity(json = json.encodeToString(SchedulerState.serializer(), state)))
@@ -110,6 +122,47 @@ class Repository(private val db: BeeTimerDb, private val defaultHiveName: (Int) 
 
     private fun HiveEntity.toHive() = Hive(id = id, label = label, note = note, position = position)
 
+    /**
+     * Decodes template rows. A row that can't be read is quarantined, then repaired to its preset's default steps
+     * (keeping which one is active), or dropped if it isn't a preset. Healthy rows are untouched.
+     */
+    private suspend fun readTemplates(rows: List<TemplateEntity>): List<StoredTemplate> = rows.mapNotNull { row ->
+        runCatching { row.toStored() }.getOrElse { e -> repairTemplate(row, e) }
+    }
+
+    private suspend fun repairTemplate(row: TemplateEntity, e: Throwable): StoredTemplate? {
+        val preset = Presets.all.firstOrNull { it.id == row.id }
+        db.withTransaction {
+            // Another reader may have repaired it already.
+            if (db.templates().byId(row.id)?.stepsJson == row.stepsJson) {
+                quarantine("$SOURCE_TEMPLATES${row.id}", row.stepsJson, e)
+                if (preset != null) {
+                    db.templates().upsert(preset.toEntity(row.isActive))
+                } else {
+                    db.templates().delete(row.id)
+                }
+            }
+        }
+        return preset?.let { StoredTemplate(it, row.isActive) }
+    }
+
+    /** Keeps [payload] as it was, once per source and payload. */
+    private suspend fun quarantine(source: String, payload: String, e: Throwable) {
+        db.withTransaction {
+            if (db.quarantine().count(source, payload) == 0) {
+                val error = e.toString().take(MAX_ERROR_CHARS)
+                db.quarantine().insert(
+                    QuarantineEntity(
+                        source = source,
+                        payload = payload,
+                        error = error,
+                        at = System.currentTimeMillis(),
+                    ),
+                )
+            }
+        }
+    }
+
     private fun TemplateEntity.toStored() = StoredTemplate(
         template = Template(id = id, name = name, steps = json.decodeFromString(stepsSerializer, stepsJson)),
         isActive = isActive,
@@ -127,5 +180,9 @@ class Repository(private val db: BeeTimerDb, private val defaultHiveName: (Int) 
 
         /** Hives per session (one vaporizer; Jason, 2026-11-21). */
         const val MAX_HIVES = 5
+
+        const val SOURCE_STATE = "scheduler_state"
+        const val SOURCE_TEMPLATES = "templates:"
+        private const val MAX_ERROR_CHARS = 500
     }
 }

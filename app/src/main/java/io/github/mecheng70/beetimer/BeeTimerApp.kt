@@ -17,6 +17,7 @@ import io.github.mecheng70.beetimer.alarms.VolumeCheck
 import io.github.mecheng70.beetimer.data.BeeTimerDb
 import io.github.mecheng70.beetimer.data.MIGRATION_1_2
 import io.github.mecheng70.beetimer.data.MIGRATION_2_3
+import io.github.mecheng70.beetimer.data.MIGRATION_3_4
 import io.github.mecheng70.beetimer.data.Prefs
 import io.github.mecheng70.beetimer.data.Repository
 import kotlinx.coroutines.CoroutineScope
@@ -35,7 +36,7 @@ class BeeTimerApp : Application() {
             this,
             BeeTimerDb::class.java,
             "beetimer.db",
-        ).addMigrations(MIGRATION_1_2, MIGRATION_2_3).build()
+        ).addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4).build()
     }
     val repo by lazy { Repository(db) { n -> getString(R.string.hive_default_name, n) } }
     val alarms by lazy { AlarmScheduler(this) }

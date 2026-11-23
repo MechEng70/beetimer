@@ -33,6 +33,19 @@ data class TemplateEntity(@PrimaryKey val id: String, val name: String, val step
 @Entity(tableName = "scheduler_state")
 data class StateEntity(@PrimaryKey val id: Int = 1, val json: String)
 
+/**
+ * A row that couldn't be read, kept exactly as it was before anything overwrote it (R11 T-010). [source] is
+ * "scheduler_state" or "templates:<id>". Not shown in the app; kept so it can be exported.
+ */
+@Entity(tableName = "quarantine")
+data class QuarantineEntity(
+    @PrimaryKey(autoGenerate = true) val id: Long = 0,
+    val source: String,
+    val payload: String,
+    val error: String,
+    val at: Long,
+)
+
 @Dao
 interface HiveDao {
     @Query("SELECT * FROM hives ORDER BY position, id")
@@ -64,6 +77,12 @@ interface TemplateDao {
 
     @Query("UPDATE templates SET isActive = (id = :id)")
     suspend fun setActive(id: String)
+
+    @Query("SELECT * FROM templates WHERE id = :id")
+    suspend fun byId(id: String): TemplateEntity?
+
+    @Query("DELETE FROM templates WHERE id = :id")
+    suspend fun delete(id: String)
 }
 
 @Dao
@@ -75,8 +94,20 @@ interface StateDao {
     suspend fun put(state: StateEntity)
 }
 
+@Dao
+interface QuarantineDao {
+    @Insert
+    suspend fun insert(row: QuarantineEntity): Long
+
+    @Query("SELECT * FROM quarantine ORDER BY id")
+    suspend fun all(): List<QuarantineEntity>
+
+    @Query("SELECT COUNT(*) FROM quarantine WHERE source = :source AND payload = :payload")
+    suspend fun count(source: String, payload: String): Int
+}
+
 @Database(
-    entities = [HiveEntity::class, TemplateEntity::class, StateEntity::class],
+    entities = [HiveEntity::class, TemplateEntity::class, StateEntity::class, QuarantineEntity::class],
     version = BeeTimerDb.VERSION,
     exportSchema = true,
 )
@@ -84,10 +115,11 @@ abstract class BeeTimerDb : RoomDatabase() {
     abstract fun hives(): HiveDao
     abstract fun templates(): TemplateDao
     abstract fun state(): StateDao
+    abstract fun quarantine(): QuarantineDao
 
     companion object {
         /** Schema version. A change adds a new migration and schema file (see FrozenSchemaTest). */
-        const val VERSION = 3
+        const val VERSION = 4
     }
 }
 
@@ -124,5 +156,15 @@ val MIGRATION_2_3 = object : Migration(2, 3) {
                 ),
             )
         }
+    }
+}
+
+/** v3 -> v4: adds the quarantine table for rows that can't be read (R11 T-010). No other changes. */
+val MIGRATION_3_4 = object : Migration(3, 4) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL(
+            "CREATE TABLE IF NOT EXISTS `quarantine` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, " +
+                "`source` TEXT NOT NULL, `payload` TEXT NOT NULL, `error` TEXT NOT NULL, `at` INTEGER NOT NULL)",
+        )
     }
 }

@@ -5,7 +5,10 @@ import androidx.room.testing.MigrationTestHelper
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.platform.app.InstrumentationRegistry
 import io.github.mecheng70.beetimer.scheduler.Presets
+import io.github.mecheng70.beetimer.scheduler.Step
 import kotlinx.coroutines.runBlocking
+import kotlinx.serialization.builtins.ListSerializer
+import kotlinx.serialization.json.Json
 import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
@@ -19,6 +22,7 @@ class MigrationTest {
     val helper = MigrationTestHelper(InstrumentationRegistry.getInstrumentation(), BeeTimerDb::class.java)
 
     private val name = "migration-test.db"
+    private val json = Json { encodeDefaults = true }
 
     @Test
     fun migrate2To3_rewritesBothPresetsToTheMarkerModel() = runBlocking {
@@ -39,7 +43,7 @@ class MigrationTest {
         }
         helper.runMigrationsAndValidate(v2, 3, true, MIGRATION_2_3).close()
         val db = Room.databaseBuilder(ApplicationProvider.getApplicationContext(), BeeTimerDb::class.java, v2)
-            .addMigrations(MIGRATION_1_2, MIGRATION_2_3).build()
+            .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4).build()
         val repo = Repository(db) { n -> "Hive $n" }
         val templates = repo.allTemplates().associateBy { it.template.id }
         assertEquals(Presets.panWandStaysIn, templates.getValue(Presets.PAN_WAND_ID).template)
@@ -68,7 +72,7 @@ class MigrationTest {
         helper.runMigrationsAndValidate(name, 2, true, MIGRATION_1_2).close()
 
         val db = Room.databaseBuilder(ApplicationProvider.getApplicationContext(), BeeTimerDb::class.java, name)
-            .addMigrations(MIGRATION_1_2, MIGRATION_2_3).build()
+            .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4).build()
         val repo = Repository(db) { n -> "Hive $n" }
         val templates = repo.allTemplates()
         val pan = templates.first { it.template.id == Presets.PAN_WAND_ID }
@@ -78,6 +82,31 @@ class MigrationTest {
         assertEquals("v2 -> v3 moves gun type to the marker model too", Presets.gunType, gun.template)
         assertEquals(true, gun.isActive)
         assertEquals(listOf("Emory"), repo.hiveList().map { it.label })
+        db.close()
+    }
+
+    @Test
+    fun migrate3To4_addsQuarantineAndKeepsEverything() = runBlocking {
+        val v3 = "migration-test-v3.db"
+        val pan = json.encodeToString(ListSerializer(Step.serializer()), Presets.panWandStaysIn.steps)
+        helper.createDatabase(v3, 3).apply {
+            execSQL(
+                "INSERT INTO templates (id, name, stepsJson, isActive) VALUES (?, ?, ?, 1)",
+                arrayOf<Any>(Presets.PAN_WAND_ID, Presets.panWandStaysIn.name, pan),
+            )
+            execSQL("INSERT INTO hives (id, label, note, position) VALUES (3, 'Sparky', 'top bar', 0)")
+            execSQL("INSERT INTO scheduler_state (id, json) VALUES (1, '{\"runs\":{}}')")
+            close()
+        }
+        helper.runMigrationsAndValidate(v3, 4, true, MIGRATION_3_4).close()
+
+        val db = Room.databaseBuilder(ApplicationProvider.getApplicationContext(), BeeTimerDb::class.java, v3)
+            .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4).build()
+        val repo = Repository(db) { n -> "Hive $n" }
+        assertEquals(Presets.panWandStaysIn, repo.allTemplates().single().template)
+        assertEquals(listOf("Sparky"), repo.hiveList().map { it.label })
+        assertEquals("{\"runs\":{}}", db.state().get()?.json)
+        assertEquals(emptyList<QuarantineEntity>(), repo.quarantined())
         db.close()
     }
 }

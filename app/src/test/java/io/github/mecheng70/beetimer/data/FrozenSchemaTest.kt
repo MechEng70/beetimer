@@ -23,11 +23,14 @@ class FrozenSchemaTest {
         1 to "143bc52d72accacfe438a760deb570289ffe4a21265c1023ea4739d744072c63",
         2 to "fd9a767092444f2120d15c186cb3a273838e94fcfa1fb03e074fe3aaf6b4a563",
         3 to "f2f5e1e57550fb9ebc2ecf927159994db92815de7dbc9074956c03543573f992",
+        // v4 ships with 0.1.0-alpha.1 (R11 T-010).
+        4 to "426baf6a5d1512903f16792bafc1978ffe4ebd98851dd1b81557d1ce22aebc1c",
     )
 
     private val frozenMigrations = mapOf(
         "MIGRATION_1_2" to "2cfc77df576b181aa7a3437c50f8d47037d7e52d521f10704a25a489b8ec2545",
         "MIGRATION_2_3" to "525a768d7caa15f18b2ec5fcff809129db21f990aaa1b60ad07dfecb71d98261",
+        "MIGRATION_3_4" to "0a856c8b778e71ced8ac1eba37353cd52548110ef8d818dad8fe5225f710559c",
     )
 
     @Test

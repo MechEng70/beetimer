@@ -200,6 +200,7 @@ The sealed-hold choice in Settings is read from the step list's shape (`Presets.
 To keep it simple and atomic:
 - `hives(id, label, note, position)`
 - `templates(id, name, stepsJson, isActive)`: two rows.
+- `quarantine(id, source, payload, error, at)`: rows that couldn't be read (v4).
 - `scheduler_state(id = 1, json)`: the whole `SchedulerState` (minus the template) serialized with kotlinx.serialization. One row, written in the same transaction after every reduce.
 
 UI preferences (theme, keep screen on, battery prompt already shown) live in SharedPreferences.
@@ -208,7 +209,14 @@ Schema versions (JSON committed in `app/schemas/`; never edit a committed one):
 - v1: first release of the tables.
 - v2 (`MIGRATION_1_2`): reseeds the pan wand preset (fixed step list).
 - v3 (`MIGRATION_2_3`): rewrites both preset rows to the take/release marker model.
-`MigrationTest` runs both migrations.
+- v4 (`MIGRATION_3_4`, R11 T-010): adds `quarantine(id, source, payload, error, at)`.
+`MigrationTest` runs every migration. `FrozenSchemaTest` checksums the shipped schema files and migrations.
+
+**Corrupt rows** (R11 T-010). A row that can't be decoded never crashes a read. It is copied to `quarantine`
+first (once per source and payload), then: a state row reads as no state (runs start over, as before R11); a
+step-list row is repaired to its preset's default, keeping which preset is active (before R11 this crashed app
+start); a non-preset row is dropped. `Repository.quarantined()` returns the kept rows for a future export; the
+app shows nothing. Tests: `QuarantineTest`.
 
 ## 8. Native pieces (Android layer)
 

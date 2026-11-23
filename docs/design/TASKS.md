@@ -147,7 +147,7 @@ oracle. Run through all tasks in order and stop only at the brief's hard stops.
 
 ### Phase 3: data and layout rules
 
-#### T-009 [ ] Migrations frozen (S)
+#### T-009 [x] Migrations frozen (S)
 - **Goal:** shipped Room migrations and schema files can't change unnoticed.
 - **Files:** `app/src/test/.../data/FrozenSchemaTest.kt`.
 - **Depends on:** T-008.
@@ -156,6 +156,7 @@ oracle. Run through all tasks in order and stop only at the brief's hard stops.
   fails if any of them changes.
 - **Tests:** the new test; show it fails on a changed file.
 - **Device testing (Jason):** none.
+- Done: `9033a70`.
 
 #### T-010 [ ] Corrupt data (M)
 - **Goal:** a corrupt or unreadable row never crashes a read, and is quarantined before anything overwrites it.

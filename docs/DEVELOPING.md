@@ -129,8 +129,8 @@ git-ignored.
 - `keystore.properties` in the repo root, mode 600, with `storeFile` (absolute path or `~/...`),
   `storePassword`, `keyAlias`, `keyPassword`. The Gradle signing config reads it (`app/build.gradle.kts`);
   another location can be given with `-PbeetimerKeystoreProperties=<path>` or `BEETIMER_KEYSTORE_PROPERTIES`.
-- Backup: the `.jks` file and both passwords belong in Jason's password manager, off this machine and off
-  GitHub (Jason to confirm, T-016). If the keystore is lost, no installed copy can ever be updated again.
+- Backup: the `.jks` file and both passwords are in Jason's password manager, off this machine and off
+  GitHub (Jason confirmed, 2026-11-23). If the keystore is lost, no installed copy can ever be updated again.
 - To make a keystore for another app (for reference; run it yourself, the passwords are typed at the prompt):
 
   ```

@@ -5,7 +5,7 @@ Tap on (Optional) "Continue"... COMPLETED
 Tap on "Settings"... COMPLETED
 Tap on id: preset-oav-pan-wand... COMPLETED
 Tap on id: hold-comes_out... COMPLETED
-Scrolling DOWN until id: dev-scale-10 is visible with speed 40, visibility percentage 100%, timeout 20000 ms, with centering disabled... COMPLETED
+Scrolling DOWN until id: dev-scale-10 is visible with speed 40, visibility percentage 100%, timeout 20000 ms, with centering enabled... COMPLETED
 Tap on id: dev-scale-10... COMPLETED
 Press back... COMPLETED
 Wait for animation to end... COMPLETED

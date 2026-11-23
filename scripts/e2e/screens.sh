@@ -35,6 +35,9 @@ adb -s "$SERIAL" shell 'i=0; while [ $i -lt 240 ] && ! dumpsys activity services
 sleep 2; cap app-6-headsup
 adb -s "$SERIAL" shell input tap 540 200
 m scr-g; sleep 2; cap app-3-alarm
+# T-013a: the alarm screen must also fit at font scale 1.3.
+adb -s "$SERIAL" shell settings put system font_scale 1.3; sleep 2; cap app-3-alarm-large
+adb -s "$SERIAL" shell settings put system font_scale 1.15
 # All tab: fresh data, wand comes out. Herb in Cool in hive ("Next: Remove wand"), then Herb in Keep sealed
 # (teal pill) with Sparky on Load dose ("Next: Heat and vaporize"). Each at font scale 1.15 and 1.3.
 adb -s "$SERIAL" shell pm clear "$APP" >/dev/null

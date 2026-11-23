@@ -12,8 +12,8 @@ stops and the usage throttle (playbook section 9). No behavior change: the tag `
 is the oracle.
 
 - **Branch:** the brief says `master`; the branch is `main` (renamed and pushed 2026-11-22). Use `main`.
-- **Done:** T-001 to T-013. Status per task is in `docs/design/TASKS.md` (R11 section).
-- **Next:** T-013a alarm screen readability (in `git stash`), then T-014, T-015 (in `git stash`), T-016 verify. See "Work in stashes" below.
+- **Done:** T-001 to T-013a. Status per task is in `docs/design/TASKS.md` (R11 section).
+- **Next:** T-014 and T-015 (in `git stash`), then T-016 verify. See "Work in stashes" below.
 - **Found during R11:** listed in TASKS.md under that heading.
 - **Brief updated mid-round:** Jason's chat updated the playbook and brief at about 10:56, after T-001 to T-005
   were committed. T-001 gained usage tracking (done in a follow-up T-001 commit); CLAUDE.md, TASKS.md and
@@ -31,15 +31,9 @@ Usage tracking (set up in T-001):
 
 ### Work in stashes (2026-11-23 16:25)
 
-T-013 is committed. The written-but-unbuilt work for the next tasks is in two stashes, so each task's build and
+T-013 and T-013a are committed. The written-but-unbuilt T-014 and T-015 work is in one stash, so each task's build and
 E2E test only its own code (`git stash list`):
-- `stash@{0}` **T-013a (approved, written, not built):** alarm screen readability. `AlarmContent` in
-  `AlarmActivity.kt`, tokens in `Theme.kt` (name 56 sp, finished 24, "Next for <hive>" 18, next action 36
-  auto-size to 24, timer 20, Then 20, divider gap 16 dp), strings, `AlarmText.thenLine` (and the hive-name
-  comment cleanup in `AlarmText.kt`), tests `AlarmLayoutTest` and `AlarmTextTest`. Then: build, gate, re-run s6
-  and s11 at 10x, re-capture `app-3-alarm.png` at 1.15 and 1.3, SPEC section 1. Imports in `AlarmActivity.kt`
-  need ktlint ordering.
-- `stash@{1}` **T-014 and T-015 (written, not built):** `buildSrc/` (`AppVersion`, `AppVersionTest`),
+- `stash@{0}` **T-014 and T-015 (written, not built):** `buildSrc/` (`AppVersion`, `AppVersionTest`),
   `appVersion=0.1.0-alpha.1` in `gradle.properties`, versionCode in `app/build.gradle.kts`, signing config,
   `:app:printVersionCode`, `scripts/release.sh`, `scripts/build-apk.sh`, DEVELOPING.md release section,
   `check.sh` step `buildsrc-tests`. `check.sh` and DEVELOPING.md changed since (py-tests), so expect a small
@@ -57,6 +51,8 @@ shell whose own command line contains that text (it kills itself). Emulator: sto
 
 Not blocking; collected for the end of the round (details in TASKS.md, "Found during R11"):
 - s1x10 and s2x10 now duplicate s1 and s2 (T-013). Delete the two flow files and their generator lines?
+- Alarm screen (T-013a): when Done frees the vaporizer it shows both "Then: Hive 2, load dose" and "Vaporizer
+  frees when you tap Done. Hive 2 is next." Keep both, or drop the second?
 
 Restart prompt (from the brief):
 

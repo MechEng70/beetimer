@@ -212,7 +212,7 @@ oracle. Run through all tasks in order and stop only at the brief's hard stops.
   software GPU (host GPU segfaulted twice). s1x10 and s2x10 now duplicate s1 and s2 and weren't run.
 - Done: `2ded61b`.
 
-#### T-013a [ ] Alarm screen readability (M)
+#### T-013a [x] Alarm screen readability (M)
 - **Goal:** Jason's approved design change (2026-11-23), display only: finished line 24 sp, "Next for <hive>"
   18 sp, next action 36 sp semibold (two lines, never cut off), timer line 20 sp, "Then: <hive>, <step>" 20 sp
   when Done frees the vaporizer, hive name 56 sp, tighter space around the divider; buttons unchanged.
@@ -224,6 +224,12 @@ oracle. Run through all tasks in order and stop only at the brief's hard stops.
 - **Tests:** `AlarmLayoutTest`, `AlarmTextTest`; E2E s6 and s11.
 - **Device testing (Jason):** on the phone, let a step end with the screen locked; compare the alarm screen
   with `docs/screenshots/app-3-alarm.png`: everything readable at arm's length, nothing over the buttons.
+- Result: `AlarmLayoutTest` (fits at 1.15 and 1.3, next action not cut off) and `AlarmTextTest` pass; s6 and s11
+  pass at both font scales, 0 invariant errors. New `app-3-alarm-large.png` (1.3). Two test setups fired the
+  Vaporize alarm before the step ended (ignored by the scheduler); fixed the setup, assertions unchanged.
+  `AlarmText.info` folded its two release branches into `releaseLines` (detekt complexity). For Jason: when Done
+  frees the vaporizer, the alarm shows both "Then: Hive 2, load dose" and the existing "Vaporizer frees when you
+  tap Done. Hive 2 is next." Keep both, or drop the second?
 
 ### Phase 5: release
 

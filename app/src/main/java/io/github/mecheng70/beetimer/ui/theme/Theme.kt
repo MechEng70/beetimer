@@ -132,6 +132,9 @@ private fun inter(size: Int, line: Int, weight: FontWeight = FontWeight.Normal) 
  */
 const val TABULAR_DIGITS = "tnum"
 
+/** The alarm's next action shrinks no smaller than this to fit two lines (never cut off). */
+const val ALARM_NEXT_MIN_SP = 24
+
 /** Text styles. Only the Hive tab countdown and the alarm hive name are large. */
 object AppType {
     val body = inter(14, 20)
@@ -166,11 +169,16 @@ object AppType {
         fontWeight = FontWeight.Bold,
         fontFeatureSettings = TABULAR_DIGITS,
     )
-    val alarmName = TextStyle(fontFamily = Inter, fontSize = 48.sp, lineHeight = 1.15.em, fontWeight = FontWeight.Bold)
-    val alarmFinished = inter(16, 22)
-    val alarmLabel = inter(14, 20)
-    val alarmNext = inter(26, 32, FontWeight.SemiBold)
-    val alarmTimer = inter(16, 22, FontWeight.Medium)
+
+    // Alarm screen, read at arm's length (T-013a, Jason 2026-11-23).
+    val alarmName = TextStyle(fontFamily = Inter, fontSize = 56.sp, lineHeight = 1.15.em, fontWeight = FontWeight.Bold)
+    val alarmFinished = inter(24, 30)
+    val alarmLabel = inter(18, 24)
+
+    /** The next action: 36 sp, two lines at most, shrinking toward [ALARM_NEXT_MIN_SP] rather than cutting. */
+    val alarmNext = inter(36, 42, FontWeight.SemiBold)
+    val alarmTimer = inter(20, 26, FontWeight.Medium)
+    val alarmThen = inter(20, 26)
     val alarmNote = inter(14, 20)
     val alarmButton = inter(17, 22, FontWeight.Bold)
 }
@@ -195,6 +203,9 @@ object Dimens {
 
     /** Alarm screen Done, +1 min and Snooze (gloves). */
     val AlarmButton = 64.dp
+
+    /** Alarm screen: space above and below the divider (T-013a). */
+    val AlarmDividerGap = 16.dp
     val TabGap = 14.dp
     val TabUnderline = 2.dp
     val TabPadding = 8.dp

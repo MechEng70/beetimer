@@ -19,6 +19,8 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicText
+import androidx.compose.foundation.text.TextAutoSize
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.HorizontalDivider
@@ -39,14 +41,17 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.testTagsAsResourceId
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import io.github.mecheng70.beetimer.DevTools
 import io.github.mecheng70.beetimer.R
+import io.github.mecheng70.beetimer.alarms.AlarmInfo
 import io.github.mecheng70.beetimer.alarms.AlarmText
 import io.github.mecheng70.beetimer.scheduler.Event
+import io.github.mecheng70.beetimer.ui.theme.ALARM_NEXT_MIN_SP
 import io.github.mecheng70.beetimer.ui.theme.AlarmColors
 import io.github.mecheng70.beetimer.ui.theme.AppType
 import io.github.mecheng70.beetimer.ui.theme.BeeTimerTheme
@@ -103,91 +108,13 @@ class AlarmActivity : ComponentActivity() {
 
         val info = AlarmText.info(context, run, s, labels)
         LaunchedEffect(id, labels[id]) { labels[id]?.let { DevTools.alarmShown(it) } }
-        Column(
-            Modifier.fillMaxSize().background(AlarmColors.Background).safeDrawingPadding().padding(Dimens.CardPadding),
-            horizontalAlignment = Alignment.CenterHorizontally,
-        ) {
-            // Information fills the space above the buttons, spread evenly.
-            Column(
-                Modifier.weight(1f).fillMaxWidth(),
-                verticalArrangement = Arrangement.SpaceEvenly,
-                horizontalAlignment = Alignment.CenterHorizontally,
-            ) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text(
-                        labels[id].orEmpty(),
-                        color = AlarmColors.Text,
-                        style = AppType.alarmName,
-                        textAlign = TextAlign.Center,
-                        maxLines = 2,
-                        modifier = Modifier.testTag("alarm-hive"),
-                    )
-                    Text(
-                        info.finished,
-                        color = AlarmColors.Accent,
-                        style = AppType.alarmFinished,
-                        textAlign = TextAlign.Center,
-                    )
-                }
-                HorizontalDivider(thickness = Dimens.Border, color = AlarmColors.Border)
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(Dimens.Gap),
-                ) {
-                    Text(
-                        stringResource(R.string.alarm_next_label),
-                        color = AlarmColors.Accent,
-                        style = AppType.alarmLabel,
-                    )
-                    Text(
-                        info.nextAction,
-                        color = AlarmColors.Text,
-                        style = AppType.alarmNext,
-                        textAlign = TextAlign.Center,
-                        maxLines = 2,
-                        overflow = TextOverflow.Ellipsis,
-                    )
-                    info.timerLine?.let {
-                        Text(it, color = AlarmColors.Text, style = AppType.alarmTimer, textAlign = TextAlign.Center)
-                    }
-                    info.deviceNote?.let {
-                        Text(it, color = AlarmColors.Accent, style = AppType.alarmNote, textAlign = TextAlign.Center)
-                    }
-                }
-            }
-            Button(
-                onClick = { app.send(Event.Done(id)) },
-                modifier = Modifier.fillMaxWidth().heightIn(min = Dimens.AlarmButton).testTag("alarm-done"),
-                shape = RoundedCornerShape(Dimens.AlarmCorner),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = AlarmColors.Text,
-                    contentColor = AlarmColors.Background,
-                ),
-            ) { Text(stringResource(R.string.action_done), style = AppType.alarmButton) }
-            Spacer(Modifier.height(Dimens.Gap))
-            Row(horizontalArrangement = Arrangement.spacedBy(Dimens.Gap)) {
-                AlarmOutlined(
-                    stringResource(R.string.action_add_minute),
-                    Modifier.weight(1f).testTag("alarm-add-minute"),
-                ) {
-                    app.send(Event.AddMinute(id))
-                }
-                AlarmOutlined(stringResource(R.string.action_snooze), Modifier.weight(1f).testTag("alarm-snooze")) {
-                    app.send(Event.Snooze(id))
-                }
-            }
-        }
-    }
-
-    @Composable
-    private fun AlarmOutlined(text: String, modifier: Modifier, onClick: () -> Unit) {
-        OutlinedButton(
-            onClick = onClick,
-            modifier = modifier.heightIn(min = Dimens.AlarmButton),
-            shape = RoundedCornerShape(Dimens.AlarmCorner),
-            border = BorderStroke(Dimens.Border, AlarmColors.Border),
-            colors = ButtonDefaults.outlinedButtonColors(contentColor = AlarmColors.Text),
-        ) { Text(text, style = AppType.alarmButton) }
+        AlarmContent(
+            label = labels[id].orEmpty(),
+            info = info,
+            onDone = { app.send(Event.Done(id)) },
+            onAddMinute = { app.send(Event.AddMinute(id)) },
+            onSnooze = { app.send(Event.Snooze(id)) },
+        )
     }
 
     /**
@@ -221,4 +148,114 @@ class AlarmActivity : ComponentActivity() {
                 .putExtra(EXTRA_HIVE_ID, hiveId)
                 .putExtra(EXTRA_RETURN_TO_APP, returnToApp)
     }
+}
+
+/**
+ * The alarm screen (mockup 3; sizes from T-013a, Jason 2026-11-23). The information block sits centered above
+ * the buttons with fixed gaps around the divider; it fits at font scale 1.15 and 1.3 without reaching the
+ * buttons (AlarmLayoutTest). The buttons are unchanged.
+ */
+@Composable
+internal fun AlarmContent(
+    label: String,
+    info: AlarmInfo,
+    onDone: () -> Unit,
+    onAddMinute: () -> Unit,
+    onSnooze: () -> Unit,
+) {
+    Column(
+        Modifier.fillMaxSize().background(AlarmColors.Background).safeDrawingPadding().padding(Dimens.CardPadding),
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        Column(
+            Modifier.weight(1f).fillMaxWidth().testTag("alarm-info"),
+            verticalArrangement = Arrangement.spacedBy(Dimens.AlarmDividerGap, Alignment.CenterVertically),
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Text(
+                    label,
+                    color = AlarmColors.Text,
+                    style = AppType.alarmName,
+                    textAlign = TextAlign.Center,
+                    maxLines = 2,
+                    modifier = Modifier.testTag("alarm-hive"),
+                )
+                Text(
+                    info.finished,
+                    color = AlarmColors.Accent,
+                    style = AppType.alarmFinished,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.testTag("alarm-finished"),
+                )
+            }
+            HorizontalDivider(thickness = Dimens.Border, color = AlarmColors.Border)
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(Dimens.Gap),
+            ) {
+                Text(
+                    stringResource(R.string.alarm_next_label, label),
+                    color = AlarmColors.Accent,
+                    style = AppType.alarmLabel,
+                    textAlign = TextAlign.Center,
+                )
+                // Two lines at most and never cut off: a long step name shrinks instead.
+                BasicText(
+                    info.nextAction,
+                    style = AppType.alarmNext.copy(color = AlarmColors.Text, textAlign = TextAlign.Center),
+                    maxLines = 2,
+                    autoSize = TextAutoSize.StepBased(
+                        minFontSize = ALARM_NEXT_MIN_SP.sp,
+                        maxFontSize = AppType.alarmNext.fontSize,
+                    ),
+                    modifier = Modifier.testTag("alarm-next"),
+                )
+                info.timerLine?.let {
+                    Text(it, color = AlarmColors.Text, style = AppType.alarmTimer, textAlign = TextAlign.Center)
+                }
+                info.thenLine?.let {
+                    Text(
+                        it,
+                        color = AlarmColors.Text,
+                        style = AppType.alarmThen,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.testTag("alarm-then"),
+                    )
+                }
+                info.deviceNote?.let {
+                    Text(it, color = AlarmColors.Accent, style = AppType.alarmNote, textAlign = TextAlign.Center)
+                }
+            }
+        }
+        Button(
+            onClick = onDone,
+            modifier = Modifier.fillMaxWidth().heightIn(min = Dimens.AlarmButton).testTag("alarm-done"),
+            shape = RoundedCornerShape(Dimens.AlarmCorner),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = AlarmColors.Text,
+                contentColor = AlarmColors.Background,
+            ),
+        ) { Text(stringResource(R.string.action_done), style = AppType.alarmButton) }
+        Spacer(Modifier.height(Dimens.Gap))
+        Row(horizontalArrangement = Arrangement.spacedBy(Dimens.Gap)) {
+            AlarmOutlined(
+                stringResource(R.string.action_add_minute),
+                Modifier.weight(1f).testTag("alarm-add-minute"),
+                onAddMinute,
+            )
+            AlarmOutlined(stringResource(R.string.action_snooze), Modifier.weight(1f).testTag("alarm-snooze"), onSnooze)
+        }
+    }
+}
+
+@Composable
+private fun AlarmOutlined(text: String, modifier: Modifier, onClick: () -> Unit) {
+    OutlinedButton(
+        onClick = onClick,
+        modifier = modifier.heightIn(min = Dimens.AlarmButton),
+        shape = RoundedCornerShape(Dimens.AlarmCorner),
+        border = BorderStroke(Dimens.Border, AlarmColors.Border),
+        colors = ButtonDefaults.outlinedButtonColors(contentColor = AlarmColors.Text),
+    ) { Text(text, style = AppType.alarmButton) }
 }

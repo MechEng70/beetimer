@@ -1,6 +1,6 @@
 # End-to-end results
 
-Emulator: beetimer-api36 (Android 16, API 36), debug build of the T-013 tree, 2026-11-23. Time scale 10x for every scenario (analyze.py fails any run that wasn't). Raw runs in build/e2e (not committed); screenshots and failed-run logs in docs/e2e/latest/. Three batches: the first full run (host GPU; it crashed during s7 at 1.3), then s2 and s3 at both scales after the autopilot fix, then s2, s7, s9, s10 and s11 at 1.3 after the scale-tap fix (software GPU). Flow changes between batches: FIXES.md, R11 T-013. s1x10 and s2x10 are now the same as s1 and s2 and were not run. Differences from alpha-baseline: only Jason's approved vaporizer bar change (s4 drives Skip to back and Cancel run from the hive's tab); no other behavior differed.
+Emulator: beetimer-api36 (Android 16, API 36), debug builds, 2026-11-23. Time scale 10x for every scenario (analyze.py fails any run that wasn't). Raw runs in build/e2e (not committed); screenshots and failed-run logs in docs/e2e/latest/. s1 to s5 and s7 to s10: T-013 build (three batches; flow changes between them in FIXES.md, R11 T-013). s6 and s11: re-run on the T-013a build (alarm screen text). s1x10 and s2x10 are now the same as s1 and s2 and were not run. Differences from alpha-baseline: Jason's approved vaporizer bar change (s4) and alarm screen text (T-013a); no other behavior differed.
 
 ## Font scale 1.15
 
@@ -11,12 +11,12 @@ Emulator: beetimer-api36 (Android 16, API 36), debug build of the T-013 tree, 20
 | s3 Gun type, 3 hives | PASS | 0 | ok | 259 s | - |
 | s4 Queue: skip to back, remove, fourth hive | PASS | 0 | ok | 91 s | - |
 | s5 Cancel the vaporizer holder mid-block | PASS | 0 | ok | 48 s | - |
-| s6 Alarms: +1 min, Snooze, two close together | PASS | 0 | ok | 294 s | - |
+| s6 Alarms: +1 min, Snooze, two close together | PASS | 0 | ok | 307 s | - |
 | s7 Screen off through a timed step | PASS | 0 | ok | 138 s | - |
 | s8 Process death mid-run | PASS | 0 | ok | 145 s | - |
 | s9 Editing while runs are active | PASS | 0 | ok | 83 s | - |
 | s10 Hive management: cap, drag order, New session | PASS | 0 | ok | 92 s | - |
-| s11 App open: alarm screen in app, Home, lock, snackbar | PASS | 0 | ok | 123 s | - |
+| s11 App open: alarm screen in app, Home, lock, snackbar | PASS | 0 | ok | 124 s | - |
 
 ## Font scale 1.3
 
@@ -27,12 +27,12 @@ Emulator: beetimer-api36 (Android 16, API 36), debug build of the T-013 tree, 20
 | s3 Gun type, 3 hives | PASS | 0 | ok | 259 s | - |
 | s4 Queue: skip to back, remove, fourth hive | PASS | 0 | ok | 97 s | - |
 | s5 Cancel the vaporizer holder mid-block | PASS | 0 | ok | 47 s | - |
-| s6 Alarms: +1 min, Snooze, two close together | PASS | 0 | ok | 295 s | - |
+| s6 Alarms: +1 min, Snooze, two close together | PASS | 0 | ok | 299 s | - |
 | s7 Screen off through a timed step | PASS | 0 | ok | 140 s | - |
 | s8 Process death mid-run | PASS | 0 | ok | 148 s | - |
 | s9 Editing while runs are active | PASS | 0 | ok | 89 s | - |
 | s10 Hive management: cap, drag order, New session | PASS | 0 | ok | 96 s | - |
-| s11 App open: alarm screen in app, Home, lock, snackbar | PASS | 0 | ok | 124 s | - |
+| s11 App open: alarm screen in app, Home, lock, snackbar | PASS | 0 | ok | 125 s | - |
 
 Invariant errors across all runs: **0**.
 

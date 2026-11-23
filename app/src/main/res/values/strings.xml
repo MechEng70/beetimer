@@ -81,7 +81,8 @@
     <!-- Alarm screen and notification -->
     <string name="alarm_finished">%1$s finished</string>
     <string name="alarm_finished_overdue">%1$s finished (overdue)</string>
-    <string name="alarm_next_label">Next</string>
+    <string name="alarm_next_label">Next for %1$s</string>
+    <string name="alarm_then">Then: %1$s, %2$s</string>
     <string name="alarm_waiting">%1$s, waiting for the vaporizer</string>
     <string name="alarm_all_done">All steps done</string>
     <string name="alarm_timer_starts">%1$s timer starts when you tap Done</string>

@@ -10,8 +10,8 @@ in order, commit each with its ID, update this section and `docs/design/USAGE.md
 at the brief's hard stops. No behavior change: the tag `alpha-baseline` (`571c8ee`) is the oracle.
 
 - **Branch:** the brief says `master`; the branch is `main` (renamed and pushed 2026-11-22). Use `main`.
-- **Done:** T-001 to T-004. Status per task is in `docs/design/TASKS.md` (R11 section).
-- **Next:** T-005 TECH-DESIGN.md and SECURITY-EXCEPTIONS.md.
+- **Done:** T-001 to T-005. Status per task is in `docs/design/TASKS.md` (R11 section).
+- **Next:** T-006 ktlint and detekt (formatting-only changes in their own commit).
 - **Found during R11:** listed in TASKS.md under that heading.
 - **Odd:** nothing open.
 

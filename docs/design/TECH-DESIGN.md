@@ -1,6 +1,6 @@
-# Bee Timer: technical design (alpha)
+# Bee Timer: technical design
 
-Status: alpha built and on the phone (0.1.0-alpha). This doc describes the code as it is; where it and the code disagree, fix one of them. Current state and open items: `docs/HANDOFF.md`.
+Status: alpha built and on the phone (0.1.0-alpha); round R11 (playbook adoption) in progress, no behavior change. This doc describes the code as it is; where it and the code disagree, fix one of them. Current state and open items: `docs/HANDOFF.md`.
 
 Source of truth for requirements: `SPEC.md` (section 1 Decisions wins over the original brief). Approved screens: `docs/mockups/varroa-timer-mockups.html`. This doc records decisions and the answers to open questions, so a fresh session can pick up any task in `TASKS.md` cold.
 
@@ -16,9 +16,9 @@ Alpha must demo, on the phone:
 - Step editor with the two presets, take and release markers, and validation.
 - A planning view (All tab) with countdowns from the planner.
 
-Alpha cuts (deliberate; see section 10):
-- No release build or keystore (debug APK only; T11).
-- No ktlint, detekt, Semgrep, or Snyk yet.
+Alpha cuts (deliberate; see section 14):
+- No release build or keystore (debug APK only). R11 T-014 to T-017 add them.
+- No ktlint, detekt, Semgrep, or Snyk yet. R11 T-006 to T-008 add them.
 - The step editor renames, retimes, moves steps and moves markers. No add or delete of steps in the UI (the model supports both).
 - No history list.
 - Ongoing notification shows end clock times per hive plus one live countdown to the next event, not a ticking countdown per line.
@@ -58,9 +58,9 @@ App ID `io.github.mecheng70.beetimer` (permanent). Display name "Bee Timer".
 Build commands:
 - `./gradlew :scheduler:test`: scheduler tests (pure Kotlin, fast).
 - `./gradlew test lint assembleDebug`: everything, output `app/build/outputs/apk/debug/app-debug.apk`.
-- `scripts/check.sh`: the alpha quality gate (tests, lint).
+- `scripts/check.sh`: the quality gate (section 11).
 
-## 3. Module layout and platform boundary
+## 3. Layers, module layout and platform boundary
 
 ```
 settings.gradle.kts, gradle/libs.versions.toml, gradle/wrapper/
@@ -82,6 +82,20 @@ app/         (Android; package io.github.mecheng70.beetimer, by layer)
   res/values/strings.xml   every UI string
 scripts/     check.sh (gate), build-apk.sh, e2e/ (Maestro suite), icon/ (SVG to VectorDrawable, pixel compare)
 ```
+
+**Layers and what each may import.** Arrows point down only: a layer never imports one above it.
+
+| Layer | Where | May import | May not import |
+|---|---|---|---|
+| Scheduler (domain) | `:scheduler` | Kotlin stdlib, kotlinx.serialization | anything else: `java.*`, `javax.*`, `android.*`, `androidx.*`, coroutines, clocks |
+| Data | `app/.../data` | scheduler, Room, kotlinx.serialization, SharedPreferences | `ui`, `alarms` |
+| Alarms (platform boundary) | `app/.../alarms` | scheduler, data, Android framework (AlarmManager, notifications, audio, services) | `ui` screens, except `AlarmActivity` as an intent target |
+| UI | `app/.../ui` | scheduler (state and events), data (hives, templates, prefs), alarms (through `BeeTimerApp.send` and the engine's state flow), Compose | scheduling logic: the UI sends events and never decides a transition |
+| App wiring | `BeeTimerApp.kt` | all of the above | |
+| Debug tools | `app/src/debug` | all of the above; `src/release` is a no-op twin | |
+
+The scheduler rule is enforced by `MultiplatformGuardTest`. The others are review rules; detekt (R11 T-006)
+can enforce more of them later.
 
 **KMP-ready scheduler (iOS later).** KMP is not set up now, but `:scheduler` is written so it can become a multiplatform `commonMain` with no code changes:
 - Kotlin stdlib and kotlinx.serialization only. No `java.*`, `javax.*`, `android.*`, `androidx.*`, no Java time APIs, no `@Jvm*` or `@Synchronized`, no threads, no JVM-only collections or concurrency.
@@ -181,7 +195,7 @@ Validation:
 
 The sealed-hold choice in Settings is read from the step list's shape (`Presets.panWandHoldOf`: names, kinds and markers in order), so reordering by hand into either default shape selects it. Choosing applies that default list, with a confirm when the steps are not exactly a default list. Room v3 (`MIGRATION_2_3`) rewrote both preset rows to this model.
 
-## 7. Persistence (Room)
+## 7. Data model and schema (Room)
 
 To keep it simple and atomic:
 - `hives(id, label, note, position)`
@@ -196,7 +210,7 @@ Schema versions (JSON committed in `app/schemas/`; never edit a committed one):
 - v3 (`MIGRATION_2_3`): rewrites both preset rows to the take/release marker model.
 `MigrationTest` runs both migrations.
 
-## 8. Android layer
+## 8. Native pieces (Android layer)
 
 **Wiring.** `BeeTimerApp` builds the graph by hand (no DI library): Room `BeeTimerDb`, `Repository`, `Prefs`, `AlarmScheduler`, `Notifier`, `EffectExecutor`, `SchedulerEngine`. Startup seeds once and loads state, which runs `restore`. Seeding runs in one Room transaction and only when the templates table is empty, so presets and the 3 default hives go in together or not at all, and a second caller sees them (regression: two callers raced and seeded 6 hives; `SeedingTest`).
 
@@ -280,25 +294,45 @@ Debug builds only (`app/src/debug/.../DevTools.kt`; the release twin in `src/rel
 
 End-to-end suite: `scripts/e2e/` (Maestro flows generated by `gen_flows.py`, `run.sh` emulator-only, `analyze.py` writes `docs/e2e/REPORT.md`). See `docs/e2e/README.md`.
 
-## 10. Known limitations and deferrals (alpha)
+## 10. Security
 
-- Debug build only, debug-signed. No release keystore yet (T11).
-- After a reboot, alarms come back only after the first unlock (state lives in credential-protected storage). An alarm due before you unlock rings right after unlocking, marked overdue.
-- Alarm sound uses the alarm volume. If the alarm volume is turned down (it was 1 of 16 on the test phone), the alarm is quiet; the first-Start snackbar and the permissions screen remind you.
-- The alarm tone is the phone's alarm tone if one is set, otherwise the bundled beep. No tone picker.
-- The ongoing notification shows end times per hive plus one countdown to the next end, not a ticking countdown per line.
-- The step editor can't add or delete steps, or change a step between timed and manual. The model supports add and delete.
-- No session history. No ktlint, detekt, Semgrep or Snyk yet.
-- Main screens are designed for light; the dark theme works but has not had a visual pass (backlog B3).
-- compileSdk 36 holds Compose, core-ktx and lifecycle at older versions (section 2).
-- Text follows the phone's font size setting (the test phone is at 1.15); checked at 1.3 in `docs/screenshots/app-1-all-large.png`.
-- Removing a hive from the queue resets its run (approved).
-- Android won't fire an exact alarm less than about 5 s ahead. Real steps are much longer, so this only matters for the debug 60x time scale.
-- Themed icons are verified on the emulator's Pixel launcher, not yet on the OnePlus (themed icons are off there).
+- **No network.** The manifest has no `INTERNET` permission. No accounts, analytics, ads or third-party SDKs
+  with network access. Nothing leaves the phone.
+- **No secrets in the app.** There are no tokens or keys to store, so no keystore-backed storage is needed.
+  The release signing key lives outside the repo (R11 T-016); `*.jks`, `*.keystore`, `keystore.properties`,
+  `local.properties` and `release/` are git-ignored.
+- **Data at rest.** Room database and SharedPreferences in app-private, credential-protected storage.
+  `allowBackup="false"`, so no cloud or adb backup copies the data. Data is hive names, notes, step lists and
+  run state: nothing personal beyond what the user types.
+- **Exported components.** Only `MainActivity` (launcher) and `BootReceiver` are exported. `BootReceiver`
+  listens for protected system broadcasts (boot, time set, time zone, package replaced); an explicit intent
+  from another app can at most trigger `restore`, which is idempotent. `AlarmReceiver`, `ActionReceiver`,
+  `AlarmActivity` and `RingService` are not exported.
+- **PendingIntents** are all `FLAG_IMMUTABLE`.
+- **Permissions** are the minimum for alarms: notifications, exact alarm, full-screen intent, boot,
+  vibrate, wake lock, the `systemExempted` foreground service, and the battery exemption request.
+- **Public repo.** Device screenshots crop the status bar. Device test logcat is cleared before and after
+  each run and saved only on failure, redacted (R11 T-012).
+- **Scanners.** Semgrep and Snyk in the gate (R11 T-007). Exceptions with scope and expiry in
+  `docs/design/SECURITY-EXCEPTIONS.md`.
 
-## 11. Testing
+## 11. Test strategy
 
-Gate: `scripts/check.sh` (`./gradlew test lint`), 91 tests at the icon round.
+Gate: `scripts/check.sh`, 101 tests at `alpha-baseline`. Target after R11 T-008, in order: ktlint, detekt
+(zero warnings, no baseline), Android lint, unit tests, Semgrep (Kotlin and secrets), Snyk open source and
+code (high and above). Until then it runs `./gradlew test lint`.
+
+Levels:
+- Pure unit tests (`:scheduler`, JUnit 4): every scheduler rule, restore, planner and invariants. Fast; most
+  logic is here on purpose.
+- Robolectric (`:app`): Room, migrations, seeding, delivery, the alarm screen close, icon render, and pure UI
+  helpers such as `footerFor` and `VolumeCheck`.
+- E2E (Maestro on the emulator, real alarms, debug time scale): the scenarios below, with the debug
+  invariant check on every commit and the event log analyzed by `scripts/e2e/analyze.py`.
+- Real phone: only what the emulator can't show (deep Doze, OxygenOS battery and vibration, loudness, lock
+  screen, real upgrades). Listed in SPEC section 4 and on Jason's list.
+
+Every bug fix gets a regression test that fails before the fix. Never loosen an E2E assertion to pass.
 
 `:scheduler` (JUnit 4, pure):
 - `SchedulerTest`: every required test in the spec (two hives started together, passive overlap, cancel while holding and while queued, snapshot isolation), plus AddMinute, Snooze, Skip, TIMED-to-TIMED acknowledge, re-ring cycle, cancel returns to Not started, old CANCELLED runs dropped, both pan wand hold options end to end, time scale.
@@ -314,3 +348,47 @@ Gate: `scripts/check.sh` (`./gradlew test lint`), 91 tests at the icon round.
 End to end: 13 Maestro runs on the emulator with real alarms (`docs/e2e/README.md`, results in `docs/e2e/REPORT.md`, fixes in `docs/e2e/FIXES.md`).
 
 Manual phone script: `docs/MANUAL-TEST.md` (about 10 minutes).
+
+## 12. Risks
+
+| Risk | Effect | Mitigation |
+|---|---|---|
+| OEM battery managers (OxygenOS and others) | Alarms late or a ring cut short | `setAlarmClock`, `systemExempted` ring service, battery exemption ask; real phone checks |
+| OEM changes to notifications (vibration cut to one buzz, ignored insistent flag) | Alarm too easy to miss | The ring service makes the sound and vibration itself, not the channel |
+| Alarm volume left low | Alarm not heard outdoors | First-Start snackbar; permissions screen |
+| Corrupt data after a crash or a bad write | App won't open, or runs lost | Atomic writes in one Room transaction; R11 T-010 quarantine |
+| Room schema changes | A migration bug loses user data | Frozen shipped migrations (R11 T-009), `MigrationTest` |
+| Lost release keystore | No user can ever update | Backup off GitHub before the first signed APK leaves the laptop (R11 T-016) |
+| compileSdk 36 pins older libraries | Missing fixes in Compose and lifecycle | Move to compileSdk 37 when the phone and tools are ready; no behavior change expected |
+| Android exact-alarm policy changes | Alarms stop being exact | `USE_EXACT_ALARM` for a timer app; launch-time check |
+
+## 13. iOS path
+
+Decided in R11 (SPEC section 1), not started:
+- **Kotlin Multiplatform.** `:scheduler` moves to `commonMain` unchanged. `MultiplatformGuardTest` keeps it
+  free of JVM and Android APIs, and its time is always passed in as epoch ms.
+- **UI.** Compose Multiplatform or SwiftUI, decided when iOS starts. The UI only sends events and reads state,
+  so either works.
+- **Alarm layer.** AlarmKit (iOS 26+): system alarms that break through silent mode and Focus. The effects
+  (`ScheduleAlarm`, `CancelAlarm`, `Ring`, `StopRing`, `NotifyDeviceFree`) map onto it behind the same
+  `EffectRunner` boundary.
+- **Data.** Room has a KMP flavor; the schema and migrations carry over. Otherwise SQLDelight behind the same
+  repository.
+- **Not covered yet:** an iOS equivalent of the foreground ring service and of the full-screen alarm screen;
+  AlarmKit's own alarm UI may replace both.
+
+## 14. Known limitations and deferrals
+
+- Debug build only, debug-signed, until R11 T-014 to T-019 (release keystore and signed GitHub pre-release).
+- After a reboot, alarms come back only after the first unlock (state lives in credential-protected storage). An alarm due before you unlock rings right after unlocking, marked overdue.
+- Alarm sound uses the alarm volume. If the alarm volume is turned down (it was 1 of 16 on the test phone), the alarm is quiet; the first-Start snackbar and the permissions screen remind you.
+- The alarm tone is the phone's alarm tone if one is set, otherwise the bundled beep. No tone picker.
+- The ongoing notification shows end times per hive plus one countdown to the next end, not a ticking countdown per line.
+- The step editor can't add or delete steps, or change a step between timed and manual. The model supports add and delete.
+- No session history (backlog B5).
+- Main screens are designed for light; the dark theme works but has not had a visual pass (backlog B3).
+- compileSdk 36 holds Compose, core-ktx and lifecycle at older versions (section 2).
+- Text follows the phone's font size setting (the test phone is at 1.15); checked at 1.3 in `docs/screenshots/app-1-all-large.png`.
+- Removing a hive from the queue resets its run (approved).
+- Android won't fire an exact alarm less than about 5 s ahead. Real steps are much longer, so this only matters for the debug 60x time scale.
+- Themed icons are verified on the emulator's Pixel launcher, not yet on the OnePlus (themed icons are off there).

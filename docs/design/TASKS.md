@@ -76,6 +76,7 @@ oracle. Run through all tasks in order and stop only at the brief's hard stops.
 - Done: `6ba1749`.
 
 #### T-004 [x] TASKS.md and WBS.md (S)
+- Done: `730b788`.
 - **Goal:** history condensed with commit IDs; R11 tasks in playbook format; WBS by phase.
 - **Files:** `docs/design/TASKS.md`, `docs/design/WBS.md`.
 - **Depends on:** T-001.
@@ -84,7 +85,7 @@ oracle. Run through all tasks in order and stop only at the brief's hard stops.
 - **Tests:** none (docs).
 - **Device testing (Jason):** none.
 
-#### T-005 [ ] TECH-DESIGN.md and SECURITY-EXCEPTIONS.md (M)
+#### T-005 [x] TECH-DESIGN.md and SECURITY-EXCEPTIONS.md (M)
 - **Goal:** TECH-DESIGN in the playbook outline with the iOS path; an empty exceptions table.
 - **Files:** `docs/design/TECH-DESIGN.md`, `docs/design/SECURITY-EXCEPTIONS.md`.
 - **Depends on:** T-003.

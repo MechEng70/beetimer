@@ -24,7 +24,7 @@ Before any change, tag the current `master` as `alpha-baseline`. Any question ab
 
 ## Operating mode: run everything, stop only at hard stops
 
-Work through all tasks below in order without waiting for review between tasks. Commit after each task with its ID. Update `docs/HANDOFF.md` after each task (what's done, what's next, anything odd). This makes any interruption harmless.
+Work through all tasks below in order without waiting for review between tasks. Commit after each task with its ID. Update `docs/HANDOFF.md` after each task (what's done, what's next, anything odd) and regenerate `docs/dashboard.html` (see Progress dashboard). This makes any interruption harmless.
 
 Hard stops. Stop, explain, and wait for Jason only for these:
 1. Anything destructive on Jason's phone or in the repo (uninstall, clear data, delete tracked files, rewrite pushed history, force push).
@@ -36,22 +36,59 @@ Hard stops. Stop, explain, and wait for Jason only for these:
 
 Everything else: decide using the oracle rule and the playbook, note the decision in SPEC.md section 1, and keep going.
 
-## Usage discipline
+## Progress dashboard
 
-You can't see the plan's usage meter reliably, so make limits harmless instead:
-- One task at a time, committed and written into HANDOFF.md before the next starts.
-- Log each task in `docs/design/USAGE.md`: task ID, model, start and end time, size (S, M or L), notes. This shows Jason where usage goes.
-- Use the cheapest model that does the job well (playbook section 6b). Mechanical doc edits and renames: Sonnet or Haiku. Implementation and tests: Opus. Design judgment and tricky debugging: the strongest model.
-- No parallel agents this round. The app is small, and device work is serial anyway.
-- If you see a usage-limit warning, finish the current task, commit, update HANDOFF.md, and stop. Don't start an L task in that state.
-- Jason restarts with the section 5 restart prompt from the playbook. HANDOFF.md must make that work cold.
+Create `docs/dashboard.html` in T-001, modeled on Pit Planner's dashboard: read it from `~/Documents/git/pitplanner` (find it with `find ~/Documents/git/pitplanner -name 'dashboard*.html' -not -path '*/node_modules/*'`), read-only, and match its layout, sections and update method. If Pit Planner has none, build a single self-contained HTML file (no network, opens from disk) with:
+- Header: app name and icon, version, last updated time, current task, overall progress bar by tasks done.
+- Phase list with every task: ID, title, status (done, in progress, waiting on Jason, not started), commit ID, size, model.
+- "Waiting on Jason" box at the top: every open hard stop and real-phone test.
+- Gate status: last `scripts/check.sh` result per tool (ktlint, detekt, lint, tests and count, Semgrep, Snyk) and last E2E result with invariant error count.
+- Usage: live 5-hour and weekly bars from `~/.claude/beetimer-usage.json` (see Usage discipline), plus the USAGE.md table summarized by model, agent and size.
+- Bee Timer colors: background #F4F4F2, cards white, amber #FAEEDA / #633806 for in progress, teal #E1F5EE / #085041 for done, gray #F1EFE8 / #5F5E5A for not started, danger #A32D2D. Inter or system font. Straight apostrophes, no em dashes.
+
+Generate it from the docs (TASKS.md, USAGE.md, the last gate output) with a small script, `scripts/dashboard.py`, rather than editing HTML by hand. Regenerate and commit it at the end of every task, along with HANDOFF.md. Between tasks, the 15-minute timer keeps it fresh.
+
+## Usage discipline and live usage tracking
+
+Jason wants session (5-hour) and weekly usage visible on screen and on the dashboard, and wants it watched.
+
+How usage gets captured (set up in T-001):
+- Claude Code passes `rate_limits.five_hour.used_percentage` and `rate_limits.seven_day.used_percentage` (with reset times) in the JSON it sends to the status line command. Use that; don't scrape or call undocumented endpoints.
+- Write `scripts/statusline.sh` (bash and jq). It prints a compact line in the Claude Code status bar: model, 5-hour %, weekly %, reset countdowns, and the current task ID from `docs/HANDOFF.md`. It also writes the same numbers with a timestamp to `~/.claude/beetimer-usage.json` (outside the repo, so it's never committed).
+- Wire it into `~/.claude/settings.json` as the `statusLine` command. Back up the existing settings.json first. If a status line is already configured, keep it working (wrap it) rather than replacing it. This is the one change outside the repo Jason has approved.
+- Known gap: the status line payload carries the 5-hour and the all-models weekly limit, but may not carry a model-specific weekly limit (for example a separate Fable bar in /usage). Say so on the dashboard, and tell Jason to glance at /usage for that one.
+
+Dashboard refresh every 15 minutes, without spending usage:
+- Don't spawn an AI agent on a timer to update the dashboard. That would burn the usage we're trying to protect.
+- Instead, install a systemd user timer (`beetimer-dashboard.timer`, every 15 minutes) that runs `scripts/dashboard.py`. It reads TASKS.md, USAGE.md, HANDOFF.md, the last gate output and `~/.claude/beetimer-usage.json`, and rewrites `docs/dashboard.html`. Put the unit files in `scripts/systemd/` with install and uninstall instructions in DEVELOPING.md. The timer never commits; the main session commits the dashboard at the end of each task.
+- The dashboard shows two usage bars (5-hour session, week), each with % used, reset time and the snapshot's age. If the snapshot is older than 30 minutes, show it as stale.
+
+Usage throttle (the main session checks `~/.claude/beetimer-usage.json` before starting each task and before launching any agent):
+- 5-hour under 70% and weekly under 70%: normal. Parallel agents allowed.
+- 5-hour 70 to 85%: no new agents; finish running ones; start only S or M tasks.
+- 5-hour over 85%: finish the current task, commit, update HANDOFF and the dashboard, and stop. Jason restarts after the reset.
+- Weekly over 70%: agents move to the cheapest model that can do the job; the main session drops a tier.
+- Weekly over 85%: stop after the current task and report.
+- Log every throttle decision in USAGE.md.
+
+Agents (playbook section 6b applies):
+- Parallel agents are allowed for independent tasks. At most 5 at once, each in its own git worktree off local master, no emulator and no gate in the worktree, stopping with a report.
+- Never run two agents that edit the same file. Device work stays serial; the main session owns the emulator and Jason's phone.
+- Merge one branch at a time, run the gate after each merge, then remove the worktree and branch.
+- Model choice: strongest model for planning, merging, design judgment and debugging; Opus for implementation and tests; Sonnet or Haiku for mechanical doc edits and renames.
+- Good parallel candidates: T-002 to T-005 (separate docs), T-009 and T-010 (separate files), T-014 and T-015. The gate tasks (T-006 to T-008) and anything on the emulator stay serial.
+
+Keep these regardless:
+- One commit per task with its ID, then update HANDOFF.md, so any stop is harmless.
+- Log each task in `docs/design/USAGE.md`: task ID, model, agent or main, start and end time, size (S, M or L), 5-hour and weekly % at start and end, notes.
+- Jason restarts with the restart prompt at the bottom of this brief.
 
 ## Tasks
 
 Number them T-001 onward in TASKS.md, in the playbook format: Goal, Files, Depends on, Acceptance (pass/fail), Tests, Device testing (Jason). Suggested set; adjust sizes but keep the order.
 
 ### Phase 0: baseline
-- **T-001 Baseline.** Tag `alpha-baseline`. Move `HANDOFF.md` to `docs/HANDOFF.md` and fix every link to it. `docs/PLAYBOOK.md` and this brief are already in place (Jason's chat put them there); commit them in this task. Create `docs/design/USAGE.md`. Confirm `git status` is clean and the gate passes before anything else.
+- **T-001 Baseline and tracking.** Tag `alpha-baseline`. Move `HANDOFF.md` to `docs/HANDOFF.md` and fix every link to it. `docs/PLAYBOOK.md` and this brief are already in place (Jason's chat put them there); commit them in this task. Create `docs/design/USAGE.md`, `scripts/dashboard.py`, the first `docs/dashboard.html`, `scripts/statusline.sh` with the status line wiring, and the 15-minute systemd user timer (see Usage discipline). Confirm the status bar shows both usage numbers and the dashboard shows them too. Confirm `git status` is clean and the gate passes before anything else.
 
 ### Phase 1: documents
 - **T-002 CLAUDE.md.** Merge playbook sections 6 and 6b into CLAUDE.md, adapted to Kotlin (ktlint and detekt instead of Prettier and ESLint, Room migrations instead of generic ones). Keep every existing project rule and gotcha. Remove the "ALPHA phase, tools deferred" section; the tools come back in Phase 2.

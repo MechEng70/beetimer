@@ -76,3 +76,20 @@ Pinned in `gradle/libs.versions.toml`. compileSdk is 36, so Compose, core-ktx an
 the last versions that build against 36 (Compose BOM 2026.06.01, core-ktx 1.18.0, lifecycle 2.10.0). Tests use Robolectric 4.18.1 for the `:app`
 unit tests (Room, migrations, the alarm screen, the icon render).
 Moving to compileSdk 37 unlocks the newer ones.
+
+## Usage tracking and dashboard (playbook section 9)
+
+- **Status line.** `scripts/statusline.sh` reads the JSON Claude Code sends to its status line command
+  (`rate_limits.five_hour` and `rate_limits.seven_day`) and prints model, 5-hour %, weekly % with today's
+  weekly budget, reset countdowns and the current task. It writes the numbers to
+  `~/.claude/beetimer-usage.json` and then prints the caveman badge it wraps. Wired in `~/.claude/settings.json`:
+  `"statusLine": {"type": "command", "command": "bash /home/jason/Documents/git/beetimer/scripts/statusline.sh", "refreshInterval": 60}`.
+  To undo: restore `~/.claude/settings.json.bak-2026-11-23-beetimer`.
+- **Dashboard.** `python3 scripts/dashboard.py` rewrites `docs/dashboard.html` from TASKS.md, USAGE.md,
+  HANDOFF.md (its "Waiting on Jason" list), `build/gate/last.tsv` (written by `scripts/check.sh`), the test
+  results, `docs/e2e/REPORT.md` and the usage snapshot. Open it from disk. Never edit the HTML by hand.
+- **Timer.** `scripts/dashboard-timer.sh start` creates a transient systemd user timer,
+  `beetimer-dashboard.timer`, that runs `dashboard.py` every 15 minutes. `stop` removes it; `status` shows it.
+  Transient units leave nothing installed and are gone after logout or reboot. `dashboard.py --timer` stops
+  the timer itself if the repo has had no commit for 12 hours. The timer never commits.
+

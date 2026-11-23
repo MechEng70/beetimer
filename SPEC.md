@@ -50,6 +50,7 @@ once.
 | iOS path | Kotlin Multiplatform later: `:scheduler` moves to `commonMain` unchanged; UI in Compose Multiplatform or SwiftUI; alarm layer on AlarmKit (iOS 26+). `MultiplatformGuardTest` keeps the scheduler ready. |
 | Branch | `main` (renamed from `master` on 2026-11-22, before the first push). Where the R11 brief says `master`, read `main`. |
 | Behavior oracle (R11) | Tag `alpha-baseline` (`571c8ee`). R11 changes no user-visible behavior; anything that looks wrong in the baseline is logged in TASKS.md under "Found during R11", not fixed. |
+| Dashboard timer (R11) | Transient systemd user timer from `scripts/dashboard-timer.sh` (playbook section 9), not installed unit files in `scripts/systemd/` (the brief). The playbook is newer and Jason's prompt says start and stop it; transient units leave nothing installed. |
 
 ## 2. Screens
 

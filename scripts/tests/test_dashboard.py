@@ -39,5 +39,15 @@ class ParseTasksTest(unittest.TestCase):
         self.assertEqual((t013a["mark"], t013a["title"], t013a["size"]), (" ", "Alarm screen readability", "M"))
 
 
+class VersionTest(unittest.TestCase):
+    def test_version_comes_from_gradle_properties(self):
+        # T-014 moved the version name from app/build.gradle.kts to appVersion in gradle.properties.
+        props = "# App version\nappVersion=0.1.0-alpha.1\norg.gradle.jvmargs=-Xmx3g\n"
+        self.assertEqual(dashboard.version_from(props), "0.1.0-alpha.1")
+
+    def test_missing_version_shows_a_question_mark(self):
+        self.assertEqual(dashboard.version_from("org.gradle.caching=true\n"), "?")
+
+
 if __name__ == "__main__":
     unittest.main()

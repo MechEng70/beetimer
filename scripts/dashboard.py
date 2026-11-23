@@ -3,7 +3,7 @@
 
 Reads docs/design/TASKS.md (R11 tasks), docs/design/USAGE.md, docs/HANDOFF.md (Next line and the
 "Waiting on Jason" list), build/gate/last.tsv and the test results (last scripts/check.sh run),
-docs/e2e/REPORT.md, app/build.gradle.kts (version) and ~/.claude/beetimer-usage.json (status line
+docs/e2e/REPORT.md, gradle.properties (appVersion) and ~/.claude/beetimer-usage.json (status line
 snapshot). Standard library only. Run by the main session after each task and by the dashboard timer
 (scripts/dashboard-timer.sh) every 15 minutes. Safety net: if the repo has had no commit for 12 hours,
 it stops its own timer.
@@ -156,9 +156,14 @@ def e2e_status(text: str) -> dict:
     return {"runs": len(rows), "passed": passed, "invariants": inv.group(1) if inv else "?", "note": head.group(1) if head else ""}
 
 
-def version() -> str:
-    m = re.search(r'versionName\s*=\s*"([^"]+)"', read("app/build.gradle.kts"))
+def version_from(gradle_properties: str) -> str:
+    """The app version name: appVersion in gradle.properties (R11 T-014)."""
+    m = re.search(r"^appVersion=(\S+)\s*$", gradle_properties, re.M)
     return m.group(1) if m else "?"
+
+
+def version() -> str:
+    return version_from(read("gradle.properties"))
 
 
 def usage_snapshot() -> dict | None:

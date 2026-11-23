@@ -234,7 +234,7 @@ oracle. Run through all tasks in order and stop only at the brief's hard stops.
 
 ### Phase 5: release
 
-#### T-014 [ ] Versioning (S)
+#### T-014 [x] Versioning (S)
 - **Goal:** versionCode = (major*10000 + minor*100 + patch) * 1000 + stage (alpha.N = N, beta.N = 300+N,
   rc.N = 600+N, final = 999). First signed build 0.1.0-alpha.1 = 100001.
 - **Files:** `app/build.gradle.kts`, a pure version helper, its test.
@@ -243,6 +243,10 @@ oracle. Run through all tasks in order and stop only at the brief's hard stops.
 - **Acceptance:** the APK reports versionName `0.1.0-alpha.1` and versionCode 100001.
 - **Tests:** unit test for the formula (all four stages, edge values).
 - **Device testing (Jason):** none.
+- Result: `buildSrc/AppVersion` with `AppVersionTest` (4 tests; gate step `buildsrc-tests`); `appVersion` in
+  `gradle.properties`; the debug APK reports versionCode 100001, versionName 0.1.0-alpha.1. ktlint and detekt
+  cover `buildSrc`. Snyk open source now scans `buildSrc` too (`--all-projects` missed it; 4 of 4 projects).
+  `dashboard.py` reads the version from `gradle.properties` (test added).
 
 #### T-015 [ ] Release script (M)
 - **Goal:** `scripts/release.sh` builds and checks a signed APK.

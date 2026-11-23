@@ -6,6 +6,10 @@ plugins {
     alias(libs.plugins.room)
 }
 
+// Version (R11 T-014): the name lives in gradle.properties; the code follows the playbook scheme (AppVersion).
+val appVersion: String = providers.gradleProperty("appVersion").get()
+val appVersionCode: Int = AppVersion.code(appVersion)
+
 android {
     namespace = "io.github.mecheng70.beetimer"
     // compileSdk 36 per SPEC. The newest Compose (1.12+), core-ktx (1.19+) and lifecycle (2.11+)
@@ -16,8 +20,8 @@ android {
         applicationId = "io.github.mecheng70.beetimer"
         minSdk = 31
         targetSdk = 36
-        versionCode = 1
-        versionName = "0.1.0-alpha"
+        versionCode = appVersionCode
+        versionName = appVersion
     }
 
     buildFeatures {
@@ -89,4 +93,10 @@ configurations.configureEach {
             because("Snyk high or critical in the older version (R11 T-007)")
         }
     }
+}
+
+// Prints the versionCode, for scripts/release.sh.
+tasks.register("printVersionCode") {
+    val code = appVersionCode
+    doLast { println(code) }
 }

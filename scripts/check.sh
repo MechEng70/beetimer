@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# Quality gate (R11 T-008), in order: ktlint, detekt, Android lint, unit tests, Python script tests, Semgrep,
-# Snyk open source, Snyk Code. Every step runs every time (Gradle steps with --rerun-tasks, so nothing is taken from the build cache) and
+# Quality gate (R11 T-008), in order: ktlint, detekt, Android lint, unit tests, buildSrc tests (T-014), Python
+# script tests, Semgrep, Snyk open source, Snyk Code. Every step runs every time (Gradle steps with --rerun-tasks, so nothing is taken from the build cache) and
 # the gate fails if any step fails.
 # Writes per-step results to build/gate/last.tsv (step, pass or fail, seconds) for scripts/dashboard.py.
 set -uo pipefail
@@ -47,6 +47,7 @@ step ktlint ./gradlew ktlintCheck
 step detekt ./gradlew detekt
 step lint ./gradlew lint --rerun-tasks
 step tests ./gradlew test --rerun-tasks
+step buildsrc-tests ./gradlew -p buildSrc test --rerun-tasks
 step py-tests py_tests
 step semgrep scripts/security.sh semgrep
 step snyk-oss scripts/security.sh snyk-oss

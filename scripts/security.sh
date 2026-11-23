@@ -23,6 +23,8 @@ need() {
 expected_projects() {
     local n
     n=$(grep -oE '"(:[A-Za-z0-9_-]+)"' settings.gradle.kts | sort -u | wc -l)
+    # buildSrc is its own Gradle build (R11 T-014); --all-projects doesn't see it, so it is scanned separately.
+    [ -f buildSrc/build.gradle.kts ] && n=$((n + 1))
     echo $((n + 1))
 }
 
@@ -54,21 +56,35 @@ snyk_logged_in() {
     snyk whoami >/dev/null 2>&1 || die "Snyk is not logged in: run 'snyk auth' (hard stop 3 for Jason)"
 }
 
-snyk_oss() {
-    snyk_logged_in
-    local rc=2 try
+# One snyk test run with a retry: snyk_oss_run <name> <snyk args...>. Writes $out/<name>.json; exit 0 or 1 (found).
+snyk_oss_run() {
+    local name=$1 rc=2 try
+    shift
     for try in 1 2; do
-        snyk test --all-projects --severity-threshold=high --json >"$out/snyk-oss.json" 2>"$out/snyk-oss.err"
+        snyk test "$@" --severity-threshold=high --json >"$out/$name.json" 2>"$out/$name.err"
         rc=$?
         [ "$rc" -le 1 ] && break
-        echo "snyk test exit $rc (try $try): $(tail -3 "$out/snyk-oss.err")" >&2
+        echo "snyk test $* exit $rc (try $try): $(tail -3 "$out/$name.err")" >&2
     done
-    [ "$rc" -le 1 ] || die "snyk test failed (exit $rc)"
-    python3 - "$out/snyk-oss.json" "$(expected_projects)" "$rc" <<'EOF' || exit 1
+    [ "$rc" -le 1 ] || die "snyk test $* failed (exit $rc)"
+    return "$rc"
+}
+
+snyk_oss() {
+    snyk_logged_in
+    local rc=0 files=("$out/snyk-oss.json")
+    snyk_oss_run snyk-oss --all-projects || rc=1
+    if [ -f buildSrc/build.gradle.kts ]; then
+        snyk_oss_run snyk-oss-buildsrc --file=buildSrc/build.gradle.kts || rc=1
+        files+=("$out/snyk-oss-buildsrc.json")
+    fi
+    python3 - "$(expected_projects)" "$rc" "${files[@]}" <<'EOF' || exit 1
 import json, sys
-d = json.load(open(sys.argv[1]))
-d = d if isinstance(d, list) else [d]
-expected, rc = int(sys.argv[2]), int(sys.argv[3])
+expected, rc = int(sys.argv[1]), int(sys.argv[2])
+d = []
+for f in sys.argv[3:]:
+    j = json.load(open(f))
+    d += j if isinstance(j, list) else [j]
 vulns = 0
 for p in d:
     for v in p.get("vulnerabilities", []):

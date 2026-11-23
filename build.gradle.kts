@@ -27,8 +27,16 @@ dependencies {
     detekt(libs.detekt.cli)
 }
 
-val kotlinSources = listOf("app/src", "scheduler/src")
-val ktlintPatterns = listOf("app/src/**/*.kt", "scheduler/src/**/*.kt", "*.kts", "app/*.kts", "scheduler/*.kts")
+val kotlinSources = listOf("app/src", "scheduler/src", "buildSrc/src")
+val ktlintPatterns = listOf(
+    "app/src/**/*.kt",
+    "scheduler/src/**/*.kt",
+    "buildSrc/src/**/*.kt",
+    "*.kts",
+    "app/*.kts",
+    "scheduler/*.kts",
+    "buildSrc/*.kts",
+)
 
 tasks.register<JavaExec>("ktlintCheck") {
     group = "verification"

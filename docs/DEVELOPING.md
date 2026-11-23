@@ -107,3 +107,11 @@ Moving to compileSdk 37 unlocks the newer ones.
   ktlint). `app/build.gradle.kts` and `build.gradle.kts` upgrade them; none of them ship in the APK.
 - Open findings that can't be fixed: `docs/design/SECURITY-EXCEPTIONS.md` with scope and expiry.
 
+## Versions and releases (R11 T-014 to T-016)
+
+- **Version name:** `appVersion` in `gradle.properties` (now `0.1.0-alpha.1`). The versionCode follows the
+  playbook: `(major * 10000 + minor * 100 + patch) * 1000 + stage`, with alpha.N = N, beta.N = 300 + N,
+  rc.N = 600 + N, final = 999. 0.1.0-alpha.1 = 100001. Code: `buildSrc/src/main/kotlin/AppVersion.kt`, tested
+  by `AppVersionTest` (the gate runs `./gradlew -p buildSrc test`). `./gradlew -q :app:printVersionCode` prints it.
+- **Debug APK:** `scripts/build-apk.sh` writes `release/beetimer-<version>-debug.apk` for testing. A debug
+  install can't be upgraded by a release APK (different key): uninstall first, which loses the app's data.

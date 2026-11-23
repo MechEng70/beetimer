@@ -38,7 +38,6 @@ break the Maestro device server. A full run at 10x takes about 2 hours (both fon
 | s9 | Editing steps while runs are active |
 | s10 | Hive management: cap of 5, drag order, New session |
 | s11 | App open: alarm screen opens in the app, Home and lock while ringing, snackbar instead of a notification |
-| s1x10, s2x10 | Same flows as s1 and s2 since R11 T-013 (the suite is 10x). Not run; kept until Jason decides |
 
 ## How it works
 

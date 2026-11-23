@@ -384,11 +384,9 @@ def main():
     scaled(1)
     for name, steps in screens_parts().items():
         flow(name, steps)
-    flow("s1x10", scenario1(10))
     flow("s1", scenario1(SUITE_SCALE))
     flow("s2", scenario2(SUITE_SCALE))
     flow("s3", scenario3())
-    flow("s2x10", scenario2(10))
     scaled(SUITE_SCALE)
     for name, steps in scenario11_parts().items():
         flow(name, steps)

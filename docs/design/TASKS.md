@@ -357,7 +357,7 @@ Small round from Jason's answers to the R11 final report: gate, commit, push, no
 - **Tests:** `AlarmTextTest`, `AlarmLayoutTest`; E2E s6 and s11.
 - **Device testing (Jason):** let a vaporizer-freeing step end on the phone: only the Then line shows.
 
-#### T-022 [ ] Remove s1x10 and s2x10 (S)
+#### T-022 [x] Remove s1x10 and s2x10 (S)
 - **Goal:** delete the two duplicate flows (Jason's yes).
 - **Files:** `scripts/e2e/gen_flows.py`, `scripts/e2e/flows/s1x10.yaml`, `s2x10.yaml`, `analyze.py`,
   `docs/e2e/README.md`.
@@ -366,6 +366,8 @@ Small round from Jason's answers to the R11 final report: gate, commit, push, no
 - **Acceptance:** files gone; the generator doesn't recreate them; analyzer and README don't list them.
 - **Tests:** regenerate flows, no diff; analyze.py runs.
 - **Device testing (Jason):** none.
+- Result: both flow files deleted (Jason's yes); `gen_flows.py`, `analyze.py` and the E2E README no longer
+  list them; regenerating creates neither; analyze.py runs.
 
 #### T-023 [x] CLAUDE.md: Snyk covers buildSrc (S)
 - **Goal:** Jason's rule: `snyk test` and `snyk monitor` cover `buildSrc` by file, because `--all-projects`

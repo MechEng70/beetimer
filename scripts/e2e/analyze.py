@@ -22,7 +22,6 @@ HEADER = os.environ.get(
 )
 NAMES = {
     "s1": "Pan wand, wand stays in, 3 hives",
-    "s1x10": "Scenario 1 repeated at 10x",
     "s2": "Pan wand, wand comes out, 3 hives",
     "s3": "Gun type, 3 hives",
     "s4": "Queue: skip to back, remove, fourth hive",
@@ -33,7 +32,6 @@ NAMES = {
     "s9": "Editing while runs are active",
     "s10": "Hive management: cap, drag order, New session",
     "s11": "App open: alarm screen in app, Home, lock, snackbar",
-    "s2x10": "Scenario 2 repeated at 10x",
 }
 
 
@@ -122,7 +120,7 @@ def scenario_checks(s, r):
     if scale is not None:
         check(scale == SUITE_SCALE, f"ran at {scale}x, not {SUITE_SCALE}x (the time scale tap was lost)", p)
     scale = scale or SUITE_SCALE
-    if s in ("s1", "s1x10"):
+    if s == "s1":
         l1, l2, l3 = (first(ev, hive=h, step="Load dose") for h in ("Hive 1", "Hive 2", "Hive 3"))
         rel1, rel2 = first(ev, hive="Hive 1", step="Unseal"), first(ev, hive="Hive 2", step="Unseal")
         check(l1 and l2 and l3 and l1 < l2 < l3, "Load dose order is not Hive 1, 2, 3", p)
@@ -132,7 +130,7 @@ def scenario_checks(s, r):
         seals = [first(ev, hive=h, step="Seal hive") for h in ("Hive 1", "Hive 2", "Hive 3")]
         check(all(seals) and l2 is not None and max(seals) < l2, "hives did not all seal before the first handoff", p)
         check(len(steps(ev, kind="DONE")) == 3, "not all three hives finished", p)
-    if s in ("s2", "s2x10"):
+    if s == "s2":
         ks1 = first(ev, hive="Hive 1", step="Keep sealed")
         l2 = first(ev, hive="Hive 2", step="Load dose")
         un1 = first(ev, hive="Hive 1", step="Unseal")
@@ -270,7 +268,7 @@ def scales_run():
 
 
 def main():
-    order = ["s1", "s2", "s3", "s4", "s5", "s6", "s7", "s8", "s9", "s10", "s11", "s1x10", "s2x10"]
+    order = ["s1", "s2", "s3", "s4", "s5", "s6", "s7", "s8", "s9", "s10", "s11"]
     out = ["# End-to-end results", "", HEADER, ""]
     total_inv = 0
     all_passed = True
@@ -301,7 +299,7 @@ def main():
         out.append("")
     out += [f"Invariant errors across all runs: **{total_inv}**.", ""]
     for (s, fs), r in results.items():
-        if s not in ("s1", "s1x10", "s2", "s2x10"):
+        if s not in ("s1", "s2"):
             continue
         pva = predicted_vs_actual(s, r)
         if not pva:

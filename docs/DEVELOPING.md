@@ -113,5 +113,32 @@ Moving to compileSdk 37 unlocks the newer ones.
   playbook: `(major * 10000 + minor * 100 + patch) * 1000 + stage`, with alpha.N = N, beta.N = 300 + N,
   rc.N = 600 + N, final = 999. 0.1.0-alpha.1 = 100001. Code: `buildSrc/src/main/kotlin/AppVersion.kt`, tested
   by `AppVersionTest` (the gate runs `./gradlew -p buildSrc test`). `./gradlew -q :app:printVersionCode` prints it.
+- **Release build:** `scripts/release.sh` (emulator off). It runs the gate, builds and signs, checks the
+  certificate fingerprint against `config/release-cert-sha256.txt`, the app ID, versionName and versionCode,
+  and writes `release/beetimer-<version>.apk` and its `.sha256`. It refuses to run without the keystore, its
+  properties or the recorded fingerprint, or with an emulator up.
 - **Debug APK:** `scripts/build-apk.sh` writes `release/beetimer-<version>-debug.apk` for testing. A debug
   install can't be upgraded by a release APK (different key): uninstall first, which loses the app's data.
+
+### Release keystore
+
+Made once by Jason on 2026-11-23. Never in the repo: `*.jks`, `*.keystore` and `keystore.properties` are
+git-ignored.
+
+- Keystore: `~/keys/beetimer-release.jks`, alias `beetimer`, mode 600.
+- `keystore.properties` in the repo root, mode 600, with `storeFile` (absolute path or `~/...`),
+  `storePassword`, `keyAlias`, `keyPassword`. The Gradle signing config reads it (`app/build.gradle.kts`);
+  another location can be given with `-PbeetimerKeystoreProperties=<path>` or `BEETIMER_KEYSTORE_PROPERTIES`.
+- Backup: the `.jks` file and both passwords belong in Jason's password manager, off this machine and off
+  GitHub (Jason to confirm, T-016). If the keystore is lost, no installed copy can ever be updated again.
+- To make a keystore for another app (for reference; run it yourself, the passwords are typed at the prompt):
+
+  ```
+  mkdir -p ~/keys && chmod 700 ~/keys
+  keytool -genkeypair -v -keystore ~/keys/<app>-release.jks -alias <app> -keyalg RSA -keysize 4096 \
+      -validity 10000 -dname "CN=<name>"
+  chmod 600 ~/keys/<app>-release.jks
+  ```
+
+- Release certificate SHA-256 (also in `config/release-cert-sha256.txt`, which `release.sh` checks):
+  CERT_PENDING

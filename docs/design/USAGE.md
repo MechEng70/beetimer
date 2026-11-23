@@ -24,3 +24,4 @@ Throttle is the decision taken before the task (playbook section 9). "n/a": trac
 | T-008 fix | Opus 5.5 | main | 2026-11-23 15:55 | 2026-11-23 16:22 | S | 9 | 10 | 64 | 64 | normal | Dashboard missed T-013a (regression test); py-tests gate step (Jason) |
 | T-013a | Opus 5.5 | main | 2026-11-23 16:24 | 2026-11-23 16:55 | M | 10 | 0 (reset) | 64 | 64 | normal (wide open) | Written in the earlier session; this session: test setup fix, detekt fold, gate, s6 and s11 at both scales, screenshots |
 | T-014 | Opus 5.5 | main | 2026-11-23 16:56 | 2026-11-23 17:06 | S | 0 | 1 | 64 | 64 | normal (wide open) | Written in the earlier session; split from T-015; ktlint and detekt fixes in AppVersion; Snyk scans buildSrc |
+| T-015 | Opus 5.5 | main | 2026-11-23 17:06 | 2026-11-23 17:12 | M | 1 | 2 | 64 | 64 | normal (wide open) | Written in the earlier session; ~/ expansion added; refusal shown three ways; backup wording marked pending |

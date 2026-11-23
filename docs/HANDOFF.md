@@ -12,8 +12,8 @@ stops and the usage throttle (playbook section 9). No behavior change: the tag `
 is the oracle.
 
 - **Branch:** the brief says `master`; the branch is `main` (renamed and pushed 2026-11-22). Use `main`.
-- **Done:** T-001 to T-014. Status per task is in `docs/design/TASKS.md` (R11 section).
-- **Next:** T-015 release script, then T-016 verify. See "In progress" below.
+- **Done:** T-001 to T-015. Status per task is in `docs/design/TASKS.md` (R11 section).
+- **Next:** T-016: signed release build, record the certificate SHA-256, Jason confirms the backup.
 - **Found during R11:** listed in TASKS.md under that heading.
 - **Brief updated mid-round:** Jason's chat updated the playbook and brief at about 10:56, after T-001 to T-005
   were committed. T-001 gained usage tracking (done in a follow-up T-001 commit); CLAUDE.md, TASKS.md and
@@ -29,13 +29,9 @@ Usage tracking (set up in T-001):
 - Timer: `scripts/dashboard-timer.sh start | stop | status`. Start it at the start of every session; stop it
   as the last step before the final handoff of the round.
 
-### In progress (2026-11-23 17:06)
+### In progress (2026-11-23 17:12)
 
-T-013, T-013a and T-014 are committed. No stashes are left.
-- **T-015 (written, being built):** signing config in `app/build.gradle.kts` (reads `keystore.properties`),
-  `scripts/release.sh`, DEVELOPING.md release and keystore section. If this session stopped mid-task, these are
-  uncommitted in the working tree; check `git status`. The pre-split originals are in the 16:00 session's
-  scratchpad, which may be gone.
+T-013 to T-015 are committed. No stashes, no uncommitted work.
 - **T-016:** Jason made the keystore (`~/keys/beetimer-release.jks`, alias `beetimer`, `keystore.properties`
   in the repo root). Checked: git-ignored, mode 600, standard key names, never in history. Still to do with
   the emulator off: release build signs, record the certificate SHA-256 in DEVELOPING.md and

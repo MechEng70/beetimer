@@ -1,3 +1,5 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
@@ -9,6 +11,17 @@ plugins {
 // Version (R11 T-014): the name lives in gradle.properties; the code follows the playbook scheme (AppVersion).
 val appVersion: String = providers.gradleProperty("appVersion").get()
 val appVersionCode: Int = AppVersion.code(appVersion)
+
+// Release signing (R11 T-015): keystore.properties (storeFile, storePassword, keyAlias, keyPassword) in the repo
+// root, git-ignored, or the file named by -PbeetimerKeystoreProperties or BEETIMER_KEYSTORE_PROPERTIES. Without
+// it, release builds are unsigned and scripts/release.sh refuses to run. Values are never printed.
+val keystorePropsPath: String = providers.gradleProperty("beetimerKeystoreProperties")
+    .orElse(providers.environmentVariable("BEETIMER_KEYSTORE_PROPERTIES"))
+    .getOrElse(rootProject.file("keystore.properties").absolutePath)
+val keystoreProps = Properties().apply {
+    providers.fileContents(rootProject.layout.projectDirectory.file(keystorePropsPath)).asText.orNull
+        ?.let { load(it.reader()) }
+}
 
 android {
     namespace = "io.github.mecheng70.beetimer"
@@ -22,6 +35,25 @@ android {
         targetSdk = 36
         versionCode = appVersionCode
         versionName = appVersion
+    }
+
+    signingConfigs {
+        if (keystoreProps.getProperty("storeFile") != null) {
+            create("release") {
+                // "~/" expands to the home folder, as in scripts/release.sh.
+                val home = System.getProperty("user.home")
+                storeFile = file(keystoreProps.getProperty("storeFile").replaceFirst(Regex("^~/"), "$home/"))
+                storePassword = keystoreProps.getProperty("storePassword")
+                keyAlias = keystoreProps.getProperty("keyAlias")
+                keyPassword = keystoreProps.getProperty("keyPassword")
+            }
+        }
+    }
+
+    buildTypes {
+        getByName("release") {
+            signingConfig = signingConfigs.findByName("release")
+        }
     }
 
     buildFeatures {

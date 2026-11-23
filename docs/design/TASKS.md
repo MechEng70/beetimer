@@ -247,8 +247,9 @@ oracle. Run through all tasks in order and stop only at the brief's hard stops.
   `gradle.properties`; the debug APK reports versionCode 100001, versionName 0.1.0-alpha.1. ktlint and detekt
   cover `buildSrc`. Snyk open source now scans `buildSrc` too (`--all-projects` missed it; 4 of 4 projects).
   `dashboard.py` reads the version from `gradle.properties` (test added).
+- Done: `d4ac74e`.
 
-#### T-015 [ ] Release script (M)
+#### T-015 [x] Release script (M)
 - **Goal:** `scripts/release.sh` builds and checks a signed APK.
 - **Files:** `scripts/release.sh`, `app/build.gradle.kts` (signing config), `.gitignore`.
 - **Depends on:** T-014.
@@ -258,6 +259,10 @@ oracle. Run through all tasks in order and stop only at the brief's hard stops.
   missing. `.gitignore` covers `*.jks`, `*.keystore`, `keystore.properties`, `release/` and device test output.
 - **Tests:** run without a keystore and show it fails.
 - **Device testing (Jason):** none.
+- Result: signing config reads `keystore.properties` (repo root, or `-PbeetimerKeystoreProperties` /
+  `BEETIMER_KEYSTORE_PROPERTIES`; `~/` expanded). `release.sh` refuses, before building, with no properties
+  file, with a missing keystore, without `config/release-cert-sha256.txt`, or with an emulator up (first three
+  shown). `.gitignore` already covers `*.jks`, `*.keystore`, `keystore.properties`, `release/` and `build/`.
 
 #### T-016 [ ] Keystore (hard stop 2) (S)
 - **Goal:** the exact steps for Jason to make and back up the release keystore.

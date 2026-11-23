@@ -49,6 +49,7 @@ import io.github.mecheng70.beetimer.ui.theme.AppIcons
 import io.github.mecheng70.beetimer.ui.theme.AppType
 import io.github.mecheng70.beetimer.ui.theme.BeeTheme
 import io.github.mecheng70.beetimer.ui.theme.Dimens
+import io.github.mecheng70.beetimer.ui.theme.TABULAR_DIGITS
 import java.util.Date
 import kotlinx.coroutines.launch
 
@@ -152,7 +153,7 @@ private fun DeviceStatusBar(
                     val template = stringResource(R.string.device_free_in, label, COUNTDOWN_MARK)
                     buildAnnotatedString {
                         append(template.substringBefore(COUNTDOWN_MARK))
-                        withStyle(SpanStyle(fontWeight = FontWeight.Bold)) {
+                        withStyle(SpanStyle(fontWeight = FontWeight.Bold, fontFeatureSettings = TABULAR_DIGITS)) {
                             append(remaining(freeAt, forecast.deviceFreeEstimated, now, ""))
                         }
                         append(template.substringAfter(COUNTDOWN_MARK))

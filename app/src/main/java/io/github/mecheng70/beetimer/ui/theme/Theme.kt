@@ -126,6 +126,12 @@ val Inter = FontFamily(
 private fun inter(size: Int, line: Int, weight: FontWeight = FontWeight.Normal) =
     TextStyle(fontFamily = Inter, fontSize = size.sp, lineHeight = line.sp, fontWeight = weight)
 
+/**
+ * Tabular (fixed-width) digits, for text that ticks: a countdown keeps its width, so nothing next to it moves
+ * (R11 T-011, playbook layout rule). Inter supports the OpenType tnum feature.
+ */
+const val TABULAR_DIGITS = "tnum"
+
 /** Text styles. Only the Hive tab countdown and the alarm hive name are large. */
 object AppType {
     val body = inter(14, 20)
@@ -143,17 +149,23 @@ object AppType {
     /** All tab hive rows: read outdoors at arm's length. */
     val rowHiveName = inter(20, 26, FontWeight.SemiBold)
     val rowStep = inter(17, 22)
-    val rowNext = inter(16, 21)
+    val rowNext = inter(16, 21).copy(fontFeatureSettings = TABULAR_DIGITS)
 
     /** Step name in the next-step pill. */
     val stepPill = inter(16, 21, FontWeight.SemiBold)
 
     /** Countdown chips on the All tab rows: read at a glance in sun. */
-    val timeChip = inter(20, 26, FontWeight.Bold)
+    val timeChip = inter(20, 26, FontWeight.Bold).copy(fontFeatureSettings = TABULAR_DIGITS)
 
     /** Device, Passive, Queued chips. */
     val stateChip = inter(14, 18, FontWeight.Medium)
-    val countdown = TextStyle(fontFamily = Inter, fontSize = 52.sp, lineHeight = 1.2.em, fontWeight = FontWeight.Bold)
+    val countdown = TextStyle(
+        fontFamily = Inter,
+        fontSize = 52.sp,
+        lineHeight = 1.2.em,
+        fontWeight = FontWeight.Bold,
+        fontFeatureSettings = TABULAR_DIGITS,
+    )
     val alarmName = TextStyle(fontFamily = Inter, fontSize = 48.sp, lineHeight = 1.15.em, fontWeight = FontWeight.Bold)
     val alarmFinished = inter(16, 22)
     val alarmLabel = inter(14, 20)

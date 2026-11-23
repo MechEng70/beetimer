@@ -390,6 +390,42 @@ Small round from Jason's answers to the R11 final report: gate, commit, push, no
   buildSrc scan removed fails, "3 projects tested (expected 4)". Gate passes (4 of 4).
 - Done: `e371649`.
 
+### Phase 9: round R13 (2026-11-23)
+
+Small round from Jason: phone on the release build, mockup note, release 0.1.0-alpha.2. Gate, commit, push.
+
+#### T-024 [x] Phone on the release build (Jason) (S)
+- **Goal:** Jason's phone runs the release-signed build, so later releases install over it.
+- **Files:** `docs/HANDOFF.md`.
+- **Depends on:** T-019.
+- **Size:** S. **Model:** Jason. **Parallel-safe:** yes.
+- **Acceptance:** 0.1.0-alpha.1 from GitHub installed on the phone after an uninstall of the debug alpha.
+- **Tests:** none.
+- **Device testing (Jason):** done by Jason, 2026-11-23 (`adb uninstall`, then install from GitHub).
+
+#### T-025 [x] Mockup: alarm Then line (S)
+- **Goal:** the alarm mockup shows "Then: <hive>, <step>" instead of the old device note (SPEC section 1).
+- **Files:** `docs/mockups/varroa-timer-mockups.html`, `docs/mockups/README.md`, SPEC section 1.
+- **Depends on:** T-021.
+- **Size:** S. **Model:** main (Opus 5.5). **Parallel-safe:** yes.
+- **Acceptance:** mockup 3 shows "Then: Hive 3, load dose" and no device note; README lists the change.
+- **Tests:** render the mockup and look.
+- **Device testing (Jason):** none.
+- Result: mockup 3 reads "Then: Hive 3, load dose" in the alarm text color, no device note (checked in a
+  headless Chrome render). Only that line changed; the README's change list and SPEC section 1 say so.
+
+#### T-026 [ ] Release 0.1.0-alpha.2 (S)
+- **Goal:** GitHub pre-release `v0.1.0-alpha.2` (versionCode 100002) with the APK and sha256, with R12's alarm
+  change. Not installed on Jason's phone; Jason installs it over alpha.1 from GitHub.
+- **Files:** `gradle.properties`, `docs/INSTALL.md` if needed.
+- **Depends on:** T-024, T-025.
+- **Size:** S. **Model:** main (Opus 5.5). **Parallel-safe:** no.
+- **Acceptance:** `scripts/release.sh` passes (gate, signature, certificate, app ID, versionCode 100002);
+  pre-release published; the downloaded APK matches its sha256 and the release certificate.
+- **Tests:** download and verify.
+- **Device testing (Jason):** install alpha.2 over alpha.1 from GitHub; hives and settings stay; a step that
+  frees the vaporizer shows only the Then line.
+
 ## Found during R11 (for Jason; not fixed in R11 unless a task above covers it)
 
 - **Dashboard missed T-013a (fixed).** `dashboard.py` only matched `T-` plus three digits, so T-013a was left

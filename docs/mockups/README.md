@@ -16,5 +16,8 @@ Changes from the mockups (SPEC.md section 1 wins):
 - Mockup 1, Coming up: always shown at 3 rows, from first launch. Before any run, row 1 reads "Start a hive to
   see what's next" (Jason, 2026-11-23).
 - Mockup 2, Hive tab: a queued hive has Skip to back under Start (Jason, 2026-11-23).
+- Mockup 3, alarm: when Done frees the vaporizer, "Then: Hive 3, load dose" (the hive that gets it next and the
+  step it starts on) replaces "Device frees when you tap Done. Hive 3 is next." With no hive next, the app shows
+  "Vaporizer frees when you tap Done." Text sizes follow SPEC section 1 (T-013a), not the mockup (Jason, R12).
 
 The mockups show "Hive 1" and so on; in the app every label is the name you give the hive. Where the mockups and `SPEC.md` section 1 disagree, SPEC.md wins.

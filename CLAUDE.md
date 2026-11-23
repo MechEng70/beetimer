@@ -46,8 +46,8 @@
 
 - `scripts/check.sh` is the gate. A task is not done until it passes. It runs, in order: ktlint (format),
   detekt (lint, zero warnings, no baseline file), Android lint, all unit tests (JUnit and Robolectric),
-  Semgrep (Kotlin and secrets), Snyk open source and Snyk code (high and above). Until R11 T-008 lands, it
-  runs unit tests and Android lint only.
+  Semgrep (Kotlin and secrets), Snyk open source and Snyk code (high and above). Each step runs every time
+  (no Gradle cache) and writes its result to `build/gate/last.tsv`.
 - Android lint warnings about newer library versions are expected while compileSdk is 36.
 - Formatting-only changes go in their own commit so behavior changes stay reviewable.
 - `snyk monitor --all-projects` after a release or a push to `main`, not per task.

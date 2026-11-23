@@ -85,7 +85,7 @@ Then continue round R11 from the next unfinished task, under the same rules.
 ## Commands
 
 ```
-scripts/check.sh                                        # gate: all unit tests + lint (does NOT build the APK)
+scripts/check.sh                                        # gate: ktlint, detekt, lint, tests, Semgrep, Snyk (no APK)
 ./gradlew assembleDebug                                 # always before an install
 adb install -r app/build/outputs/apk/debug/app-debug.apk
 scripts/build-apk.sh                                    # gate + release/beetimer-<version>.apk + sha256

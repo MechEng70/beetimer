@@ -6,4 +6,5 @@ session, with no subagent.
 
 | Task | Model | Start | End | Size | Notes |
 |---|---|---|---|---|---|
-| T-001 | Opus 5.5 (main) | 2026-11-23 10:50 | 2026-11-23 11:00 | S | Tag, file move, gate re-run with `--rerun-tasks` |
+| T-001 | Opus 5.5 (main) | 2026-11-23 10:50 | 2026-11-23 10:51 | S | Tag, file move, gate re-run with `--rerun-tasks` |
+| T-002 | Opus 5.5 (main) | 2026-11-23 10:51 | 2026-11-23 10:52 | S | CLAUDE.md rewrite; docs only, gate unchanged |

@@ -10,8 +10,9 @@ in order, commit each with its ID, update this section and `docs/design/USAGE.md
 at the brief's hard stops. No behavior change: the tag `alpha-baseline` (`571c8ee`) is the oracle.
 
 - **Branch:** the brief says `master`; the branch is `main` (renamed and pushed 2026-11-22). Use `main`.
-- **Done:** T-001 (baseline tag, HANDOFF moved to `docs/HANDOFF.md`, USAGE.md).
-- **Next:** T-002 CLAUDE.md.
+- **Done:** T-001 (baseline tag, HANDOFF moved to `docs/HANDOFF.md`, USAGE.md), T-002 (CLAUDE.md now has the
+  playbook working, security, device, data, layout and agent rules, adapted to Kotlin).
+- **Next:** T-003 SPEC.md.
 - **Odd:** nothing yet.
 
 Restart prompt (from the brief):

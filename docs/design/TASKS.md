@@ -362,6 +362,7 @@ Small round from Jason's answers to the R11 final report: gate, commit, push, no
   font 1.15 and 1.3, 0 invariant errors. `app-3-alarm.png` and `-large` now show a vaporizer-freeing alarm
   ("Cool in hive finished", "Then: Sparky, load dose"), captured by the new `scr-h1` scene. SPEC section 1 and
   TECH-DESIGN updated; the mockup still shows the old note, SPEC wins.
+- Done: `87dbe68`.
 
 #### T-022 [x] Remove s1x10 and s2x10 (S)
 - **Goal:** delete the two duplicate flows (Jason's yes).
@@ -374,6 +375,7 @@ Small round from Jason's answers to the R11 final report: gate, commit, push, no
 - **Device testing (Jason):** none.
 - Result: both flow files deleted (Jason's yes); `gen_flows.py`, `analyze.py` and the E2E README no longer
   list them; regenerating creates neither; analyze.py runs.
+- Done: `57df850`.
 
 #### T-023 [x] CLAUDE.md: Snyk covers buildSrc (S)
 - **Goal:** Jason's rule: `snyk test` and `snyk monitor` cover `buildSrc` by file, because `--all-projects`
@@ -386,6 +388,7 @@ Small round from Jason's answers to the R11 final report: gate, commit, push, no
 - **Device testing (Jason):** none.
 - Result: CLAUDE.md (Quality gate and Security) and DEVELOPING.md updated. Probe: `security.sh` with the
   buildSrc scan removed fails, "3 projects tested (expected 4)". Gate passes (4 of 4).
+- Done: `e371649`.
 
 ## Found during R11 (for Jason; not fixed in R11 unless a task above covers it)
 

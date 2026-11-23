@@ -14,3 +14,4 @@ Throttle is the decision taken before the task (playbook section 9). "n/a": trac
 | T-005 | Opus 5.5 | main | 2026-11-23 10:55 | 2026-11-23 10:56 | S | n/a | n/a | n/a | n/a | n/a | TECH-DESIGN outline, security, risks, iOS path |
 | T-001 | Opus 5.5 | main | 2026-11-23 10:57 | 2026-11-23 11:02 | M | 4 | 5 | 61 | 61 | normal (first snapshot) | Tracking part, after Jason updated the brief: status line, dashboard, timer |
 | T-006 | Opus 5.5 | main | 2026-11-23 11:03 | 2026-11-23 11:11 | L | 5 | 7 | 61 | 61 | normal | ktlint 1.8.0 and detekt 1.23.8 as CLIs; 1,707 ktlint and 180 detekt findings to 0; refactors by extraction only |
+| T-007 | Opus 5.5 | main | 2026-11-23 11:12 | 2026-11-23 11:19 | M | 7 | 9 | 61 | 61 | normal | Semgrep 0; Snyk OSS 26 tool-only findings fixed by upgrades; Snyk Code 0 (one 504 retry) |

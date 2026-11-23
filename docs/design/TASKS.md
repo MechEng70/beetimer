@@ -123,7 +123,7 @@ oracle. Run through all tasks in order and stop only at the brief's hard stops.
 - **Device testing (Jason):** none.
 - Done: `9e7c239` (format), `e45cb25` (detekt).
 
-#### T-007 [ ] Security scanners (M)
+#### T-007 [x] Security scanners (M)
 - **Goal:** Semgrep (Kotlin, secrets) and Snyk (open source and code, high and above) in the gate.
 - **Files:** `scripts/check.sh` or `scripts/security.sh`, `docs/design/SECURITY-EXCEPTIONS.md`.
 - **Depends on:** T-005.
@@ -132,6 +132,7 @@ oracle. Run through all tasks in order and stop only at the brief's hard stops.
   projects than exist; findings fixed or recorded with scope and expiry.
 - **Tests:** run the gate; show it fails when the scanner is absent or scans too few projects.
 - **Device testing (Jason):** none.
+- Done: `12dea94`.
 
 #### T-008 [ ] Gate script (S)
 - **Goal:** one `scripts/check.sh`: ktlint, detekt, Android lint, unit tests, Semgrep, Snyk.

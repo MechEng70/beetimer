@@ -6,6 +6,9 @@ task. Commit with the task ID, update its status here, update `docs/HANDOFF.md`,
 
 Status: [ ] todo, [~] in progress, [x] done, [!] waiting on Jason.
 
+Each R11 task has Goal, Files, Depends on, Size, Model, Parallel-safe, Acceptance (pass/fail), Tests and
+Device testing (Jason), per the playbook planning prompt.
+
 ## Done before the playbook (alpha, 2026-11-21 to 2026-11-22)
 
 TECH-DESIGN and SPEC section 1 describe the result. Commit IDs are on `main`; the tag `alpha-baseline`
@@ -42,15 +45,21 @@ oracle. Run through all tasks in order and stop only at the brief's hard stops.
 
 ### Phase 0: baseline
 
-#### T-001 [x] Baseline (S)
-- **Goal:** a fixed reference point and the files R11 needs.
+#### T-001 [x] Baseline and tracking (M)
+- **Goal:** a fixed reference point, the files R11 needs, and live usage tracking (playbook section 9).
 - **Files:** tag `alpha-baseline`; `HANDOFF.md` to `docs/HANDOFF.md`; links in README, CLAUDE.md,
-  TECH-DESIGN; `docs/PLAYBOOK.md`, `docs/design/PLAYBOOK-ADOPTION.md`, `docs/design/USAGE.md`.
+  TECH-DESIGN; `docs/PLAYBOOK.md`, `docs/design/PLAYBOOK-ADOPTION.md`, `docs/design/USAGE.md`;
+  `scripts/statusline.sh` wired in `~/.claude/settings.json` (backup `settings.json.bak-2026-11-23-beetimer`);
+  `scripts/dashboard.py`, `docs/dashboard.html`, `scripts/dashboard-timer.sh`; `scripts/check.sh` writes
+  `build/gate/last.tsv`.
 - **Depends on:** none.
-- **Acceptance:** tag exists on `571c8ee`; no link to the old HANDOFF path; `git status` clean; gate passes.
-- **Tests:** gate (101 tests and lint, `--rerun-tasks`).
-- **Device testing (Jason):** none.
-- Done: `135e619`.
+- **Size:** M. **Model:** main (Opus 5.5). **Parallel-safe:** no.
+- **Acceptance:** tag exists on `571c8ee`; no link to the old HANDOFF path; status bar shows 5-hour and weekly
+  % and the dashboard shows them; timer running; `git status` clean; gate passes.
+- **Tests:** gate (101 tests and lint, `--rerun-tasks`); status line on a fake payload and a real one;
+  dashboard loads in headless Chrome with 0 page errors.
+- **Device testing (Jason):** none. Look at the status bar and open `docs/dashboard.html`.
+- Done: `135e619` (baseline), tracking commit after the brief was updated (see git log).
 
 ### Phase 1: documents
 
@@ -58,6 +67,7 @@ oracle. Run through all tasks in order and stop only at the brief's hard stops.
 - **Goal:** playbook sections 6 and 6b in CLAUDE.md, adapted to Kotlin, keeping every project rule.
 - **Files:** `CLAUDE.md`.
 - **Depends on:** T-001.
+- **Size:** S. **Model:** main (Opus 5.5). **Parallel-safe:** yes.
 - **Acceptance:** working, security, devices, data, layout and models sections present; ktlint and detekt
   named instead of Prettier and ESLint; Room migrations rule; no "tools deferred" section; every old rule kept.
 - **Tests:** none (docs).
@@ -68,6 +78,7 @@ oracle. Run through all tasks in order and stop only at the brief's hard stops.
 - **Goal:** SPEC in the playbook shape.
 - **Files:** `SPEC.md`.
 - **Depends on:** T-001.
+- **Size:** M. **Model:** main (Opus 5.5). **Parallel-safe:** yes.
 - **Acceptance:** what it does, users and phone, one job, screens, rules, decisions table (kept), failure-mode
   table with every case in the brief, safety numbers with sources or "citation needed (Jason)", definition
   of done, original brief at the bottom.
@@ -76,32 +87,36 @@ oracle. Run through all tasks in order and stop only at the brief's hard stops.
 - Done: `6ba1749`.
 
 #### T-004 [x] TASKS.md and WBS.md (S)
-- Done: `730b788`.
 - **Goal:** history condensed with commit IDs; R11 tasks in playbook format; WBS by phase.
 - **Files:** `docs/design/TASKS.md`, `docs/design/WBS.md`.
 - **Depends on:** T-001.
+- **Size:** S. **Model:** main (Opus 5.5). **Parallel-safe:** yes.
 - **Acceptance:** every old task and round listed with its commit; T-001 to T-020 each have Goal, Files,
-  Depends on, Acceptance, Tests, Device testing (Jason).
+  Depends on, Size, Model, Parallel-safe, Acceptance, Tests, Device testing (Jason).
 - **Tests:** none (docs).
 - **Device testing (Jason):** none.
+- Done: `730b788`.
 
 #### T-005 [x] TECH-DESIGN.md and SECURITY-EXCEPTIONS.md (M)
 - **Goal:** TECH-DESIGN in the playbook outline with the iOS path; an empty exceptions table.
 - **Files:** `docs/design/TECH-DESIGN.md`, `docs/design/SECURITY-EXCEPTIONS.md`.
 - **Depends on:** T-003.
+- **Size:** M. **Model:** main (Opus 5.5). **Parallel-safe:** yes.
 - **Acceptance:** sections for layers and what each may import, data model and schema, native pieces,
   security, test strategy, risks, iOS path; exceptions table with columns finding, scope, reason, owner,
   expiry.
 - **Tests:** none (docs).
 - **Device testing (Jason):** none.
+- Done: `31e66c5`.
 
 ### Phase 2: quality gate
 
-#### T-006 [ ] Format and lint (L)
+#### T-006 [~] Format and lint (L)
 - **Goal:** ktlint and detekt with zero warnings and no baseline file.
 - **Files:** `build.gradle.kts`, `gradle/libs.versions.toml`, `.editorconfig`, `config/detekt/detekt.yml`,
   Kotlin sources.
 - **Depends on:** T-001.
+- **Size:** L. **Model:** main (Opus 5.5). **Parallel-safe:** no (touches every Kotlin file).
 - **Acceptance:** `ktlintCheck` and `detekt` pass on both modules with no baseline; formatting-only changes in
   their own commit; all tests still pass.
 - **Tests:** full unit suite unchanged and green.
@@ -111,6 +126,7 @@ oracle. Run through all tasks in order and stop only at the brief's hard stops.
 - **Goal:** Semgrep (Kotlin, secrets) and Snyk (open source and code, high and above) in the gate.
 - **Files:** `scripts/check.sh` or `scripts/security.sh`, `docs/design/SECURITY-EXCEPTIONS.md`.
 - **Depends on:** T-005.
+- **Size:** M. **Model:** main (Opus 5.5): security decisions. **Parallel-safe:** no.
 - **Acceptance:** the gate fails if a scanner is missing, not logged in, skipped, or scans fewer Gradle
   projects than exist; findings fixed or recorded with scope and expiry.
 - **Tests:** run the gate; show it fails when the scanner is absent or scans too few projects.
@@ -120,6 +136,7 @@ oracle. Run through all tasks in order and stop only at the brief's hard stops.
 - **Goal:** one `scripts/check.sh`: ktlint, detekt, Android lint, unit tests, Semgrep, Snyk.
 - **Files:** `scripts/check.sh`, `docs/DEVELOPING.md`.
 - **Depends on:** T-006, T-007.
+- **Size:** S. **Model:** main (Opus 5.5). **Parallel-safe:** no.
 - **Acceptance:** each step runs in that order and a failure in any fails the gate; tests are re-run, not
   taken from the Gradle cache.
 - **Tests:** the gate itself, run end to end.
@@ -131,6 +148,7 @@ oracle. Run through all tasks in order and stop only at the brief's hard stops.
 - **Goal:** shipped Room migrations and schema files can't change unnoticed.
 - **Files:** `app/src/test/.../data/FrozenSchemaTest.kt`.
 - **Depends on:** T-008.
+- **Size:** S. **Model:** Opus agent or main. **Parallel-safe:** yes, with T-010 (separate files).
 - **Acceptance:** a checksum test over `app/schemas/` versions 1 to current and the shipped migration SQL
   fails if any of them changes.
 - **Tests:** the new test; show it fails on a changed file.
@@ -141,6 +159,7 @@ oracle. Run through all tasks in order and stop only at the brief's hard stops.
 - **Files:** `data/Repository.kt`, `data/Db.kt` (new quarantine table, Room v4 and `MIGRATION_3_4`),
   `app/schemas/.../4.json`, tests.
 - **Depends on:** T-009.
+- **Size:** M. **Model:** Opus agent or main. **Parallel-safe:** yes, with T-009.
 - **Acceptance:** a corrupt state row and a corrupt step-list row each load without a crash and are kept in
   the quarantine table; healthy data behaves exactly as `alpha-baseline`.
 - **Tests:** corrupt run row, corrupt preset row, `MIGRATION_3_4`, healthy round trip.
@@ -150,6 +169,7 @@ oracle. Run through all tasks in order and stop only at the brief's hard stops.
 - **Goal:** check the playbook layout rule and fix only real violations.
 - **Files:** `ui/` screens and `ui/theme/Theme.kt` as needed.
 - **Depends on:** T-008.
+- **Size:** M. **Model:** main (Opus 5.5). **Parallel-safe:** no (screenshots on the emulator).
 - **Acceptance:** tabular digits on every countdown; fixed heights for computed values; no auto-scroll;
   every fix compared against `alpha-baseline` screenshots, nothing else moved.
 - **Tests:** unit tests for any changed pure code; screenshots before and after for any fix.
@@ -162,6 +182,7 @@ oracle. Run through all tasks in order and stop only at the brief's hard stops.
 - **Goal:** the Maestro harness follows the playbook device rules.
 - **Files:** `scripts/e2e/run.sh`, `scripts/e2e/screens.sh`, `docs/e2e/README.md`.
 - **Depends on:** T-008.
+- **Size:** M. **Model:** main (Opus 5.5). **Parallel-safe:** no (emulator).
 - **Acceptance:** `adb logcat -c` before and after each run; logcat saved only on failure, with token
   patterns redacted; status bar cropped from every capture; runs at font scale 1.15 and 1.3 with every
   setting restored; Gradle and Kotlin daemons stopped before booting the emulator.
@@ -172,6 +193,7 @@ oracle. Run through all tasks in order and stop only at the brief's hard stops.
 - **Goal:** the whole suite at 10x on the emulator, zero invariant errors, screenshots re-captured.
 - **Files:** `docs/e2e/REPORT.md`, `docs/e2e/*`, `docs/screenshots/app-*.png`.
 - **Depends on:** T-010, T-011, T-012.
+- **Size:** L. **Model:** main (Opus 5.5). **Parallel-safe:** no (emulator).
 - **Acceptance:** zero invariant errors; every difference from `alpha-baseline` reported.
 - **Tests:** the suite.
 - **Device testing (Jason):** compare the new `docs/screenshots/app-*.png` with the previous commit's: they
@@ -184,6 +206,7 @@ oracle. Run through all tasks in order and stop only at the brief's hard stops.
   rc.N = 600+N, final = 999). First signed build 0.1.0-alpha.1 = 100001.
 - **Files:** `app/build.gradle.kts`, a pure version helper, its test.
 - **Depends on:** T-008.
+- **Size:** S. **Model:** Opus agent or main. **Parallel-safe:** yes, with T-015.
 - **Acceptance:** the APK reports versionName `0.1.0-alpha.1` and versionCode 100001.
 - **Tests:** unit test for the formula (all four stages, edge values).
 - **Device testing (Jason):** none.
@@ -192,6 +215,7 @@ oracle. Run through all tasks in order and stop only at the brief's hard stops.
 - **Goal:** `scripts/release.sh` builds and checks a signed APK.
 - **Files:** `scripts/release.sh`, `app/build.gradle.kts` (signing config), `.gitignore`.
 - **Depends on:** T-014.
+- **Size:** M. **Model:** Opus agent or main. **Parallel-safe:** yes, with T-014.
 - **Acceptance:** runs the gate, builds, signs, checks the certificate fingerprint, app ID and versionCode,
   writes `release/beetimer-<version>.apk` and its sha256; fails if the keystore or `keystore.properties` is
   missing. `.gitignore` covers `*.jks`, `*.keystore`, `keystore.properties`, `release/` and device test output.
@@ -202,6 +226,7 @@ oracle. Run through all tasks in order and stop only at the brief's hard stops.
 - **Goal:** the exact steps for Jason to make and back up the release keystore.
 - **Files:** `docs/DEVELOPING.md`.
 - **Depends on:** T-015.
+- **Size:** S. **Model:** main (Opus 5.5). **Parallel-safe:** no.
 - **Acceptance:** `keytool`, `chmod 600` and backup steps written; keystore outside the repo
   (`~/keys/beetimer-release.jks`). Stop for Jason to run them and confirm the backup.
 - **Tests:** none.
@@ -211,6 +236,7 @@ oracle. Run through all tasks in order and stop only at the brief's hard stops.
 - **Goal:** release build tested fresh and as an upgrade from itself.
 - **Files:** `docs/e2e/` notes, `docs/INSTALL.md`.
 - **Depends on:** T-016.
+- **Size:** M. **Model:** main (Opus 5.5). **Parallel-safe:** no (emulator).
 - **Acceptance:** on the emulator, alpha.1 installs fresh and alpha.2 installs over alpha.1 with data kept.
   Jason's phone is not touched; the uninstall and reinstall step goes on his list.
 - **Tests:** emulator install and upgrade.
@@ -222,6 +248,7 @@ oracle. Run through all tasks in order and stop only at the brief's hard stops.
 - **Goal:** `main` and tags on GitHub, nothing that shouldn't be public.
 - **Files:** none.
 - **Depends on:** T-017.
+- **Size:** S. **Model:** main (Opus 5.5). **Parallel-safe:** no.
 - **Acceptance:** no status-bar screenshots, keystores, `local.properties` or secrets in any commit; `main`
   and the tags pushed. Anything bad in history is a stop, not a rewrite.
 - **Tests:** history scan.
@@ -231,6 +258,7 @@ oracle. Run through all tasks in order and stop only at the brief's hard stops.
 - **Goal:** GitHub pre-release `v0.1.0-alpha.1` with the APK and sha256.
 - **Files:** none in the repo.
 - **Depends on:** T-016, T-018.
+- **Size:** S. **Model:** main (Opus 5.5). **Parallel-safe:** no.
 - **Acceptance:** release published with notes from `docs/INSTALL.md`; README has the icon header.
 - **Tests:** download the asset and check its sha256.
 - **Device testing (Jason):** none.
@@ -241,6 +269,7 @@ oracle. Run through all tasks in order and stop only at the brief's hard stops.
 - **Goal:** one list for Jason.
 - **Files:** `docs/HANDOFF.md`.
 - **Depends on:** all.
+- **Size:** S. **Model:** main (Opus 5.5). **Parallel-safe:** no.
 - **Acceptance:** gate and E2E pass, docs current; one list with every real-phone test, every hard stop still
   waiting, everything under "Found during R11", and the USAGE summary.
 - **Tests:** the gate.

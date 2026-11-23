@@ -1,13 +1,15 @@
 # Usage log
 
-One row per task, so Jason can see where plan usage goes. Times are local (America/Toronto). Size: S (under
-30 min), M (30 to 90 min), L (over 90 min). Model is the one that did the work; "main" means the main
-session, with no subagent.
+One row per task (and per throttle decision), so Jason can see where plan usage goes. Times are local
+(Eastern). Size: S (under 30 min), M (30 to 90 min), L (over 90 min). 5h and Wk are the 5-hour and weekly
+used % from the status line snapshot (`~/.claude/beetimer-usage.json`) at the start and end of the task.
+Throttle is the decision taken before the task (playbook section 9). "n/a": tracking wasn't set up yet.
 
-| Task | Model | Start | End | Size | Notes |
-|---|---|---|---|---|---|
-| T-001 | Opus 5.5 (main) | 2026-11-23 10:50 | 2026-11-23 10:51 | S | Tag, file move, gate re-run with `--rerun-tasks` |
-| T-002 | Opus 5.5 (main) | 2026-11-23 10:51 | 2026-11-23 10:52 | S | CLAUDE.md rewrite; docs only, gate unchanged |
-| T-003 | Opus 5.5 (main) | 2026-11-23 10:52 | 2026-11-23 10:54 | M | SPEC restructure, failure-mode table from the code, 2 web searches for citations |
-| T-004 | Opus 5.5 (main) | 2026-11-23 10:56 | 2026-11-23 10:56 | S | TASKS history table with commits, T-001 to T-020 in playbook format, WBS |
-| T-005 | Opus 5.5 (main) | 2026-11-23 11:05 | 2026-11-23 10:57 | S | TECH-DESIGN: layer import table, security, test strategy, risks, iOS path; manifest checked |
+| Task | Model | Agent or main | Start | End | Size | 5h start | 5h end | Wk start | Wk end | Throttle | Notes |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| T-001 | Opus 5.5 | main | 2026-11-23 10:50 | 2026-11-23 10:51 | S | n/a | n/a | n/a | n/a | n/a | Baseline part: tag, file move, gate re-run with `--rerun-tasks` |
+| T-002 | Opus 5.5 | main | 2026-11-23 10:51 | 2026-11-23 10:52 | S | n/a | n/a | n/a | n/a | n/a | CLAUDE.md rewrite; docs only |
+| T-003 | Opus 5.5 | main | 2026-11-23 10:52 | 2026-11-23 10:54 | M | n/a | n/a | n/a | n/a | n/a | SPEC restructure, failure modes from the code, 2 web searches for citations |
+| T-004 | Opus 5.5 | main | 2026-11-23 10:54 | 2026-11-23 10:55 | S | n/a | n/a | n/a | n/a | n/a | TASKS history with commits, T-001 to T-020, WBS |
+| T-005 | Opus 5.5 | main | 2026-11-23 10:55 | 2026-11-23 10:56 | S | n/a | n/a | n/a | n/a | n/a | TECH-DESIGN outline, security, risks, iOS path |
+| T-001 | Opus 5.5 | main | 2026-11-23 10:57 | 2026-11-23 11:02 | M | 4 | 5 | 61 | 61 | normal (first snapshot) | Tracking part, after Jason updated the brief: status line, dashboard, timer |

@@ -158,7 +158,7 @@ oracle. Run through all tasks in order and stop only at the brief's hard stops.
 - **Device testing (Jason):** none.
 - Done: `9033a70`.
 
-#### T-010 [ ] Corrupt data (M)
+#### T-010 [x] Corrupt data (M)
 - **Goal:** a corrupt or unreadable row never crashes a read, and is quarantined before anything overwrites it.
 - **Files:** `data/Repository.kt`, `data/Db.kt` (new quarantine table, Room v4 and `MIGRATION_3_4`),
   `app/schemas/.../4.json`, tests.
@@ -168,6 +168,7 @@ oracle. Run through all tasks in order and stop only at the brief's hard stops.
   the quarantine table; healthy data behaves exactly as `alpha-baseline`.
 - **Tests:** corrupt run row, corrupt preset row, `MIGRATION_3_4`, healthy round trip.
 - **Device testing (Jason):** none.
+- Done: `b459c89`.
 
 #### T-011 [ ] Layout audit (M)
 - **Goal:** check the playbook layout rule and fix only real violations.

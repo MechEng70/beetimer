@@ -17,3 +17,4 @@ Throttle is the decision taken before the task (playbook section 9). "n/a": trac
 | T-007 | Opus 5.5 | main | 2026-11-23 11:12 | 2026-11-23 11:19 | M | 7 | 9 | 61 | 61 | normal | Semgrep 0; Snyk OSS 26 tool-only findings fixed by upgrades; Snyk Code 0 (one 504 retry) |
 | T-008 | Opus 5.5 | main | 2026-11-23 11:19 | 2026-11-23 11:24 | S | 9 | 10 | 61 | 62 | normal | Gate order fixed, --rerun-tasks for lint and tests, failure probe |
 | T-009 | Opus 5.5 | main | 2026-11-23 11:24 | 2026-11-23 11:28 | S | 10 | 10 | 62 | 62 | normal | Checksum test for schemas 1-3 and both migrations; negative check done |
+| T-010 | Opus 5.5 | main | 2026-11-23 11:28 | 2026-11-23 11:32 | M | 10 | 11 | 62 | 62 | normal | Room v4 quarantine, safe reads, 7 tests; regression shown failing on old decode |

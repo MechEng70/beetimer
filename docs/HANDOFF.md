@@ -51,9 +51,7 @@ open source 4 of 4 projects, Snyk Code); E2E 22 of 22 at 10x and font 1.15 and 1
 sha256 (downloaded and checked); `snyk monitor` run for all 4 projects. Docs current. Dashboard timer stopped.
 
 **On the phone (Jason), in this order:**
-1. **Move to the release build (T-017).** The phone has the debug 0.1.0-alpha, which a release can't install
-   over. Note your hive names, uninstall Bee Timer, install `beetimer-0.1.0-alpha.1.apk` from the Releases page
-   (docs/INSTALL.md), allow the permissions again, rename the hives. Hive names and any run are lost, once.
+1. ~~**Move to the release build (T-017).**~~ Done by Jason, 2026-11-23 (R13, T-024).
 2. **Alarm screen (T-013a).** Let a step end with the screen locked. Compare with
    `docs/screenshots/app-3-alarm.png` (and `-large` at 1.3): readable at arm's length, nothing over the buttons.
 3. **Countdowns (T-011).** Watch a countdown on the All tab and the Hive tab tick 10:00 to 9:59 and 1:00 to
@@ -81,6 +79,16 @@ whose command line contains that text (it kills itself). Rewriting a script thro
 drops its executable bit: use Edit, or `chmod` after. Under `set -o pipefail`, never pipe into `head`,
 `grep -m` or `grep -q` (SIGPIPE, exit 141).
 
+### Waiting on Jason
+
+Phone checks still open (R13):
+- Install 0.1.0-alpha.2 over alpha.1 from GitHub (T-026); hives and settings should stay.
+- Alarm screen on alpha.2: let a step end with the screen locked; readable at arm's length, nothing over the
+  buttons, and a step that frees the vaporizer shows only "Then: <hive>, <step>" (T-013a, T-021).
+- Countdowns: 10:00 to 9:59 and 1:00 to 0:59 on the All and Hive tabs; the text next to them doesn't shift
+  (T-011).
+- Themed icons: turn them on and look at Bee Timer on the home screen.
+
 Restart prompt (from the brief):
 
 ```
@@ -96,8 +104,8 @@ Then continue round R11 from the next unfinished task, under the same rules.
 - **Remote:** `origin` is https://github.com/MechEng70/beetimer (public), default branch `main`. First
   pushed 2026-11-22. Local `master` was renamed to `main` for the push. Social preview is
   `docs/icon/icon-1024.png` (uploaded by hand; GitHub has no API for it).
-- **Phone:** the R10 build is installed on Jason's phone (OnePlus CPH2583, Android 16, OxygenOS, font
-  scale 1.15).
+- **Phone:** release-signed 0.1.0-alpha.1 from GitHub, installed by Jason on 2026-11-23 after uninstalling
+  the debug alpha (OnePlus CPH2583, Android 16, OxygenOS, font scale 1.15). Later releases install over it.
 - **Gate:** `scripts/check.sh` passes (R11 adds ktlint, detekt, py-tests, Semgrep, Snyk).
 - **End to end:** 22 of 22 runs pass (s1 to s11 at font 1.15 and 1.3, 10x), 0 invariant errors
   (`docs/e2e/REPORT.md`, R11 T-013).

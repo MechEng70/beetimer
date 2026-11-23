@@ -3,6 +3,17 @@
 Where Bee Timer stands on 2026-11-23, for whoever picks it up next (a person or a fresh agent session).
 Update this file after each task.
 
+## Round R13 (done 2026-11-23): phone on release, mockup, alpha.2
+
+Tasks T-024 to T-026 (TASKS.md, Phase 9). Gate passes; pushed; `snyk monitor` for all 4 projects; dashboard
+timer started at the start and stopped at the end.
+- **T-024:** Jason moved the phone to the release build (0.1.0-alpha.1 from GitHub, after `adb uninstall`).
+- **T-025:** mockup 3 shows "Then: Hive 3, load dose" instead of the old device note.
+- **T-026:** pre-release `v0.1.0-alpha.2` (100002) with the APK and sha256, downloaded back and verified (sha256,
+  signature, certificate). Not installed on the phone: Jason installs it over alpha.1 from GitHub.
+
+Open phone checks are under "Waiting on Jason" below (also on the dashboard).
+
 ## Round R12 (done 2026-11-23): Jason's decisions on the R11 report
 
 Small round: gate, commit, push, no new release. Tasks T-021 to T-023 (TASKS.md, Phase 8).
@@ -99,8 +110,8 @@ Then continue round R11 from the next unfinished task, under the same rules.
 
 ## State
 
-- **Version:** 0.1.0-alpha.1 (versionCode 100001), release-signed. Jason's phone still has the debug
-  0.1.0-alpha (versionCode 1) until the move in step 1 above. Last round R11 on `main`.
+- **Version:** 0.1.0-alpha.2 (versionCode 100002), release-signed. Jason's phone has 0.1.0-alpha.1 (release)
+  until Jason installs alpha.2 over it from GitHub. Last round R13 on `main`.
 - **Remote:** `origin` is https://github.com/MechEng70/beetimer (public), default branch `main`. First
   pushed 2026-11-22. Local `master` was renamed to `main` for the push. Social preview is
   `docs/icon/icon-1024.png` (uploaded by hand; GitHub has no API for it).
@@ -111,7 +122,8 @@ Then continue round R11 from the next unfinished task, under the same rules.
   (`docs/e2e/REPORT.md`, R11 T-013).
 - **Done:** everything in `docs/design/TASKS.md` up to R11. Jason checked R7 to R10 on the phone on
   2026-11-22: all good.
-- **Releases:** `v0.1.0-alpha.1`, pre-release, 2026-11-23 (Jason's go-ahead), with the APK and its sha256.
+- **Releases:** `v0.1.0-alpha.1` and `v0.1.0-alpha.2` (R13), pre-releases, 2026-11-23, each with the APK and its
+  sha256, same release certificate.
   Next release: bump `appVersion` in `gradle.properties`, run `scripts/release.sh` with the emulator off.
 
 ## Latest rounds (2026-11-22, main screen only)

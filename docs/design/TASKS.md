@@ -402,6 +402,7 @@ Small round from Jason: phone on the release build, mockup note, release 0.1.0-a
 - **Acceptance:** 0.1.0-alpha.1 from GitHub installed on the phone after an uninstall of the debug alpha.
 - **Tests:** none.
 - **Device testing (Jason):** done by Jason, 2026-11-23 (`adb uninstall`, then install from GitHub).
+- Done: `7be0d93`.
 
 #### T-025 [x] Mockup: alarm Then line (S)
 - **Goal:** the alarm mockup shows "Then: <hive>, <step>" instead of the old device note (SPEC section 1).
@@ -413,8 +414,9 @@ Small round from Jason: phone on the release build, mockup note, release 0.1.0-a
 - **Device testing (Jason):** none.
 - Result: mockup 3 reads "Then: Hive 3, load dose" in the alarm text color, no device note (checked in a
   headless Chrome render). Only that line changed; the README's change list and SPEC section 1 say so.
+- Done: `1f9acf0`.
 
-#### T-026 [ ] Release 0.1.0-alpha.2 (S)
+#### T-026 [x] Release 0.1.0-alpha.2 (S)
 - **Goal:** GitHub pre-release `v0.1.0-alpha.2` (versionCode 100002) with the APK and sha256, with R12's alarm
   change. Not installed on Jason's phone; Jason installs it over alpha.1 from GitHub.
 - **Files:** `gradle.properties`, `docs/INSTALL.md` if needed.
@@ -425,6 +427,11 @@ Small round from Jason: phone on the release build, mockup note, release 0.1.0-a
 - **Tests:** download and verify.
 - **Device testing (Jason):** install alpha.2 over alpha.1 from GitHub; hives and settings stay; a step that
   frees the vaporizer shows only the Then line.
+- Result: `appVersion=0.1.0-alpha.2` (`a6478ad`, pushed). `scripts/release.sh`: gate passed, versionCode 100002,
+  release certificate. Pre-release `v0.1.0-alpha.2` at `a6478ad` with the APK and `.sha256`
+  (https://github.com/MechEng70/beetimer/releases/tag/v0.1.0-alpha.2). Downloaded back: sha256 OK, signature
+  verified, certificate matches `config/release-cert-sha256.txt`, versionCode 100002. Not installed on the phone.
+- Done: `a6478ad`.
 
 ## Found during R11 (for Jason; not fixed in R11 unless a task above covers it)
 

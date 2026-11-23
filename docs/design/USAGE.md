@@ -34,3 +34,7 @@ Throttle is the decision taken before the task (playbook section 9). "n/a": trac
 | T-021 | Opus 5.5 | main | 2026-11-23 17:56 | 2026-11-23 18:30 | S | 4 | 6 | 65 | 65 | wide open | Then line only; tests first; new scr-h1 scene for app-3-alarm; s6 and s11 at both scales |
 | T-022 | Opus 5.5 | main | 2026-11-23 18:00 | 2026-11-23 18:05 | S | 4 | 5 | 65 | 65 | wide open | Flows deleted; first commit swept them into T-023 (whole index), rebuilt locally before push |
 | T-023 | Opus 5.5 | main | 2026-11-23 18:00 | 2026-11-23 18:05 | S | 4 | 5 | 65 | 65 | wide open | CLAUDE.md rule; probe shows the gate fails at 3 of 4 |
+| R13 start | Opus 5.5 | main | 2026-11-23 18:30 | 2026-11-23 18:30 | S | 6 | 6 | 65 | 65 | wide open (day 7, budget 100) | Timer started |
+| T-024 | Jason | main (records) | 2026-11-23 18:30 | 2026-11-23 18:33 | S | 6 | 6 | 65 | 65 | wide open | Phone moved to the release by Jason; Waiting on Jason list restored for the dashboard |
+| T-025 | Opus 5.5 | main | 2026-11-23 18:30 | 2026-11-23 18:33 | S | 6 | 6 | 65 | 65 | wide open | Mockup alarm note; headless render checked |
+| T-026 | Opus 5.5 | main | 2026-11-23 18:33 | 2026-11-23 18:38 | S | 6 | 7 | 65 | 65 | wide open | release.sh, pre-release v0.1.0-alpha.2, downloaded and verified |

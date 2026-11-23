@@ -77,13 +77,18 @@ interface StateDao {
 
 @Database(
     entities = [HiveEntity::class, TemplateEntity::class, StateEntity::class],
-    version = 3,
+    version = BeeTimerDb.VERSION,
     exportSchema = true,
 )
 abstract class BeeTimerDb : RoomDatabase() {
     abstract fun hives(): HiveDao
     abstract fun templates(): TemplateDao
     abstract fun state(): StateDao
+
+    companion object {
+        /** Schema version. A change adds a new migration and schema file (see FrozenSchemaTest). */
+        const val VERSION = 3
+    }
 }
 
 /**

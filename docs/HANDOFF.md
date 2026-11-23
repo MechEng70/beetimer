@@ -12,8 +12,8 @@ stops and the usage throttle (playbook section 9). No behavior change: the tag `
 is the oracle.
 
 - **Branch:** the brief says `master`; the branch is `main` (renamed and pushed 2026-11-22). Use `main`.
-- **Done:** T-001 to T-011. Status per task is in `docs/design/TASKS.md` (R11 section).
-- **Next:** T-012 E2E harness rules (logcat, font scale, daemons).
+- **Done:** T-001 to T-012. Status per task is in `docs/design/TASKS.md` (R11 section).
+- **Next:** T-013 full E2E at 10x, both font scales.
 - **Found during R11:** listed in TASKS.md under that heading.
 - **Brief updated mid-round:** Jason's chat updated the playbook and brief at about 10:56, after T-001 to T-005
   were committed. T-001 gained usage tracking (done in a follow-up T-001 commit); CLAUDE.md, TASKS.md and
@@ -31,7 +31,13 @@ Usage tracking (set up in T-001):
 
 ### Waiting on Jason
 
-- Nothing.
+Not blocking; collected for the end of the round (details in TASKS.md, "Found during R11"):
+- **Layout decisions:** the vaporizer bar grows by a button row when the vaporizer frees, and Coming up appears
+  on the first Start; both move the control you just tapped. Keep, or change the design?
+- **Old E2E folders:** `docs/e2e/s1/` to `docs/e2e/s2x10/` (R6 run, 60x, uncropped emulator screenshots, logs)
+  are tracked. Removing them deletes tracked files, so it needs your yes.
+- **Citations:** heat 150 s, cool 120 s and gun 20 s have no source yet (SPEC section 5). The 10 min hold
+  source was found by search; please confirm the paper.
 
 Restart prompt (from the brief):
 

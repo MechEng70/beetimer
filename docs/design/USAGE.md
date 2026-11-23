@@ -19,3 +19,4 @@ Throttle is the decision taken before the task (playbook section 9). "n/a": trac
 | T-009 | Opus 5.5 | main | 2026-11-23 11:24 | 2026-11-23 11:28 | S | 10 | 10 | 62 | 62 | normal | Checksum test for schemas 1-3 and both migrations; negative check done |
 | T-010 | Opus 5.5 | main | 2026-11-23 11:28 | 2026-11-23 11:32 | M | 10 | 11 | 62 | 62 | normal | Room v4 quarantine, safe reads, 7 tests; regression shown failing on old decode |
 | T-011 | Opus 5.5 | main | 2026-11-23 11:32 | 2026-11-23 11:36 | S | 11 | 12 | 62 | 62 | normal | tnum on ticking text, glyph-width test; 2 design cases logged for Jason |
+| T-012 | Opus 5.5 | main | 2026-11-23 11:37 | 2026-11-23 11:43 | M | 12 | 0 | 62 | 62 | normal | Harness rules, emulator.sh, redact.py; s5 tried at 2 font scales (1.3 timing race at 60x) |

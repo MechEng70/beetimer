@@ -184,7 +184,7 @@ oracle. Run through all tasks in order and stop only at the brief's hard stops.
 
 ### Phase 4: device test hygiene
 
-#### T-012 [ ] E2E rules (M)
+#### T-012 [x] E2E rules (M)
 - **Goal:** the Maestro harness follows the playbook device rules.
 - **Files:** `scripts/e2e/run.sh`, `scripts/e2e/screens.sh`, `docs/e2e/README.md`.
 - **Depends on:** T-008.
@@ -194,6 +194,7 @@ oracle. Run through all tasks in order and stop only at the brief's hard stops.
   setting restored; Gradle and Kotlin daemons stopped before booting the emulator.
 - **Tests:** one short scenario run on the emulator, showing settings restored afterward.
 - **Device testing (Jason):** none.
+- Done: `92d015f`.
 
 #### T-013 [ ] Full E2E at 10x (L)
 - **Goal:** the whole suite at 10x on the emulator, zero invariant errors, screenshots re-captured.

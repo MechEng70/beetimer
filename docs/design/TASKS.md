@@ -170,7 +170,7 @@ oracle. Run through all tasks in order and stop only at the brief's hard stops.
 - **Device testing (Jason):** none.
 - Done: `b459c89`.
 
-#### T-011 [ ] Layout audit (M)
+#### T-011 [x] Layout audit (M)
 - **Goal:** check the playbook layout rule and fix only real violations.
 - **Files:** `ui/` screens and `ui/theme/Theme.kt` as needed.
 - **Depends on:** T-008.
@@ -180,6 +180,7 @@ oracle. Run through all tasks in order and stop only at the brief's hard stops.
 - **Tests:** unit tests for any changed pure code; screenshots before and after for any fix.
 - **Device testing (Jason):** watch a countdown on the All tab and the Hive tab tick from 10:00 to 9:59 and
   1:00 to 0:59: the text next to it must not shift.
+- Done: `3fd10f4`.
 
 ### Phase 4: device test hygiene
 

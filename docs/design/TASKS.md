@@ -210,6 +210,7 @@ oracle. Run through all tasks in order and stop only at the brief's hard stops.
   check and tap), time scale scroll centered (at 1.3 the tap was lost under the gesture bar), analyzer s6 and s7
   thresholds from the time scale instead of 60x numbers, a new check that every run is at 10x, emulator on the
   software GPU (host GPU segfaulted twice). s1x10 and s2x10 now duplicate s1 and s2 and weren't run.
+- Done: `2ded61b`.
 
 #### T-013a [ ] Alarm screen readability (M)
 - **Goal:** Jason's approved design change (2026-11-23), display only: finished line 24 sp, "Next for <hive>"

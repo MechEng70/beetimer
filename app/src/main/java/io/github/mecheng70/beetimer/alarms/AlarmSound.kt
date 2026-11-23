@@ -63,16 +63,18 @@ class AlarmSound(private val context: Context) {
 
     private inline fun newPlayer(source: MediaPlayer.() -> Unit): MediaPlayer {
         val p = MediaPlayer()
+        var started = false
         try {
             p.setAudioAttributes(ALARM_ATTRS)
             p.source()
             p.isLooping = true
             p.prepare()
             p.start()
+            started = true
             return p
-        } catch (e: Exception) {
-            p.release()
-            throw e
+        } finally {
+            // On any failure, free the player; the caller falls back to the bundled tone.
+            if (!started) p.release()
         }
     }
 

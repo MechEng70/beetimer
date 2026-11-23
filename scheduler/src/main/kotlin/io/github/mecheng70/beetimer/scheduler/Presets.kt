@@ -8,6 +8,20 @@ object Presets {
     const val PAN_WAND_ID = "oav-pan-wand"
     const val GUN_TYPE_ID = "oav-gun-type"
 
+    // Reference default durations in seconds; the product label governs. Sources: SPEC section 5.
+
+    /** Pan wand heat and vaporize. Citation needed (Jason). */
+    const val PAN_HEAT_S = 150
+
+    /** Pan wand cool in hive. Citation needed (Jason). */
+    const val PAN_COOL_S = 120
+
+    /** Gun type vaporize. Citation needed (Jason). */
+    const val GUN_VAPORIZE_S = 20
+
+    /** Keep sealed after vaporizing: 10 min, from a ProVap 110 field study (SPEC section 5). */
+    const val SEALED_HOLD_S = 600
+
     /** What happens to the pan wand during the sealed hold (Settings choice; read from the step list). */
     enum class PanWandHold { STAYS_IN, COMES_OUT }
 
@@ -18,9 +32,9 @@ object Presets {
         steps = listOf(
             Step("Seal hive", StepKind.MANUAL, instruction = "Close entrance and cracks, insert wand."),
             Step("Load dose", StepKind.MANUAL, instruction = "Dose per label into the cold pan.", takes = true),
-            Step("Heat and vaporize", StepKind.TIMED, 150, instruction = "Power on. Wand in entrance."),
-            Step("Cool in hive", StepKind.TIMED, 120, instruction = "Power off. Leave the wand in."),
-            Step("Keep sealed", StepKind.TIMED, 600, instruction = "Wand stays in. Keep hive sealed."),
+            Step("Heat and vaporize", StepKind.TIMED, PAN_HEAT_S, instruction = "Power on. Wand in entrance."),
+            Step("Cool in hive", StepKind.TIMED, PAN_COOL_S, instruction = "Power off. Leave the wand in."),
+            Step("Keep sealed", StepKind.TIMED, SEALED_HOLD_S, instruction = "Wand stays in. Keep hive sealed."),
             Step(
                 "Remove wand",
                 StepKind.MANUAL,
@@ -38,15 +52,15 @@ object Presets {
         steps = listOf(
             Step("Seal hive", StepKind.MANUAL, instruction = "Close entrance and cracks, insert wand."),
             Step("Load dose", StepKind.MANUAL, instruction = "Dose per label into the cold pan.", takes = true),
-            Step("Heat and vaporize", StepKind.TIMED, 150, instruction = "Power on. Wand in entrance."),
-            Step("Cool in hive", StepKind.TIMED, 120, instruction = "Power off. Leave the wand in."),
+            Step("Heat and vaporize", StepKind.TIMED, PAN_HEAT_S, instruction = "Power on. Wand in entrance."),
+            Step("Cool in hive", StepKind.TIMED, PAN_COOL_S, instruction = "Power off. Leave the wand in."),
             Step(
                 "Remove wand",
                 StepKind.MANUAL,
                 instruction = "Pull the wand and close the entrance.",
                 releases = true,
             ),
-            Step("Keep sealed", StepKind.TIMED, 600, instruction = "Wand is out. Keep hive sealed."),
+            Step("Keep sealed", StepKind.TIMED, SEALED_HOLD_S, instruction = "Wand is out. Keep hive sealed."),
             Step("Unseal", StepKind.MANUAL, instruction = "Open the entrance."),
         ),
     ).derived()
@@ -79,9 +93,9 @@ object Presets {
                 instruction = "Load the dose per label and insert the nozzle.",
                 takes = true,
             ),
-            Step("Vaporize", StepKind.TIMED, 20, instruction = "Vaporize the dose."),
+            Step("Vaporize", StepKind.TIMED, GUN_VAPORIZE_S, instruction = "Vaporize the dose."),
             Step("Withdraw", StepKind.MANUAL, instruction = "Withdraw the nozzle and reseal.", releases = true),
-            Step("Keep sealed", StepKind.TIMED, 600, instruction = "Leave the hive sealed."),
+            Step("Keep sealed", StepKind.TIMED, SEALED_HOLD_S, instruction = "Leave the hive sealed."),
             Step("Unseal", StepKind.MANUAL, instruction = "Open the entrance."),
         ),
     ).derived()

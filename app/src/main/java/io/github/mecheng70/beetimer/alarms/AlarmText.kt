@@ -63,9 +63,9 @@ object AlarmText {
         context.getString(R.string.alarm_notif_body, info.finished, info.nextAction)
 
     private fun deviceNote(context: Context, run: HiveRun, state: SchedulerState, labels: Map<Long, String>): String? {
-        val step = run.currentStep ?: return null
+        val step = run.currentStep
         val lastDevice = run.steps.indexOfLast { it.deviceBound }
-        val doneReleases = run.state == RunState.AWAITING_CONFIRM && step.deviceBound &&
+        val doneReleases = step != null && run.state == RunState.AWAITING_CONFIRM && step.deviceBound &&
             run.currentStepIndex == lastDevice && step.kind == StepKind.MANUAL
         if (!doneReleases) return null
         val nextLabel = state.queue.firstOrNull()?.let { labels[it] }

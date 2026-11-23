@@ -112,7 +112,10 @@ object AlarmColors {
     val Border = Color(0xFFBA7517)
 }
 
-/** Inter, bundled in res/font (SIL OFL 1.1, assets/licenses/Inter-OFL.txt) so weights render the same on every phone. */
+/**
+ * Inter, bundled in res/font (SIL OFL 1.1, assets/licenses/Inter-OFL.txt) so weights render the same on every
+ * phone.
+ */
 val Inter = FontFamily(
     Font(R.font.inter_regular, FontWeight.Normal),
     Font(R.font.inter_medium, FontWeight.Medium),

@@ -289,36 +289,50 @@ private class Reduction(var s: SchedulerState, val now: Long) {
     }
 
     /** Move a run into step [index], taking, keeping or releasing the device as needed. */
-    private fun enterStep(run: HiveRun, index: Int): HiveRun {
-        val h = run.hiveId
-        if (index >= run.steps.size) {
-            releaseLock(h)
-            dequeue(h)
-            return run.copy(
-                currentStepIndex = run.steps.lastIndex,
-                state = RunState.DONE,
-                stepStartedAt = null,
-                stepEndsAt = null,
-                completedAt = now,
-            )
+    private fun enterStep(run: HiveRun, index: Int): HiveRun = when {
+        index >= run.steps.size -> finishRun(run)
+        run.steps[index].deviceBound && !claimDevice(run.hiveId) -> waitForDevice(run, index)
+        else -> startStep(run, index)
+    }
+
+    private fun finishRun(run: HiveRun): HiveRun {
+        releaseLock(run.hiveId)
+        dequeue(run.hiveId)
+        return run.copy(
+            currentStepIndex = run.steps.lastIndex,
+            state = RunState.DONE,
+            stepStartedAt = null,
+            stepEndsAt = null,
+            completedAt = now,
+        )
+    }
+
+    /** Takes the device for [h] if it's free for [h]; otherwise queues [h]. True if [h] holds it afterward. */
+    private fun claimDevice(h: Long): Boolean = when {
+        s.lockHolder == h -> true
+
+        deviceAvailableFor(h) -> {
+            s = s.copy(lockHolder = h, queue = s.queue - h)
+            true
         }
+
+        else -> {
+            if (h !in s.queue) s = s.copy(queue = s.queue + h)
+            false
+        }
+    }
+
+    private fun waitForDevice(run: HiveRun, index: Int): HiveRun = run.copy(
+        currentStepIndex = index,
+        state = RunState.WAITING_FOR_DEVICE,
+        stepStartedAt = null,
+        stepEndsAt = null,
+    )
+
+    /** Enters step [index]; the device is already held if the step needs it, and released if it doesn't. */
+    private fun startStep(run: HiveRun, index: Int): HiveRun {
         val step = run.steps[index]
-        if (step.deviceBound) {
-            if (s.lockHolder != h) {
-                if (!deviceAvailableFor(h)) {
-                    if (h !in s.queue) s = s.copy(queue = s.queue + h)
-                    return run.copy(
-                        currentStepIndex = index,
-                        state = RunState.WAITING_FOR_DEVICE,
-                        stepStartedAt = null,
-                        stepEndsAt = null,
-                    )
-                }
-                s = s.copy(lockHolder = h, queue = s.queue - h)
-            }
-        } else {
-            releaseLock(h)
-        }
+        if (!step.deviceBound) releaseLock(run.hiveId)
         return when (step.kind) {
             StepKind.TIMED -> run.copy(
                 currentStepIndex = index,

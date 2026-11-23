@@ -24,9 +24,14 @@ fun footerFor(hiveIds: List<Long>, runs: Map<Long, HiveRun>, allDoneAt: Long?): 
     val mine = hiveIds.mapNotNull { runs[it] }
     val started = mine.count { it.isActive || it.state == RunState.DONE }
     val total = hiveIds.size
-    if (total > 0 && mine.size == total && mine.all { it.state == RunState.DONE }) {
-        return mine.mapNotNull { it.completedAt }.maxOrNull()?.let { Footer.AllDone(it) }
+    return when {
+        total > 0 && mine.size == total && mine.all { it.state == RunState.DONE } ->
+            mine.mapNotNull { it.completedAt }.maxOrNull()?.let { Footer.AllDone(it) }
+
+        allDoneAt == null -> null
+
+        started == total -> Footer.Estimated(allDoneAt)
+
+        else -> Footer.EstimatedPartial(allDoneAt, started, total)
     }
-    if (allDoneAt == null) return null
-    return if (started == total) Footer.Estimated(allDoneAt) else Footer.EstimatedPartial(allDoneAt, started, total)
 }

@@ -1,0 +1,40 @@
+# detekt 1.23.8, on top of the default config (--build-upon-default-config). Zero findings allowed, no baseline.
+# Every setting below is a policy for a whole kind of code, with the reason. Single findings are fixed in the code.
+build:
+  maxIssues: 0
+
+naming:
+  FunctionNaming:
+    # Compose functions are PascalCase by convention.
+    ignoreAnnotated: ['Composable']
+
+complexity:
+  LongMethod:
+    # A screen is one composable that lays out its parts; splitting it only to pass a line count hurts reading.
+    # A test reads top to bottom as one scenario.
+    ignoreAnnotated: ['Composable']
+    excludes: ['**/test/**']
+  CyclomaticComplexMethod:
+    # Same for branches in a composable: they're layout choices (state chips, buttons per state).
+    ignoreAnnotated: ['Composable']
+  LongParameterList:
+    # Compose components take their options as parameters with defaults.
+    ignoreAnnotated: ['Composable']
+  NestedBlockDepth:
+    # Tests loop over cases inline on purpose.
+    excludes: ['**/test/**']
+  TooManyFunctions:
+    # Small private helpers are how long functions get split; don't count them. Composables are counted per
+    # screen file by design (Common.kt is the component kit).
+    ignorePrivate: true
+    ignoreAnnotatedFunctions: ['Composable']
+    # The reducer has one function per event and the repository one per stored operation; that's the shape we
+    # want, and both are a little over the default 11.
+    thresholdInClasses: 15
+
+style:
+  MagicNumber:
+    # ui/theme holds the design tokens (colors, sizes) and icon path data: numbers are the point of those files
+    # (CLAUDE.md: all colors, type and sizes live in Theme.kt). Tests use literal times and counts.
+    # data/Db.kt holds the shipped Room migrations, frozen by T-009: their version numbers stay literal.
+    excludes: ['**/ui/theme/**', '**/test/**', '**/data/Db.kt']

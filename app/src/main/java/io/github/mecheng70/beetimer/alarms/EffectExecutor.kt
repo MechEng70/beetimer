@@ -32,36 +32,41 @@ class EffectExecutor(
 
                 is Effect.CancelAlarm -> alarms.cancel(effect.hiveId)
 
-                is Effect.Ring -> {
-                    val run = state.runs[effect.hiveId] ?: continue
-                    val label = labels[effect.hiveId] ?: continue
-                    val info = AlarmText.info(context, run, state, labels)
-                    val how = Delivery.ring(isForeground())
-                    RingService.ring(
-                        context,
-                        effect.hiveId,
-                        AlarmText.notificationTitle(label),
-                        AlarmText.notificationBody(context, info),
-                        quiet = how.quietNotification,
-                    )
-                    if (how.openAlarmScreen) {
-                        runCatching {
-                            context.startActivity(AlarmActivity.intent(context, effect.hiveId, returnToApp = true))
-                        }
-                    }
-                }
+                is Effect.Ring -> ring(effect.hiveId, state, labels)
 
                 is Effect.StopRing -> RingService.stop(context, effect.hiveId)
 
-                is Effect.NotifyDeviceFree -> labels[effect.hiveId]?.let { label ->
-                    when (Delivery.deviceFree(isForeground())) {
-                        Delivery.DeviceFree.SNACKBAR -> showInApp(effect.hiveId, label)
-                        Delivery.DeviceFree.NOTIFICATION -> notifier.deviceFree(effect.hiveId, label)
-                    }
-                }
+                is Effect.NotifyDeviceFree -> labels[effect.hiveId]?.let { deviceFree(effect.hiveId, it) }
             }
         }
         if (state.lockHolder != null || state.queue.isEmpty()) notifier.cancelDeviceFree()
         notifier.status(state, labels)
+    }
+
+    private fun ring(hiveId: Long, state: SchedulerState, labels: Map<Long, String>) {
+        val run = state.runs[hiveId]
+        val label = labels[hiveId]
+        if (run == null || label == null) return
+        val info = AlarmText.info(context, run, state, labels)
+        val how = Delivery.ring(isForeground())
+        RingService.ring(
+            context,
+            hiveId,
+            AlarmText.notificationTitle(label),
+            AlarmText.notificationBody(context, info),
+            quiet = how.quietNotification,
+        )
+        if (how.openAlarmScreen) {
+            runCatching {
+                context.startActivity(AlarmActivity.intent(context, hiveId, returnToApp = true))
+            }
+        }
+    }
+
+    private fun deviceFree(hiveId: Long, label: String) {
+        when (Delivery.deviceFree(isForeground())) {
+            Delivery.DeviceFree.SNACKBAR -> showInApp(hiveId, label)
+            Delivery.DeviceFree.NOTIFICATION -> notifier.deviceFree(hiveId, label)
+        }
     }
 }

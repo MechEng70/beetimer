@@ -168,7 +168,10 @@ fun Chip(
     }
 }
 
-/** Outlined pill naming the next step: amber for a vaporizer step, teal for a passive one. No fill. Never cut off: a long name wraps and the pill grows. */
+/**
+ * Outlined pill naming the next step: amber for a vaporizer step, teal for a passive one. No fill. Never cut
+ * off: a long name wraps and the pill grows.
+ */
 @Composable
 fun StepPill(text: String, deviceBound: Boolean, modifier: Modifier = Modifier) {
     val c = BeeTheme.colors

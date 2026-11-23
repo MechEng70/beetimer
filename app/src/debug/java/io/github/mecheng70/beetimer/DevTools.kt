@@ -14,6 +14,7 @@ import androidx.compose.ui.platform.testTag
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.mecheng70.beetimer.scheduler.Effect
 import io.github.mecheng70.beetimer.scheduler.Event
+import io.github.mecheng70.beetimer.scheduler.HiveRun
 import io.github.mecheng70.beetimer.scheduler.Invariants
 import io.github.mecheng70.beetimer.scheduler.Planner
 import io.github.mecheng70.beetimer.scheduler.RunState
@@ -36,7 +37,9 @@ import io.github.mecheng70.beetimer.ui.theme.Dimens
 object DevTools {
     private const val TAG_INVARIANT = "BeeTimerInvariant"
     private const val TAG_E2E = "BeeTimerE2E"
-    private val SCALES = listOf(1, 10, 60)
+    private const val SCALE_FAST = 10
+    private const val SCALE_FASTEST = 60
+    private val SCALES = listOf(1, SCALE_FAST, SCALE_FASTEST)
 
     /** Platform alarms as scheduled through effects in this process. */
     private val alarms = mutableMapOf<Long, Long>()
@@ -83,7 +86,28 @@ object DevTools {
 
     fun afterCommit(event: String, before: SchedulerState?, t: Transition, labels: Map<Long, String>, now: Long) {
         val s = t.state
-        fun name(id: Long) = labels[id] ?: "hive$id"
+        val name = { id: Long -> labels[id] ?: "hive$id" }
+        trackAlarms(event, t)
+        Log.i(TAG_E2E, "EVENT t=$now scale=${s.timeScale} $event")
+        for ((id, run) in s.runs) logRun(name(id), run, before?.runs?.get(id), now)
+        before?.runs?.keys?.filter { it !in s.runs }?.forEach { Log.i(TAG_E2E, "NOTSTARTED t=$now hive=${name(it)}") }
+        if (before == null || before.lockHolder != s.lockHolder || before.queue != s.queue) {
+            Log.i(TAG_E2E, "LOCK t=$now holder=${s.lockHolder?.let(name) ?: "none"} queue=${s.queue.map(name)}")
+        }
+        val forecast = planner.forecast(s, now)
+        Log.i(
+            TAG_E2E,
+            "FORECAST t=$now done=${forecast.allDoneAt} " +
+                "dones=${forecast.hives.entries.joinToString(",") { "${name(it.key)}@${it.value.doneAt}" }} " +
+                forecast.steps.joinToString(";") {
+                    "${name(it.hiveId)}|${it.stepName}|${it.at}|${if (it.estimated) "~" else "="}"
+                },
+        )
+        Invariants.check(s, alarms, forecast, now).forEach { Log.e(TAG_INVARIANT, "VIOLATION after $event: $it") }
+    }
+
+    /** Mirrors the platform alarms from the effects, so the invariant check can compare them. */
+    private fun trackAlarms(event: String, t: Transition) {
         t.effects.forEach {
             when (it) {
                 is Effect.ScheduleAlarm -> alarms[it.hiveId] = it.atMs
@@ -96,47 +120,29 @@ object DevTools {
             val id = event.substringAfter("hiveId=").substringBefore(")").toLongOrNull()
             if (id != null && t.effects.none { e -> e is Effect.ScheduleAlarm && e.hiveId == id }) alarms.remove(id)
         }
-        Log.i(TAG_E2E, "EVENT t=$now scale=${s.timeScale} $event")
-        for ((id, run) in s.runs) {
-            val prior = before?.runs?.get(id)
-            val entered = prior == null || prior.currentStepIndex != run.currentStepIndex ||
-                (prior.state == RunState.WAITING_FOR_DEVICE && run.state != RunState.WAITING_FOR_DEVICE)
-            if (run.state == RunState.DONE &&
-                prior?.state != RunState.DONE
-            ) {
-                Log.i(TAG_E2E, "DONE t=$now hive=${name(id)}")
-            } else if (run.state == RunState.WAITING_FOR_DEVICE && prior?.state != RunState.WAITING_FOR_DEVICE) {
-                Log.i(TAG_E2E, "WAIT t=$now hive=${name(id)} step=${run.currentStep?.name}")
-            } else if (entered && run.isActive) {
-                Log.i(
-                    TAG_E2E,
-                    "STEP t=$now hive=${name(
-                        id,
-                    )} idx=${run.currentStepIndex} step=${run.currentStep?.name} device=${run.currentStep?.deviceBound}",
-                )
-            }
-            if (run.ringing != null &&
-                prior?.ringing == null
-            ) {
-                Log.i(
-                    TAG_E2E,
-                    "RING t=$now hive=${name(id)} finished=${run.steps[run.ringing!!.finishedStepIndex].name}",
-                )
-            }
+    }
+
+    private fun logRun(label: String, run: HiveRun, prior: HiveRun?, now: Long) {
+        val entered = prior == null || prior.currentStepIndex != run.currentStepIndex ||
+            (prior.state == RunState.WAITING_FOR_DEVICE && run.state != RunState.WAITING_FOR_DEVICE)
+        when {
+            run.state == RunState.DONE && prior?.state != RunState.DONE ->
+                Log.i(TAG_E2E, "DONE t=$now hive=$label")
+
+            run.state == RunState.WAITING_FOR_DEVICE && prior?.state != RunState.WAITING_FOR_DEVICE ->
+                Log.i(TAG_E2E, "WAIT t=$now hive=$label step=${run.currentStep?.name}")
+
+            entered && run.isActive -> Log.i(
+                TAG_E2E,
+                "STEP t=$now hive=$label idx=${run.currentStepIndex} step=${run.currentStep?.name} " +
+                    "device=${run.currentStep?.deviceBound}",
+            )
+
+            else -> Unit
         }
-        before?.runs?.keys?.filter { it !in s.runs }?.forEach { Log.i(TAG_E2E, "NOTSTARTED t=$now hive=${name(it)}") }
-        if (before == null || before.lockHolder != s.lockHolder || before.queue != s.queue) {
-            Log.i(TAG_E2E, "LOCK t=$now holder=${s.lockHolder?.let(::name) ?: "none"} queue=${s.queue.map(::name)}")
+        val ringing = run.ringing
+        if (ringing != null && prior?.ringing == null) {
+            Log.i(TAG_E2E, "RING t=$now hive=$label finished=${run.steps[ringing.finishedStepIndex].name}")
         }
-        val forecast = planner.forecast(s, now)
-        Log.i(
-            TAG_E2E,
-            "FORECAST t=$now done=${forecast.allDoneAt} " +
-                "dones=${forecast.hives.entries.joinToString(",") { "${name(it.key)}@${it.value.doneAt}" }} " +
-                forecast.steps.joinToString(";") {
-                    "${name(it.hiveId)}|${it.stepName}|${it.at}|${if (it.estimated) "~" else "="}"
-                },
-        )
-        Invariants.check(s, alarms, forecast, now).forEach { Log.e(TAG_INVARIANT, "VIOLATION after $event: $it") }
     }
 }

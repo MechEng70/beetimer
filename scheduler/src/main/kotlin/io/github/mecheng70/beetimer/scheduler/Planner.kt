@@ -62,74 +62,104 @@ class Planner(private val scheduler: Scheduler = DefaultScheduler()) {
     fun nextUp(state: SchedulerState, hiveOrder: List<Long>): Long? =
         state.queue.firstOrNull() ?: hiveOrder.firstOrNull { notStarted(state, it) }
 
-    fun forecast(state: SchedulerState, now: Long): Forecast {
-        var s = state
-        var t = now
-        var lockFreedAt = if (s.lockHolder == null) Long.MIN_VALUE else now
-        val estimated = mutableSetOf<Long>()
-        val steps = mutableListOf<PlannedStep>()
-        val doneAt = mutableMapOf<Long, Long>()
-        val involved = state.runs.values.filter { it.isActive }.map { it.hiveId }.toSet()
-        val holder = state.lockHolder
-        var freeAt: Long? = null
-        var freeEstimated = false
-        // Hive -> end time of its running step, while the step that follows has not been entered yet.
-        val firmPending = mutableMapOf<Long, Long>()
+    fun forecast(state: SchedulerState, now: Long): Forecast = Simulation(state, now).run()
 
-        for (i in 0 until MAX_ACTIONS) {
-            val action = nextAction(s, t, lockFreedAt) ?: break
+    /** One forecast: runs the reducer forward from [state] with a simulated person, collecting what happens. */
+    private inner class Simulation(private val state: SchedulerState, now: Long) {
+        private var s = state
+        private var t = now
+        private var lockFreedAt = if (s.lockHolder == null) Long.MIN_VALUE else now
+        private val estimated = mutableSetOf<Long>()
+        private val steps = mutableListOf<PlannedStep>()
+        private val doneAt = mutableMapOf<Long, Long>()
+        private val involved = state.runs.values.filter { it.isActive }.map { it.hiveId }.toSet()
+        private val holder = state.lockHolder
+        private var freeAt: Long? = null
+        private var freeEstimated = false
+
+        // Hive -> end time of its running step, while the step that follows has not been entered yet.
+        private val firmPending = mutableMapOf<Long, Long>()
+
+        fun run(): Forecast {
+            var going = true
+            var count = 0
+            while (going && count < MAX_ACTIONS) {
+                going = advance()
+                count++
+            }
+            return result()
+        }
+
+        /** Simulates the next action. False when there is none or it changes nothing. */
+        private fun advance(): Boolean {
+            val action = nextAction(s, t, lockFreedAt) ?: return false
             t = maxOf(t, action.at)
             val before = s
             s = scheduler.reduce(s, action.event, t).state
-            if (s == before) break
+            val changed = s != before
+            if (changed) record(before, action)
+            return changed
+        }
+
+        private fun record(before: SchedulerState, action: Action) {
             val h = action.hiveId
             // The running step's own timer end is the only action with no tap before it.
             val firmTimer = !action.estimate && h !in estimated
             val pendingAt = firmPending.remove(h)
             val firmEntry = firmTimer || (pendingAt != null && pendingAt == t)
-            if (before.lockHolder != null && s.lockHolder == null) lockFreedAt = t
-            if (holder != null && freeAt == null && s.lockHolder != holder) {
-                freeAt = t
-                freeEstimated = if (h == holder) !firmEntry else holder in estimated
-            }
-            var enteredForActor = false
-            for ((id, after) in s.runs) {
-                val prior = before.runs[id]
-                if (after.state == RunState.DONE && prior?.state != RunState.DONE) doneAt[id] = t
-                if (!after.isActive || after.state == RunState.WAITING_FOR_DEVICE) continue
-                val entered = prior == null || prior.isTerminal || prior.state == RunState.WAITING_FOR_DEVICE ||
-                    prior.currentStepIndex != after.currentStepIndex
-                if (entered) {
-                    val step = after.steps[after.currentStepIndex]
-                    val est = if (id == h) !firmEntry else id in estimated
-                    steps += PlannedStep(id, after.currentStepIndex, step.name, t, est, step.deviceBound)
-                    if (id == h) enteredForActor = true
-                }
-            }
+            noteLock(before, h, firmEntry)
+            val enteredForActor = recordEntries(before, h, firmEntry)
             // Timed -> timed: the next step starts on Done at the same moment; that first entry stays firm.
             if (firmTimer && !enteredForActor) firmPending[h] = t
             // Whatever follows waits on a tap.
             estimated += h
         }
 
-        val ordered = steps.sortedBy { it.at }
-        val hives = involved.associateWith { id ->
-            val mine = ordered.filter { it.hiveId == id }
-            HiveForecast(
-                next = mine.firstOrNull(),
-                deviceStart = mine.firstOrNull { it.deviceBound },
-                doneAt = doneAt[id],
-                doneEstimated = id in estimated,
-            )
+        private fun noteLock(before: SchedulerState, h: Long, firmEntry: Boolean) {
+            if (before.lockHolder != null && s.lockHolder == null) lockFreedAt = t
+            if (holder != null && freeAt == null && s.lockHolder != holder) {
+                freeAt = t
+                freeEstimated = if (h == holder) !firmEntry else holder in estimated
+            }
         }
-        val allDone = if (involved.isNotEmpty() &&
-            involved.all { it in doneAt }
-        ) {
-            involved.maxOf { doneAt.getValue(it) }
-        } else {
-            null
+
+        /** Records completions and step entries since [before]. True if the actor [h] entered a step. */
+        private fun recordEntries(before: SchedulerState, h: Long, firmEntry: Boolean): Boolean {
+            var enteredForActor = false
+            for ((id, after) in s.runs) {
+                val prior = before.runs[id]
+                if (after.state == RunState.DONE && prior?.state != RunState.DONE) doneAt[id] = t
+                if (after.isActive && after.state != RunState.WAITING_FOR_DEVICE && entered(prior, after)) {
+                    val step = after.steps[after.currentStepIndex]
+                    val est = if (id == h) !firmEntry else id in estimated
+                    steps += PlannedStep(id, after.currentStepIndex, step.name, t, est, step.deviceBound)
+                    if (id == h) enteredForActor = true
+                }
+            }
+            return enteredForActor
         }
-        return Forecast(ordered, hives, allDone, involved.any { it in estimated }, freeAt, freeEstimated)
+
+        private fun entered(prior: HiveRun?, after: HiveRun): Boolean = prior == null || prior.isTerminal ||
+            prior.state == RunState.WAITING_FOR_DEVICE || prior.currentStepIndex != after.currentStepIndex
+
+        private fun result(): Forecast {
+            val ordered = steps.sortedBy { it.at }
+            val hives = involved.associateWith { id ->
+                val mine = ordered.filter { it.hiveId == id }
+                HiveForecast(
+                    next = mine.firstOrNull(),
+                    deviceStart = mine.firstOrNull { it.deviceBound },
+                    doneAt = doneAt[id],
+                    doneEstimated = id in estimated,
+                )
+            }
+            val allDone = if (involved.isNotEmpty() && involved.all { it in doneAt }) {
+                involved.maxOf { doneAt.getValue(it) }
+            } else {
+                null
+            }
+            return Forecast(ordered, hives, allDone, involved.any { it in estimated }, freeAt, freeEstimated)
+        }
     }
 
     private data class Action(val at: Long, val event: Event, val hiveId: Long, val estimate: Boolean, val rank: Int)

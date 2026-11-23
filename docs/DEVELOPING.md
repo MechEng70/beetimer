@@ -97,7 +97,8 @@ Moving to compileSdk 37 unlocks the newer ones.
 ## Security scanners (gate)
 
 - `scripts/security.sh semgrep | snyk-oss | snyk-code`, run by `scripts/check.sh`. Semgrep uses the `p/kotlin`
-  and `p/secrets` rulesets; Snyk open source tests all Gradle projects at high and above; Snyk Code at high.
+  and `p/secrets` rulesets; Snyk open source tests all Gradle projects at high and above (`--all-projects`, plus `buildSrc` by file,
+  which `--all-projects` skips); Snyk Code at high.
 - Each fails on any finding, and also when the tool is missing, Snyk isn't logged in (`snyk auth`), the scan
   errors out, or it covers less than exists (Kotlin in both modules; the root plus every Gradle project; every
   tracked `.kt` file). Network errors get one retry.

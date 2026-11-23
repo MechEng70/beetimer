@@ -342,6 +342,43 @@ oracle. Run through all tasks in order and stop only at the brief's hard stops.
 - **Device testing (Jason):** the list.
 - Result: the list is in `docs/HANDOFF.md`, "Final report (T-020)". Dashboard timer stopped.
 
+### Phase 8: round R12, Jason's decisions (2026-11-23)
+
+Small round from Jason's answers to the R11 final report: gate, commit, push, no new release.
+
+#### T-021 [ ] Alarm screen: Then line only (S)
+- **Goal:** when the "Then:" line shows, drop "Vaporizer frees when you tap Done. <hive> is next." (Jason).
+- **Files:** `alarms/AlarmText.kt`, `ui/AlarmActivity.kt` if needed, tests, `docs/screenshots/app-3-alarm*.png`,
+  SPEC section 1.
+- **Depends on:** T-013a.
+- **Size:** S. **Model:** main (Opus 5.5). **Parallel-safe:** no (emulator).
+- **Acceptance:** with a Then line, no device note; without one (no next hive), the old note still shows as
+  before; tests updated; s6 and s11 pass at 10x; `app-3-alarm.png` re-captured.
+- **Tests:** `AlarmTextTest`, `AlarmLayoutTest`; E2E s6 and s11.
+- **Device testing (Jason):** let a vaporizer-freeing step end on the phone: only the Then line shows.
+
+#### T-022 [ ] Remove s1x10 and s2x10 (S)
+- **Goal:** delete the two duplicate flows (Jason's yes).
+- **Files:** `scripts/e2e/gen_flows.py`, `scripts/e2e/flows/s1x10.yaml`, `s2x10.yaml`, `analyze.py`,
+  `docs/e2e/README.md`.
+- **Depends on:** T-013.
+- **Size:** S. **Model:** main (Opus 5.5). **Parallel-safe:** yes.
+- **Acceptance:** files gone; the generator doesn't recreate them; analyzer and README don't list them.
+- **Tests:** regenerate flows, no diff; analyze.py runs.
+- **Device testing (Jason):** none.
+
+#### T-023 [x] CLAUDE.md: Snyk covers buildSrc (S)
+- **Goal:** Jason's rule: `snyk test` and `snyk monitor` cover `buildSrc` by file, because `--all-projects`
+  skips it; the gate fails if fewer projects are scanned than exist.
+- **Files:** `CLAUDE.md`, `docs/DEVELOPING.md`.
+- **Depends on:** T-014.
+- **Size:** S. **Model:** main (Opus 5.5). **Parallel-safe:** yes.
+- **Acceptance:** CLAUDE.md says so; the gate already enforces it (`scripts/security.sh`, 4 of 4).
+- **Tests:** the gate.
+- **Device testing (Jason):** none.
+- Result: CLAUDE.md (Quality gate and Security) and DEVELOPING.md updated. Probe: `security.sh` with the
+  buildSrc scan removed fails, "3 projects tested (expected 4)". Gate passes (4 of 4).
+
 ## Found during R11 (for Jason; not fixed in R11 unless a task above covers it)
 
 - **Dashboard missed T-013a (fixed).** `dashboard.py` only matched `T-` plus three digits, so T-013a was left

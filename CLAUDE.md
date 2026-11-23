@@ -51,7 +51,8 @@
   (no Gradle cache) and writes its result to `build/gate/last.tsv`.
 - Android lint warnings about newer library versions are expected while compileSdk is 36.
 - Formatting-only changes go in their own commit so behavior changes stay reviewable.
-- `snyk monitor --all-projects` after a release or a push to `main`, not per task.
+- `snyk monitor --all-projects` plus `snyk monitor --file=buildSrc/build.gradle.kts` after a release or a push to
+  `main`, not per task.
 
 ## Security
 
@@ -60,6 +61,8 @@
 - No high or critical finding left open without an entry in `docs/design/SECURITY-EXCEPTIONS.md` with scope
   and an expiry date.
 - A security scanner that is skipped, or scans fewer projects than exist, fails the gate.
+- `snyk test` and `snyk monitor` cover `buildSrc` explicitly, by file (`--file=buildSrc/build.gradle.kts`):
+  `--all-projects` skips it. `scripts/security.sh` counts it as a project, so the gate fails without it.
 - Device tests: clear logcat (`adb logcat -c`) before and after each run. Never save logcat unless a test
   fails, and then only with token patterns redacted.
 - Device screenshots always crop off the status bar (the repo is public). Mockup and app captures for UI

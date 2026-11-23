@@ -111,7 +111,7 @@ oracle. Run through all tasks in order and stop only at the brief's hard stops.
 
 ### Phase 2: quality gate
 
-#### T-006 [~] Format and lint (L)
+#### T-006 [x] Format and lint (L)
 - **Goal:** ktlint and detekt with zero warnings and no baseline file.
 - **Files:** `build.gradle.kts`, `gradle/libs.versions.toml`, `.editorconfig`, `config/detekt/detekt.yml`,
   Kotlin sources.
@@ -121,6 +121,7 @@ oracle. Run through all tasks in order and stop only at the brief's hard stops.
   their own commit; all tests still pass.
 - **Tests:** full unit suite unchanged and green.
 - **Device testing (Jason):** none.
+- Done: `9e7c239` (format), `e45cb25` (detekt).
 
 #### T-007 [ ] Security scanners (M)
 - **Goal:** Semgrep (Kotlin, secrets) and Snyk (open source and code, high and above) in the gate.

@@ -12,8 +12,8 @@ stops and the usage throttle (playbook section 9). No behavior change: the tag `
 is the oracle.
 
 - **Branch:** the brief says `master`; the branch is `main` (renamed and pushed 2026-11-22). Use `main`.
-- **Done:** T-001 to T-005. Status per task is in `docs/design/TASKS.md` (R11 section).
-- **Next:** T-006 ktlint and detekt (formatting-only changes in their own commit).
+- **Done:** T-001 to T-006. Status per task is in `docs/design/TASKS.md` (R11 section).
+- **Next:** T-007 Semgrep and Snyk in the gate.
 - **Found during R11:** listed in TASKS.md under that heading.
 - **Brief updated mid-round:** Jason's chat updated the playbook and brief at about 10:56, after T-001 to T-005
   were committed. T-001 gained usage tracking (done in a follow-up T-001 commit); CLAUDE.md, TASKS.md and

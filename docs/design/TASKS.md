@@ -313,9 +313,10 @@ oracle. Run through all tasks in order and stop only at the brief's hard stops.
   `.env` or key files; no secret patterns (the only hits are the Gradle code reading the property names); the
   keystore password values appear nowhere in history or the tree. All 151 PNG versions in the 41 new commits
   are cropped (2272 px tall). The R6 uncropped emulator captures in older history were already public. Pushed
-  `main` and the tag `alpha-baseline`; `snyk monitor --all-projects` after the push.
+  `main` and the tag `alpha-baseline`; `snyk monitor --all-projects` after the push (plus `buildSrc` by file).
+- Done: `d1d77e8`.
 
-#### T-019 [ ] Release (S)
+#### T-019 [x] Release (S)
 - **Goal:** GitHub pre-release `v0.1.0-alpha.1` with the APK and sha256.
 - **Files:** none in the repo.
 - **Depends on:** T-016, T-018.
@@ -323,10 +324,14 @@ oracle. Run through all tasks in order and stop only at the brief's hard stops.
 - **Acceptance:** release published with notes from `docs/INSTALL.md`; README has the icon header.
 - **Tests:** download the asset and check its sha256.
 - **Device testing (Jason):** none.
+- Result: Jason's go-ahead (2026-11-23). `scripts/release.sh` on the clean tree at `d1d77e8`, then pre-release
+  `v0.1.0-alpha.1` (https://github.com/MechEng70/beetimer/releases/tag/v0.1.0-alpha.1) with
+  `beetimer-0.1.0-alpha.1.apk` and its `.sha256`. Downloaded: sha256 OK, signed by the release certificate,
+  pre-release, not a draft, tag at `d1d77e8`. The README already has the icon header.
 
 ### Phase 7: wrap-up
 
-#### T-020 [ ] Final report (S)
+#### T-020 [x] Final report (S)
 - **Goal:** one list for Jason.
 - **Files:** `docs/HANDOFF.md`.
 - **Depends on:** all.
@@ -335,6 +340,7 @@ oracle. Run through all tasks in order and stop only at the brief's hard stops.
   waiting, everything under "Found during R11", and the USAGE summary.
 - **Tests:** the gate.
 - **Device testing (Jason):** the list.
+- Result: the list is in `docs/HANDOFF.md`, "Final report (T-020)". Dashboard timer stopped.
 
 ## Found during R11 (for Jason; not fixed in R11 unless a task above covers it)
 

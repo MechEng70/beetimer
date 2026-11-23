@@ -3,7 +3,7 @@
 Where Bee Timer stands on 2026-11-23, for whoever picks it up next (a person or a fresh agent session).
 Update this file after each task.
 
-## Round R11 (in progress): playbook adoption
+## Round R11 (done 2026-11-23): playbook adoption
 
 Work order: `docs/design/PLAYBOOK-ADOPTION.md` (read it fully). Playbook: `docs/PLAYBOOK.md`. Run all tasks
 in order, commit each with its ID, then update this section, regenerate the dashboard
@@ -12,8 +12,8 @@ stops and the usage throttle (playbook section 9). No behavior change: the tag `
 is the oracle.
 
 - **Branch:** the brief says `master`; the branch is `main` (renamed and pushed 2026-11-22). Use `main`.
-- **Done:** T-001 to T-018. Status per task is in `docs/design/TASKS.md` (R11 section).
-- **Next:** T-019 GitHub pre-release (asks Jason first), then T-020 final report.
+- **Done:** T-001 to T-020. Status per task is in `docs/design/TASKS.md` (R11 section).
+- **Next:** nothing in R11. Jason's list is below.
 - **Found during R11:** listed in TASKS.md under that heading.
 - **Brief updated mid-round:** Jason's chat updated the playbook and brief at about 10:56, after T-001 to T-005
   were committed. T-001 gained usage tracking (done in a follow-up T-001 commit); CLAUDE.md, TASKS.md and
@@ -29,23 +29,48 @@ Usage tracking (set up in T-001):
 - Timer: `scripts/dashboard-timer.sh start | stop | status`. Start it at the start of every session; stop it
   as the last step before the final handoff of the round.
 
-### In progress (2026-11-23 17:12)
+### Final report (T-020, 2026-11-23)
 
-T-013 to T-017 are committed. No stashes.
-- **T-016:** Jason made the keystore (`~/keys/beetimer-release.jks`, alias `beetimer`, `keystore.properties`
-  in the repo root; git-ignored, mode 600). Release build signs; certificate SHA-256 recorded;
-  `scripts/release.sh` works end to end. Never print passwords.
+Where it ended: gate passes (ktlint, detekt, Android lint, unit tests, buildSrc tests, py-tests, Semgrep, Snyk
+open source 4 of 4 projects, Snyk Code); E2E 22 of 22 at 10x and font 1.15 and 1.3, 0 invariant errors;
+`main` and tags pushed; GitHub pre-release `v0.1.0-alpha.1` published with the release-signed APK and its
+sha256 (downloaded and checked); `snyk monitor` run for all 4 projects. Docs current. Dashboard timer stopped.
 
-T-013 notes: the emulator now boots on the software GPU (`-gpu swiftshader_indirect`); the host GPU segfaulted
-twice in long runs. A full run at 10x takes about 2 hours for both font scales. Never `pkill -f run.sh` from a
-shell whose own command line contains that text (it kills itself). Emulator: stopped. Dashboard timer: running.
+**On the phone (Jason), in this order:**
+1. **Move to the release build (T-017).** The phone has the debug 0.1.0-alpha, which a release can't install
+   over. Note your hive names, uninstall Bee Timer, install `beetimer-0.1.0-alpha.1.apk` from the Releases page
+   (docs/INSTALL.md), allow the permissions again, rename the hives. Hive names and any run are lost, once.
+2. **Alarm screen (T-013a).** Let a step end with the screen locked. Compare with
+   `docs/screenshots/app-3-alarm.png` (and `-large` at 1.3): readable at arm's length, nothing over the buttons.
+3. **Countdowns (T-011).** Watch a countdown on the All tab and the Hive tab tick 10:00 to 9:59 and 1:00 to
+   0:59: the text next to it must not shift.
+4. **Themed icons.** Settings, Wallpapers & style, Icons, Themed icons; look at Bee Timer on the home screen.
+5. Optional: status bar and `docs/dashboard.html` (T-001); new `docs/screenshots/app-*.png` against the previous
+   commit's (T-013; compared already: only clock values and a 4 px scroll offset differ).
 
-### Waiting on Jason
+**Decisions for Jason:**
+- **Alarm screen "Then:" line (T-013a).** When Done frees the vaporizer, the alarm shows "Then: Hive 2, load
+  dose" and also the older "Vaporizer frees when you tap Done. Hive 2 is next." Keep both, or drop the second?
+- **s1x10 and s2x10 (T-013).** The suite is 10x now, so these flows are the same as s1 and s2 and aren't run.
+  Delete the two flow files and their generator lines (tracked files, so Jason's call)?
+- **Snyk monitor and buildSrc.** `snyk monitor --all-projects` skips `buildSrc`, so
+  `snyk monitor --file=buildSrc/build.gradle.kts` was run too. Add that to the CLAUDE.md rule?
 
-Not blocking; collected for the end of the round (details in TASKS.md, "Found during R11"):
-- s1x10 and s2x10 now duplicate s1 and s2 (T-013). Delete the two flow files and their generator lines?
-- Alarm screen (T-013a): when Done frees the vaporizer it shows both "Then: Hive 2, load dose" and "Vaporizer
-  frees when you tap Done. Hive 2 is next." Keep both, or drop the second?
+**Hard stops:** none open. Keystore made and backed up (Jason confirmed); the two emulator uninstalls in T-017
+had Jason's yes.
+
+**Found during R11 (details in TASKS.md):** corrupt rows (fixed, T-010); exact alarm refused on Android 12 only
+(not fixed, would add UI); vaporizer bar and Coming up layout (Jason's design change, done); dashboard missed
+T-013a (fixed); citations (answered).
+
+**Usage:** 21 logged rows, all Opus 5.5 in the main session, no agents (11 S, 8 M, 2 L). Weekly went from 61%
+to 65% over the round; no 5-hour window passed 12%. The throttle never left "normal" or "wide open".
+
+**Gotchas from this round:** the emulator boots on the software GPU (`-gpu swiftshader_indirect`) because the
+host GPU segfaulted twice in long runs; a full E2E run takes about 2 hours. Never `pkill -f run.sh` from a shell
+whose command line contains that text (it kills itself). Rewriting a script through a temp file and `mv`
+drops its executable bit: use Edit, or `chmod` after. Under `set -o pipefail`, never pipe into `head`,
+`grep -m` or `grep -q` (SIGPIPE, exit 141).
 
 Restart prompt (from the brief):
 
@@ -57,7 +82,8 @@ Then continue round R11 from the next unfinished task, under the same rules.
 
 ## State
 
-- **Version:** 0.1.0-alpha on the phone (debug-signed, versionCode 1); the repo now builds 0.1.0-alpha.1 (100001). Last round R10 (row layout and volume check) on `main`.
+- **Version:** 0.1.0-alpha.1 (versionCode 100001), release-signed. Jason's phone still has the debug
+  0.1.0-alpha (versionCode 1) until the move in step 1 above. Last round R11 on `main`.
 - **Remote:** `origin` is https://github.com/MechEng70/beetimer (public), default branch `main`. First
   pushed 2026-11-22. Local `master` was renamed to `main` for the push. Social preview is
   `docs/icon/icon-1024.png` (uploaded by hand; GitHub has no API for it).
@@ -66,14 +92,10 @@ Then continue round R11 from the next unfinished task, under the same rules.
 - **Gate:** `scripts/check.sh` passes (R11 adds ktlint, detekt, py-tests, Semgrep, Snyk).
 - **End to end:** 22 of 22 runs pass (s1 to s11 at font 1.15 and 1.3, 10x), 0 invariant errors
   (`docs/e2e/REPORT.md`, R11 T-013).
-- **Done:** everything in `docs/design/TASKS.md` up to R10. Jason checked R7 to R10 on the phone on
+- **Done:** everything in `docs/design/TASKS.md` up to R11. Jason checked R7 to R10 on the phone on
   2026-11-22: all good.
-- **Releases:** none yet. The README and INSTALL.md link to the Releases page, which is empty until the
-  first release.
-- **Waiting on:** Jason's call on the first GitHub Release (2026-11-22: "wait"). Two ways, both asked:
-  do T11 first and publish a release-signed pre-release (recommended), or publish the debug-signed APK as
-  a pre-release, knowing a later release-signed build needs an uninstall (data lost). Don't release
-  without his go-ahead.
+- **Releases:** `v0.1.0-alpha.1`, pre-release, 2026-11-23 (Jason's go-ahead), with the APK and its sha256.
+  Next release: bump `appVersion` in `gradle.properties`, run `scripts/release.sh` with the emulator off.
 
 ## Latest rounds (2026-11-22, main screen only)
 
@@ -139,20 +161,13 @@ Needs Jason:
   the home screen. They're verified on the emulator only.
 - **Phone cleanup:** "Hive 4" on the phone: Jason deletes it himself. Don't touch it.
 
-Before the first public release:
-- **T11 release keystore:** see TASKS.md. Plan if Jason says go: keystore and `keystore.properties` in
-  `~/.config/beetimer/` (outside the repo), signing config reads them (or env vars), backup steps in
-  DEVELOPING.md, then `scripts/build-apk.sh` builds the signed APK (it builds the debug APK today) and the
-  APK goes up as a GitHub pre-release with its sha256. Jason backs up the keystore and passwords off GitHub.
-
 Small, not urgent:
-- Kotlin warning `Condition is always 'true'` at `ui/MainScreen.kt:324` (Hive tab, `counting && ends != null`).
+- Kotlin warning `Condition is always 'true'` at `ui/MainScreen.kt:431` (Hive tab, `counting && ends != null`).
   It was there before R7 and is harmless.
 
 Backlog (don't build without asking): B1 timeline chart, B2 more than one vaporizer, B3 dark theme pass, B4
 add and delete steps in the editor, B5 session history.
 
-Deferred tooling: Semgrep, Snyk, ktlint and detekt until after alpha (Jason, 2026-11-21).
 
 ## Rules from Jason that aren't obvious from the code
 

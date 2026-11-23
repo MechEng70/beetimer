@@ -1,120 +1,273 @@
-# Tasks (alpha)
+# Tasks
 
-Target: a field-usable APK today.
+Each task is written to pick up cold: read `CLAUDE.md`, `docs/HANDOFF.md`, `docs/design/TECH-DESIGN.md` and the
+task. Commit with the task ID, update its status here, update `docs/HANDOFF.md`, and log it in
+`docs/design/USAGE.md`.
 
-Each task is sized to pick up cold: read `CLAUDE.md`, `docs/design/TECH-DESIGN.md`, and the task below. Commit with the task ID. Stop after each STOP task for review.
+Status: [ ] todo, [~] in progress, [x] done, [!] waiting on Jason.
 
-Status: [ ] todo, [~] in progress, [x] done.
+## Done before the playbook (alpha, 2026-11-21 to 2026-11-22)
 
-## T1 [x] Scaffold the build
-- Gradle wrapper 9.6.0 (bootstrap from the cached Gradle 9.4.1: `~/.gradle/wrapper/dists/gradle-9.4.1-bin/*/gradle-9.4.1/bin/gradle wrapper --gradle-version 9.6.0`).
-- `settings.gradle.kts` with `:scheduler` (kotlin-jvm, KMP-ready) and `:app` (AGP 9.5.2, built-in Kotlin, Compose compiler plugin, KSP, kotlinx-serialization).
-- `gradle/libs.versions.toml` with the versions pinned in TECH-DESIGN section 2.
-- Empty MainActivity showing "Bee Timer". `scripts/check.sh` (tests, lint).
-- Done when: `./gradlew :scheduler:test assembleDebug` succeeds.
+TECH-DESIGN and SPEC section 1 describe the result. Commit IDs are on `main`; the tag `alpha-baseline`
+(`571c8ee`) marks the end of this work.
 
-## T1b [x] Alarm spike (STOP after): passed on the phone after the RingService fix
-- Minimal APK: one button schedules an exact `setAlarmClock` alarm 60 s out. When it fires, post a high-importance alarm notification with a full-screen intent to a lock-screen activity, with insistent alarm sound and a Stop button.
-- Permissions: `POST_NOTIFICATIONS` request, `USE_EXACT_ALARM`, `USE_FULL_SCREEN_INTENT` check with a settings link.
-- STOP: you test it on the locked phone. This code is reused by T5 and T6.
+| ID | What | Commit |
+|---|---|---|
+| T0 | Plan docs: tech design, tasks, WBS | `44917df` |
+| T1 | Gradle scaffold, KMP-ready `:scheduler` module | `10fa45f` |
+| T1b | Alarm spike; ring from a foreground service with a bundled tone (passed on the phone) | `10fa45f`, `91769ad` |
+| T2 | Scheduler model, presets, template validation | `68f5126` |
+| T3 | Pure scheduler reducer, restore, property test (46 tests) | `4add257` |
+| T4 to T9 | Room data layer, scheduler engine, alarms and receivers, notifications and alarm screen, main UI, settings, first-run permissions | `0c030d7` |
+| T10 | Build script, manual phone test, known limitations | `3e27d9d` |
+| R1 | UI rework to the mockups; alarm stream; seeding regression test | `a6a203a` |
+| R2 | Planning view, step editor, pan wand fix (`MIGRATION_1_2`), Inter, hive drag, max 5 | `0f40d86` |
+| R3 | All tab countdowns, footer clock, heads-up and banner copy | `022ea21` |
+| R4 | Cancel returns the hive to Not started; "Vaporizer" in UI copy | `0dc7c89` |
+| R5 | Take and release markers (`MIGRATION_2_3`), sealed-hold option, planner firm fix, debug DevTools, E2E suite s1 to s10 | `4350039` |
+| R6 | Foreground alarms and snackbar, alarm-close fix (`AlarmActivityCloseTest`), scenario 11, stopwatch bee icon | `7c6bc8e` |
+| Docs | All docs brought up to date with R1 to R6, HANDOFF.md added | `01ace13` |
+| R7 | All tab GUI cleanup: Coming up shows 3 events with no times; larger rows for outdoors | `3f0c6fb` |
+| R8 | Next-step pill, amber or teal outline | `6f91a23` |
+| R9 | Footer copy (`footerFor`, `FooterTest`) | `9e12b85` |
+| R10 | Row layout (chip on line 1 only, step names never cut off); volume snackbar replaces the banner (`VolumeCheck`) | `282cd5b` |
+| Docs | HANDOFF restored and updated; first push to GitHub; social preview | `337e5ae` to `571c8ee` |
 
-## T2 [x] Scheduler model, presets, validation
-- `:scheduler` model classes (TECH-DESIGN section 4), `@Serializable`, stdlib only. `Template` add/delete/move step functions with tests.
-- Presets "OAV pan wand" and "OAV gun type" exactly as in the spec. `TemplateValidator` (section 6).
-- Tests: presets validate; empty template rejected; duration bounds; split device block rejected; zero device steps allowed.
+T11 (release keystore) was never started. R11 replaces it with T-014 to T-017.
 
-## T3 [x] Scheduler reducer and restore (STOP after): 46 tests green
-- `Scheduler` interface and `DefaultScheduler.reduce` / `restore` implementing TECH-DESIGN section 5 rules 1 to 12.
-- Write the tests first: every required test in TECH-DESIGN section 11, plus AddMinute, Snooze, Skip, and the TIMED-to-TIMED acknowledge path.
-- Done when: `./gradlew :scheduler:test` is all green. STOP: summary of coverage for review.
+## Round R11: playbook adoption
 
-## T4 [x] Persistence
-- Room entities and DAOs (TECH-DESIGN section 7, no history table in alpha), Repository, seeding (the two presets, OAV pan wand active, 3 hives "Hive 1..3").
-- `exportSchema = true`; commit `app/schemas/.../1.json`.
-- Scheduler state saved as a JSON row, written in one transaction per dispatch.
+Work order: `docs/design/PLAYBOOK-ADOPTION.md`. No user-visible behavior change; `alpha-baseline` is the
+oracle. Run through all tasks in order and stop only at the brief's hard stops.
 
-## T5 [x] Engine, alarms, receivers
-- `SchedulerEngine` (mutex, reduce, persist, effects). `AlarmScheduler` (`setAlarmClock` for step ends, exact-while-idle for snooze and re-ring).
-- `AlarmReceiver`, `ActionReceiver`, `BootReceiver` (boot, time set, timezone, package replaced, all calling restore).
-- Manifest permissions: `USE_EXACT_ALARM`, `POST_NOTIFICATIONS`, `USE_FULL_SCREEN_INTENT`, `RECEIVE_BOOT_COMPLETED`, `VIBRATE`, `WAKE_LOCK`, `REQUEST_IGNORE_BATTERY_OPTIMIZATIONS`.
+### Phase 0: baseline
 
-## T6 [x] Notifications and alarm screen
-- Channels `alarms` (high importance, alarm audio, vibration, insistent, full-screen intent) and `status` (low).
-- Ringing notification with Done, +1 min, and Snooze 30 s actions. Ring for 2 minutes, then silent for 2 minutes, then ring again.
-- `AlarmActivity` per mockup 3 (dark amber, 64 dp buttons, over the lock screen).
-- Ongoing status notification, one line per active hive.
+#### T-001 [x] Baseline (S)
+- **Goal:** a fixed reference point and the files R11 needs.
+- **Files:** tag `alpha-baseline`; `HANDOFF.md` to `docs/HANDOFF.md`; links in README, CLAUDE.md,
+  TECH-DESIGN; `docs/PLAYBOOK.md`, `docs/design/PLAYBOOK-ADOPTION.md`, `docs/design/USAGE.md`.
+- **Depends on:** none.
+- **Acceptance:** tag exists on `571c8ee`; no link to the old HANDOFF path; `git status` clean; gate passes.
+- **Tests:** gate (101 tests and lint, `--rerun-tasks`).
+- **Device testing (Jason):** none.
+- Done: `135e619`.
 
-## T7 [x] Main UI
-- Theme: amber, teal, and gray roles, light and dark, large type.
-- Device status bar, scrollable tabs (All + one per hive), All tab (mockup 1), Hive tab (mockup 2). Contextual actions, and Skip/Remove on the queue head.
-- Keep screen on while any run is active (when the setting is on).
+### Phase 1: documents
 
-## T8 [x] Settings (later reworked in R2 and R5: drag reorder, max 5, full step editor with markers)
-- Hives: quick-add N, rename (free text, e.g. Emory, Herb, Sparky), note, up/down reorder, delete with confirmation.
-- Template editor (mockup 4), alpha: preset toggle (Pan wand / Gun type) and duration edits on TIMED steps only. No add, delete, or reorder of steps. Reset to defaults. Footer text.
-- Theme picker, keep-screen-on toggle, New session with confirmation. History is deferred.
+#### T-002 [x] CLAUDE.md (S)
+- **Goal:** playbook sections 6 and 6b in CLAUDE.md, adapted to Kotlin, keeping every project rule.
+- **Files:** `CLAUDE.md`.
+- **Depends on:** T-001.
+- **Acceptance:** working, security, devices, data, layout and models sections present; ktlint and detekt
+  named instead of Prettier and ESLint; Room migrations rule; no "tools deferred" section; every old rule kept.
+- **Tests:** none (docs).
+- **Device testing (Jason):** none.
+- Done: `1df14c3`.
 
-## T9 [x] First-run permissions
-- `POST_NOTIFICATIONS` request, exact alarm check, full-screen intent check with a one-screen explainer, and a one-time battery optimization ask.
+#### T-003 [x] SPEC.md (M)
+- **Goal:** SPEC in the playbook shape.
+- **Files:** `SPEC.md`.
+- **Depends on:** T-001.
+- **Acceptance:** what it does, users and phone, one job, screens, rules, decisions table (kept), failure-mode
+  table with every case in the brief, safety numbers with sources or "citation needed (Jason)", definition
+  of done, original brief at the bottom.
+- **Tests:** none (docs).
+- **Device testing (Jason):** none.
+- Done: `6ba1749`.
 
-## T10 [x] Build and docs (STOP after): field APK ready for phone test
-- `./gradlew test lint assembleDebug` green.
-- README: Fedora toolchain, build, and sideload (`adb install -r app/build/outputs/apk/debug/app-debug.apk` or "Install unknown apps").
-- `docs/MANUAL-TEST.md`: a 10-minute phone script with a 10 s template and Emory, Herb, and Sparky.
-- Known limitations, plus proposed features list. STOP for review with install steps.
+#### T-004 [x] TASKS.md and WBS.md (S)
+- **Goal:** history condensed with commit IDs; R11 tasks in playbook format; WBS by phase.
+- **Files:** `docs/design/TASKS.md`, `docs/design/WBS.md`.
+- **Depends on:** T-001.
+- **Acceptance:** every old task and round listed with its commit; T-001 to T-020 each have Goal, Files,
+  Depends on, Acceptance, Tests, Device testing (Jason).
+- **Tests:** none (docs).
+- **Device testing (Jason):** none.
 
-## Review rounds after T10 (all done, on the phone)
+#### T-005 [ ] TECH-DESIGN.md and SECURITY-EXCEPTIONS.md (M)
+- **Goal:** TECH-DESIGN in the playbook outline with the iOS path; an empty exceptions table.
+- **Files:** `docs/design/TECH-DESIGN.md`, `docs/design/SECURITY-EXCEPTIONS.md`.
+- **Depends on:** T-003.
+- **Acceptance:** sections for layers and what each may import, data model and schema, native pieces,
+  security, test strategy, risks, iOS path; exceptions table with columns finding, scope, reason, owner,
+  expiry.
+- **Tests:** none (docs).
+- **Device testing (Jason):** none.
 
-Each round was a review from Jason with an explicit list. TECH-DESIGN and SPEC section 1 describe the result.
+### Phase 2: quality gate
 
-## R1 [x] UI rework to the mockups (a6a203a)
-- Alarm sound on the alarm stream (USAGE_ALARM). Seeding in one transaction (regression: 6 hives). UI matched to the mockups with screenshot comparison.
+#### T-006 [ ] Format and lint (L)
+- **Goal:** ktlint and detekt with zero warnings and no baseline file.
+- **Files:** `build.gradle.kts`, `gradle/libs.versions.toml`, `.editorconfig`, `config/detekt/detekt.yml`,
+  Kotlin sources.
+- **Depends on:** T-001.
+- **Acceptance:** `ktlintCheck` and `detekt` pass on both modules with no baseline; formatting-only changes in
+  their own commit; all tests still pass.
+- **Tests:** full unit suite unchanged and green.
+- **Device testing (Jason):** none.
 
-## R2 [x] Planning view, step editor, pan wand fix, Inter (0f40d86)
-- All tab planning view from `Planner`. Full step editor. Pan wand preset fix plus `MIGRATION_1_2`. Inter bundled. Hive drag, add and remove, max 5. Alarm screen and heads-up layout. Volume banner. Top bar icons. Backlog B1 to B3.
+#### T-007 [ ] Security scanners (M)
+- **Goal:** Semgrep (Kotlin, secrets) and Snyk (open source and code, high and above) in the gate.
+- **Files:** `scripts/check.sh` or `scripts/security.sh`, `docs/design/SECURITY-EXCEPTIONS.md`.
+- **Depends on:** T-005.
+- **Acceptance:** the gate fails if a scanner is missing, not logged in, skipped, or scans fewer Gradle
+  projects than exist; findings fixed or recorded with scope and expiry.
+- **Tests:** run the gate; show it fails when the scanner is absent or scans too few projects.
+- **Device testing (Jason):** none.
 
-## R3 [x] Countdowns and copy (022ea21)
-- All tab shows time remaining, "Now" for passed times, footer clock in the phone's 12/24-hour format. Heads-up title is the hive name. "Alarm volume is low" with Raise.
+#### T-008 [ ] Gate script (S)
+- **Goal:** one `scripts/check.sh`: ktlint, detekt, Android lint, unit tests, Semgrep, Snyk.
+- **Files:** `scripts/check.sh`, `docs/DEVELOPING.md`.
+- **Depends on:** T-006, T-007.
+- **Acceptance:** each step runs in that order and a failure in any fails the gate; tests are re-run, not
+  taken from the Gradle cache.
+- **Tests:** the gate itself, run end to end.
+- **Device testing (Jason):** none.
 
-## R4 [x] Cancel and wording (0dc7c89)
-- Cancel returns the hive to Not started. "Wand" became "Vaporizer" in UI copy (step names keep "wand").
+### Phase 3: data and layout rules
 
-## R5 [x] Take/release markers, planner firm fix, E2E suite (4350039)
-- Marker step model replaces Device/Passive toggles, `MIGRATION_2_3`. Sealed-hold option for the pan wand. Planner firm rule fixed. Debug DevTools (time scale, invariants, E2E log). Maestro suite s1 to s10 on the emulator.
+#### T-009 [ ] Migrations frozen (S)
+- **Goal:** shipped Room migrations and schema files can't change unnoticed.
+- **Files:** `app/src/test/.../data/FrozenSchemaTest.kt`.
+- **Depends on:** T-008.
+- **Acceptance:** a checksum test over `app/schemas/` versions 1 to current and the shipped migration SQL
+  fails if any of them changes.
+- **Tests:** the new test; show it fails on a changed file.
+- **Device testing (Jason):** none.
 
-## R6 [x] Foreground alarms, snackbar, icon (7c6bc8e)
-- App in the foreground: alarm screen opens directly, "Vaporizer free" is a snackbar. Scenario 11 (Home and lock while ringing). s2 at 10x with predicted vs actual. Fixed: in-app alarm screen closed to the launcher (`AlarmActivityCloseTest`). Stopwatch bee adaptive icon with monochrome layer, pixel-checked against the SVGs.
+#### T-010 [ ] Corrupt data (M)
+- **Goal:** a corrupt or unreadable row never crashes a read, and is quarantined before anything overwrites it.
+- **Files:** `data/Repository.kt`, `data/Db.kt` (new quarantine table, Room v4 and `MIGRATION_3_4`),
+  `app/schemas/.../4.json`, tests.
+- **Depends on:** T-009.
+- **Acceptance:** a corrupt state row and a corrupt step-list row each load without a crash and are kept in
+  the quarantine table; healthy data behaves exactly as `alpha-baseline`.
+- **Tests:** corrupt run row, corrupt preset row, `MIGRATION_3_4`, healthy round trip.
+- **Device testing (Jason):** none.
 
-## R7 [x] All-tab GUI cleanup
-- Display only. Coming up: no time column, next 3 events, hive and action. Hive rows: "Next: Unseal" without "in m:ss"; larger type for outdoors (name 20 sp, step 17, Next 16, countdown chip 20 bold, 36 dp tall, 12 dp padding; rows 14 dp padding). No scheduler, planner, alarm or data changes. No E2E flow read the removed text.
+#### T-011 [ ] Layout audit (M)
+- **Goal:** check the playbook layout rule and fix only real violations.
+- **Files:** `ui/` screens and `ui/theme/Theme.kt` as needed.
+- **Depends on:** T-008.
+- **Acceptance:** tabular digits on every countdown; fixed heights for computed values; no auto-scroll;
+  every fix compared against `alpha-baseline` screenshots, nothing else moved.
+- **Tests:** unit tests for any changed pure code; screenshots before and after for any fix.
+- **Device testing (Jason):** watch a countdown on the All tab and the Hive tab tick from 10:00 to 9:59 and
+  1:00 to 0:59: the text next to it must not shift.
 
-## R8 [x] Next-step pill
-- Display only. All tab hive rows: "Next:" stays secondary text; the step name is an outlined pill, amber for a vaporizer step, teal for a passive one, no fill. Tokens `deviceBorder` and `passiveBorder` in `Theme.kt`. The Hive tab has no Next line, so nothing changed there.
+### Phase 4: device test hygiene
 
-## R9 [x] Footer copy
-- Display only. All tab footer: "Estimated finish: 9:15 AM", "Estimated finish: 9:15 AM (2 of 3 hives)" when some hives are not started, "All hives done at 9:15 AM" when every run is complete. No "~". `footerFor` is pure and unit tested (`FooterTest`). New screenshot `app-1-all-teal.png` (scr-h0, scr-h in `screens.sh`).
+#### T-012 [ ] E2E rules (M)
+- **Goal:** the Maestro harness follows the playbook device rules.
+- **Files:** `scripts/e2e/run.sh`, `scripts/e2e/screens.sh`, `docs/e2e/README.md`.
+- **Depends on:** T-008.
+- **Acceptance:** `adb logcat -c` before and after each run; logcat saved only on failure, with token
+  patterns redacted; status bar cropped from every capture; runs at font scale 1.15 and 1.3 with every
+  setting restored; Gradle and Kotlin daemons stopped before booting the emulator.
+- **Tests:** one short scenario run on the emulator, showing settings restored afterward.
+- **Device testing (Jason):** none.
 
-## R10 [x] Row layout and volume check
-- All tab rows: line 1 handle, name, and the chip or button; lines 2 and 3 (step, Next pill or "Starts in") full width under the chip. Step names never ellipsized on the All tab; long ones wrap and the pill grows. R7 sizes, R8 pill and R9 footer unchanged.
-- The "Alarm volume is low" banner is gone. The first Start of a session with the alarm volume under half shows a 6 s bottom snackbar with Raise, at most once per session (`VolumeCheck`, `VolumeCheckTest`).
-- Screenshots: the All tab shots now come from the wand-comes-out scene (`scr-h`, `scr-h2`), with "Next: Remove wand" and "Next: Heat and vaporize" at 1.15 and 1.3. New `app-1-all-teal-large.png`.
+#### T-013 [ ] Full E2E at 10x (L)
+- **Goal:** the whole suite at 10x on the emulator, zero invariant errors, screenshots re-captured.
+- **Files:** `docs/e2e/REPORT.md`, `docs/e2e/*`, `docs/screenshots/app-*.png`.
+- **Depends on:** T-010, T-011, T-012.
+- **Acceptance:** zero invariant errors; every difference from `alpha-baseline` reported.
+- **Tests:** the suite.
+- **Device testing (Jason):** compare the new `docs/screenshots/app-*.png` with the previous commit's: they
+  should match except the status bar crop.
 
-## After alpha
+### Phase 5: release
 
-## T11 [ ] Release keystore before the first public GitHub Release
-- Generate a release keystore stored outside the repo (never committed; `*.jks`, `*.keystore`, `keystore.properties` are git-ignored).
-- Signing config reads `keystore.properties` from outside the repo or from environment variables.
-- `docs/DEVELOPING.md`: how to generate it, where it lives, and how to back it up (keystore file plus passwords, kept somewhere other than GitHub). Losing it means users must uninstall to update.
-- Must be done before the first public GitHub Release; the alpha APK is debug-signed.
+#### T-014 [ ] Versioning (S)
+- **Goal:** versionCode = (major*10000 + minor*100 + patch) * 1000 + stage (alpha.N = N, beta.N = 300+N,
+  rc.N = 600+N, final = 999). First signed build 0.1.0-alpha.1 = 100001.
+- **Files:** `app/build.gradle.kts`, a pure version helper, its test.
+- **Depends on:** T-008.
+- **Acceptance:** the APK reports versionName `0.1.0-alpha.1` and versionCode 100001.
+- **Tests:** unit test for the formula (all four stages, edge values).
+- **Device testing (Jason):** none.
+
+#### T-015 [ ] Release script (M)
+- **Goal:** `scripts/release.sh` builds and checks a signed APK.
+- **Files:** `scripts/release.sh`, `app/build.gradle.kts` (signing config), `.gitignore`.
+- **Depends on:** T-014.
+- **Acceptance:** runs the gate, builds, signs, checks the certificate fingerprint, app ID and versionCode,
+  writes `release/beetimer-<version>.apk` and its sha256; fails if the keystore or `keystore.properties` is
+  missing. `.gitignore` covers `*.jks`, `*.keystore`, `keystore.properties`, `release/` and device test output.
+- **Tests:** run without a keystore and show it fails.
+- **Device testing (Jason):** none.
+
+#### T-016 [ ] Keystore (hard stop 2) (S)
+- **Goal:** the exact steps for Jason to make and back up the release keystore.
+- **Files:** `docs/DEVELOPING.md`.
+- **Depends on:** T-015.
+- **Acceptance:** `keytool`, `chmod 600` and backup steps written; keystore outside the repo
+  (`~/keys/beetimer-release.jks`). Stop for Jason to run them and confirm the backup.
+- **Tests:** none.
+- **Device testing (Jason):** none. Jason runs the commands and confirms the backup.
+
+#### T-017 [ ] Upgrade path (M)
+- **Goal:** release build tested fresh and as an upgrade from itself.
+- **Files:** `docs/e2e/` notes, `docs/INSTALL.md`.
+- **Depends on:** T-016.
+- **Acceptance:** on the emulator, alpha.1 installs fresh and alpha.2 installs over alpha.1 with data kept.
+  Jason's phone is not touched; the uninstall and reinstall step goes on his list.
+- **Tests:** emulator install and upgrade.
+- **Device testing (Jason):** uninstall the debug alpha (hive names are lost), install alpha.1, rename hives.
+
+### Phase 6: GitHub
+
+#### T-018 [ ] Push (S)
+- **Goal:** `main` and tags on GitHub, nothing that shouldn't be public.
+- **Files:** none.
+- **Depends on:** T-017.
+- **Acceptance:** no status-bar screenshots, keystores, `local.properties` or secrets in any commit; `main`
+  and the tags pushed. Anything bad in history is a stop, not a rewrite.
+- **Tests:** history scan.
+- **Device testing (Jason):** none.
+
+#### T-019 [ ] Release (S)
+- **Goal:** GitHub pre-release `v0.1.0-alpha.1` with the APK and sha256.
+- **Files:** none in the repo.
+- **Depends on:** T-016, T-018.
+- **Acceptance:** release published with notes from `docs/INSTALL.md`; README has the icon header.
+- **Tests:** download the asset and check its sha256.
+- **Device testing (Jason):** none.
+
+### Phase 7: wrap-up
+
+#### T-020 [ ] Final report (S)
+- **Goal:** one list for Jason.
+- **Files:** `docs/HANDOFF.md`.
+- **Depends on:** all.
+- **Acceptance:** gate and E2E pass, docs current; one list with every real-phone test, every hard stop still
+  waiting, everything under "Found during R11", and the USAGE summary.
+- **Tests:** the gate.
+- **Device testing (Jason):** the list.
+
+## Found during R11 (for Jason; not fixed in R11 unless a task above covers it)
+
+- **Corrupt rows (baseline).** A corrupt step-list row crashes app start. A corrupt state row is read as
+  empty, so all runs go back to Not started, and the bad row is overwritten on the next save. T-010 covers
+  both.
+- **Exact alarm refused (baseline).** If scheduling throws `SecurityException` (Android 12 only, access
+  revoked), `AlarmScheduler.guarded` logs it and the alarm is silently not set. Not reachable on Android 13+,
+  where `USE_EXACT_ALARM` can't be revoked. Not fixed: it would add UI.
+- **Citations.** Only the 10 min sealed hold has a source (SPEC section 5). Heat 150 s, cool 120 s and gun
+  20 s need one from Jason.
 
 ## Open checks (need Jason)
-- Themed icons on the OnePlus: Settings, Wallpapers & style, Icons, Themed icons, then look at Bee Timer on the home screen.
+
+- Themed icons on the OnePlus: Settings, Wallpapers & style, Icons, Themed icons, then look at Bee Timer on
+  the home screen.
 - [x] GitHub social preview set to `docs/icon/icon-1024.png` (Jason, 2026-11-22).
 
-## Backlog (not scheduled; do not build yet)
+## Backlog (not scheduled; don't build without asking)
 
-- **B1 Overlap timeline chart** on the All tab, Pitplanner style: one lane per hive across time, device-bound spans in amber, passive in teal, from the planner forecast.
-- **B2 Number of vaporizers** setting: the device lock becomes a count (N runs may be in device steps at once); queue and planner follow.
-- **B3 Dark theme for the main screens**: tokens exist in `Theme.kt`; needs a visual pass against the mockup semantics and its own screenshots.
-- **B4 Add and delete steps in the step editor**: the model has `addStep` and `removeStep`; needs UI that isn't in the mockups, so ask first.
+- **B1 Overlap timeline chart** on the All tab: one lane per hive across time, vaporizer spans in amber,
+  passive in teal, from the planner forecast.
+- **B2 Number of vaporizers** setting: the lock becomes a count; queue and planner follow.
+- **B3 Dark theme for the main screens**: tokens exist in `Theme.kt`; needs a visual pass and screenshots.
+- **B4 Add and delete steps in the step editor**: the model has `addStep` and `removeStep`; needs UI that
+  isn't in the mockups, so ask first.
 - **B5 Session history**: deferred from the brief.

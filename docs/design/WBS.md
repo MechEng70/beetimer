@@ -1,50 +1,62 @@
-# Work breakdown (alpha)
+# Work breakdown
 
-Estimates are agent working time, not calendar days. The total target is about one working session plus your review stops.
+Sizes: S under 30 min, M 30 to 90 min, L over 90 min of agent time. Actual times are in `USAGE.md`.
+
+## Done before the playbook (alpha)
 
 ```
-Bee Timer alpha
-1. Foundation
-   1.1 T1 Scaffold build ............................ 0.5 h
-   1.2 T1b Alarm spike APK .......................... 0.5 h   STOP: test locked on phone
-2. Core (pure Kotlin, :scheduler)
-   2.1 T2 Model, presets, validation ................ 0.5 h
-   2.2 T3 Scheduler reducer, restore, tests ......... 1.5 h   STOP: review tests
-3. Android platform (:app)
-   3.1 T4 Room persistence .......................... 0.5 h
-   3.2 T5 Engine, alarms, receivers ................. 1.0 h
-   3.3 T6 Notifications, alarm screen ............... 1.0 h
-   3.4 T9 First-run permissions ..................... 0.5 h
-4. UI
-   4.1 T7 Main UI (status bar, All, Hive tabs) ...... 1.5 h
-   4.2 T8 Settings, durations, hives .............. 1.0 h
-5. Delivery
-   5.1 T10 APK, README, manual test script .......... 0.5 h   STOP: install on phone
-                                          Total ~ 8.5 h
+Bee Timer alpha (2026-11-21 to 2026-11-22), see TASKS.md for commits
+1. Foundation ........ T0 plan, T1 scaffold, T1b alarm spike
+2. Core .............. T2 model and validation, T3 reducer, restore, property test
+3. Platform .......... T4 Room, T5 engine and alarms, T6 notifications and alarm screen, T9 permissions
+4. UI ................ T7 main UI, T8 settings
+5. Delivery .......... T10 APK, README, manual test
+6. Review rounds ..... R1 to R10
 ```
 
-After T10 (done; see TASKS.md R1 to R10):
+## Round R11: playbook adoption
+
 ```
-6. Review rounds
-   6.1 R1 UI rework to mockups, alarm stream
-   6.2 R2 Planning view, step editor, Inter, hive drag
-   6.3 R3 Countdowns and copy
-   6.4 R4 Cancel to Not started, Vaporizer wording
-   6.5 R5 Take/release markers, planner fix, E2E suite
-   6.6 R6 Foreground alarms, snackbar, icon
-   6.7 R7 All-tab GUI cleanup
-   6.8 R8 Next-step pill
-   6.9 R9 Footer copy
-   6.10 R10 Row layout and volume check
-7. Before first public release
-   7.1 T11 Release keystore
+R11 (from 2026-11-23), work order docs/design/PLAYBOOK-ADOPTION.md
+0. Baseline
+   0.1 T-001 Baseline tag, HANDOFF move, usage log ............ S
+1. Documents
+   1.1 T-002 CLAUDE.md ........................................ S
+   1.2 T-003 SPEC.md .......................................... M
+   1.3 T-004 TASKS.md and WBS.md .............................. S
+   1.4 T-005 TECH-DESIGN.md, SECURITY-EXCEPTIONS.md ........... M
+2. Quality gate
+   2.1 T-006 ktlint and detekt, zero warnings ................. L
+   2.2 T-007 Semgrep and Snyk ................................. M   hard stop 3 if Snyk not logged in
+   2.3 T-008 Gate script ...................................... S
+3. Data and layout rules
+   3.1 T-009 Migrations frozen ................................ S
+   3.2 T-010 Corrupt data, quarantine ......................... M
+   3.3 T-011 Layout audit ..................................... M
+4. Device test hygiene
+   4.1 T-012 E2E rules ........................................ M
+   4.2 T-013 Full E2E at 10x .................................. L
+5. Release
+   5.1 T-014 Versioning ....................................... S
+   5.2 T-015 Release script ................................... M
+   5.3 T-016 Keystore ......................................... S   hard stop 2: Jason runs keytool
+   5.4 T-017 Upgrade path ..................................... M
+6. GitHub
+   6.1 T-018 Push ............................................. S
+   6.2 T-019 Release v0.1.0-alpha.1 ........................... S
+7. Wrap-up
+   7.1 T-020 Final report ..................................... S
 ```
 
-Dependencies: T1 -> T1b -> T2 -> T3 -> T4 -> T5 -> T6 -> T7 -> T8 -> T9 -> T10. T9 can run alongside T7/T8.
+Dependencies: Phase 1 needs T-001. T-006 and T-007 feed T-008; every later task needs the full gate.
+T-013 needs T-010 to T-012. T-017 and T-019 need the keystore from T-016 (Jason). T-018 follows T-017 in
+the brief's order.
 
-Spec checkpoints map to: step 1 plan = this set of docs (STOP now); step 2 = T3 STOP; steps 3 and 4 = T4 to T9; step 5 = T10 STOP.
-
-Biggest risks:
-- AGP 9.5 built-in Kotlin alongside a kotlin-jvm `:scheduler` module, if the plugin setup has gotchas. Mitigation: settle this in T1 before writing any logic.
-- Alarm reliability with no foreground service. Mitigation: `setAlarmClock`, verified with the reboot and locked-screen steps in the manual script.
-- OEM battery killers on your phone. Mitigation: the one-time battery exemption ask.
+Risks:
+- ktlint and detekt on existing code: many findings, and fixes must not change behavior. Mitigation:
+  formatting in its own commit; full tests after each step; the E2E suite in T-013.
+- Snyk or Semgrep findings that can only be fixed by changing behavior: hard stop 5.
+- Room v4 for the quarantine table: a new migration on top of three shipped ones. Mitigation: T-009 freezes
+  the old ones first; `MigrationTest` covers 3 to 4.
+- Release signing: a lost keystore means no updates ever. Mitigation: Jason backs it up before the first APK
+  leaves the laptop.

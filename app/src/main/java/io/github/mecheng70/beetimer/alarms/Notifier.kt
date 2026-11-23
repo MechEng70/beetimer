@@ -109,9 +109,12 @@ class Notifier(private val context: Context) {
                 label,
                 run.steps.getOrNull(ringing.finishedStepIndex)?.name.orEmpty(),
             )
+
             run.state == RunState.WAITING_FOR_DEVICE -> context.getString(R.string.status_line_waiting, label)
+
             run.state == RunState.RUNNING && ends != null ->
                 context.getString(R.string.status_line_ends, label, step, timeFormat.format(Date(ends)))
+
             else -> context.getString(R.string.status_line_done, label, step)
         }
     }

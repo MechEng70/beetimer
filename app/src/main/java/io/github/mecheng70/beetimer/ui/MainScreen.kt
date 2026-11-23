@@ -1,18 +1,9 @@
 package io.github.mecheng70.beetimer.ui
 
-import androidx.compose.runtime.remember
-import androidx.compose.ui.text.AnnotatedString
-import androidx.compose.ui.text.style.TextOverflow
-import io.github.mecheng70.beetimer.scheduler.Forecast
-import io.github.mecheng70.beetimer.scheduler.Planner
-import io.github.mecheng70.beetimer.ui.theme.AppIcons
-import java.util.Date
-import kotlinx.coroutines.launch
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
-import androidx.compose.ui.platform.testTag
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -27,33 +18,43 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.mecheng70.beetimer.R
 import io.github.mecheng70.beetimer.scheduler.Event
+import io.github.mecheng70.beetimer.scheduler.Forecast
 import io.github.mecheng70.beetimer.scheduler.Hive
 import io.github.mecheng70.beetimer.scheduler.HiveRun
+import io.github.mecheng70.beetimer.scheduler.Planner
 import io.github.mecheng70.beetimer.scheduler.RunState
 import io.github.mecheng70.beetimer.scheduler.SchedulerState
 import io.github.mecheng70.beetimer.scheduler.StepKind
+import io.github.mecheng70.beetimer.ui.theme.AppIcons
 import io.github.mecheng70.beetimer.ui.theme.AppType
 import io.github.mecheng70.beetimer.ui.theme.BeeTheme
 import io.github.mecheng70.beetimer.ui.theme.Dimens
+import java.util.Date
+import kotlinx.coroutines.launch
 
 /** Placeholder swapped for the bold countdown in the status line. */
 private const val COUNTDOWN_MARK = "\u0001"
+
 /** Coming up shows only the next few events; the rows below cover the rest. */
 private const val COMING_UP_COUNT = 3
 
@@ -125,7 +126,13 @@ private fun remaining(at: Long, estimated: Boolean, now: Long, nowText: String):
     if (at <= now) nowText else estimate(formatCountdown(at - now), estimated)
 
 @Composable
-private fun DeviceStatusBar(s: SchedulerState, labels: Map<Long, String>, now: Long, nextUp: Long?, forecast: Forecast) {
+private fun DeviceStatusBar(
+    s: SchedulerState,
+    labels: Map<Long, String>,
+    now: Long,
+    nextUp: Long?,
+    forecast: Forecast,
+) {
     val app = LocalContext.current.app
     val holder = s.lockHolder?.let { s.runs[it] }
     val head = s.queue.firstOrNull()
@@ -152,23 +159,45 @@ private fun DeviceStatusBar(s: SchedulerState, labels: Map<Long, String>, now: L
                     }
                 }
             }
+
             holder != null -> AnnotatedString(
-                stringResource(R.string.device_busy, labels[holder.hiveId].orEmpty(), holder.currentStep?.name.orEmpty().midSentence()),
+                stringResource(
+                    R.string.device_busy,
+                    labels[holder.hiveId].orEmpty(),
+                    holder.currentStep?.name.orEmpty().midSentence(),
+                ),
             )
+
             head != null -> AnnotatedString(stringResource(R.string.device_free_next, labels[head].orEmpty()))
+
             else -> AnnotatedString(stringResource(R.string.device_free))
         }
         Text(line, style = AppType.status, color = fg, maxLines = 1, overflow = TextOverflow.Ellipsis)
         val showNext = nextUp != null && nextUp != holder?.hiveId && !(holder == null && head != null)
         if (showNext) {
-            Text(stringResource(R.string.device_next, labels[nextUp].orEmpty()), style = AppType.statusSub, color = fg, maxLines = 1)
+            Text(
+                stringResource(R.string.device_next, labels[nextUp].orEmpty()),
+                style = AppType.statusSub,
+                color = fg,
+                maxLines = 1,
+            )
         }
         if (holder == null && head != null) {
             VSpace(Dimens.Gap)
             Row(horizontalArrangement = Arrangement.spacedBy(Dimens.Gap)) {
-                AppButton(stringResource(R.string.action_start), { app.send(Event.Start(head)) }, Modifier.testTag("bar-start"), kind = ButtonKind.FILLED)
-                if (s.queue.size > 1) AppButton(stringResource(R.string.action_queue_skip), { app.send(Event.QueueSkipHead) }, Modifier.testTag("bar-skip"))
-                AppButton(stringResource(R.string.action_queue_remove), { app.send(Event.QueueRemoveHead) }, Modifier.testTag("bar-remove"))
+                AppButton(stringResource(R.string.action_start), {
+                    app.send(Event.Start(head))
+                }, Modifier.testTag("bar-start"), kind = ButtonKind.FILLED)
+                if (s.queue.size >
+                    1
+                ) {
+                    AppButton(stringResource(R.string.action_queue_skip), {
+                        app.send(Event.QueueSkipHead)
+                    }, Modifier.testTag("bar-skip"))
+                }
+                AppButton(stringResource(R.string.action_queue_remove), {
+                    app.send(Event.QueueRemoveHead)
+                }, Modifier.testTag("bar-remove"))
             }
         }
     }
@@ -183,9 +212,17 @@ private fun AllTab(hives: List<Hive>, s: SchedulerState, forecast: Forecast, now
 
     val upcoming = forecast.comingUp(COMING_UP_COUNT)
     if (upcoming.isNotEmpty()) {
-        Text(stringResource(R.string.coming_up), style = AppType.section, color = c.ink, modifier = Modifier.padding(bottom = Dimens.ChipPaddingV))
+        Text(
+            stringResource(R.string.coming_up),
+            style = AppType.section,
+            color = c.ink,
+            modifier = Modifier.padding(bottom = Dimens.ChipPaddingV),
+        )
         upcoming.forEach { p ->
-            Row(Modifier.fillMaxWidth().padding(vertical = Dimens.ChipPaddingV), horizontalArrangement = Arrangement.spacedBy(Dimens.Gap)) {
+            Row(
+                Modifier.fillMaxWidth().padding(vertical = Dimens.ChipPaddingV),
+                horizontalArrangement = Arrangement.spacedBy(Dimens.Gap),
+            ) {
                 Text(
                     labels[p.hiveId].orEmpty(),
                     style = AppType.section,
@@ -212,30 +249,66 @@ private fun AllTab(hives: List<Hive>, s: SchedulerState, forecast: Forecast, now
         Column {
             // Line 1: handle, name, and the chip or button. Lines 2 and 3 run the full width under the chip,
             // so step names never share space with it. Step names are never cut off; long ones wrap.
-            Column(Modifier.fillMaxWidth().testTag("row-${hive.label}").clickable { onSelect(hive) }.padding(vertical = Dimens.HiveRowPaddingV)) {
-                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Dimens.Gap)) {
-                    DragHandle(handle.testTag("drag-${hive.label}"), stringResource(R.string.action_reorder, hive.label))
-                    Text(hive.label, style = AppType.rowHiveName, color = c.ink, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f))
+            Column(
+                Modifier.fillMaxWidth().testTag("row-${hive.label}").clickable {
+                    onSelect(hive)
+                }.padding(vertical = Dimens.HiveRowPaddingV),
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(Dimens.Gap),
+                ) {
+                    DragHandle(
+                        handle.testTag("drag-${hive.label}"),
+                        stringResource(R.string.action_reorder, hive.label),
+                    )
+                    Text(
+                        hive.label,
+                        style = AppType.rowHiveName,
+                        color = c.ink,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.weight(1f),
+                    )
                     Box(Modifier.testTag("row-action-${hive.label}")) {
                         RowAction(hive.id, run, s, now, onEvent = { app.send(it) })
                     }
                 }
                 Column(Modifier.padding(start = Dimens.IconTouch + Dimens.Gap)) {
-                    Text(subtitle(run), style = AppType.rowStep, color = c.inkMuted, modifier = Modifier.testTag("row-sub-${hive.label}"))
+                    Text(
+                        subtitle(run),
+                        style = AppType.rowStep,
+                        color = c.inkMuted,
+                        modifier = Modifier.testTag("row-sub-${hive.label}"),
+                    )
                     val next = plan?.next
                     when {
                         run?.state == RunState.WAITING_FOR_DEVICE -> plan?.deviceStart?.let {
-                            val starts = if (it.at <= now) stringResource(R.string.hive_starts_now)
-                            else stringResource(R.string.hive_starts_in, remaining(it.at, it.estimated, now, ""))
+                            val starts = if (it.at <= now) {
+                                stringResource(R.string.hive_starts_now)
+                            } else {
+                                stringResource(R.string.hive_starts_in, remaining(it.at, it.estimated, now, ""))
+                            }
                             Text(starts, style = AppType.rowNext, color = c.inkMuted)
                         }
+
                         // No time here: the countdown chip already shows when the next step starts.
                         run != null && run.isActive && next != null -> Row(
                             horizontalArrangement = Arrangement.spacedBy(Dimens.PillGap),
                             modifier = Modifier.padding(top = Dimens.PillPaddingV).testTag("row-next-${hive.label}"),
                         ) {
-                            Text(stringResource(R.string.hive_next_label), style = AppType.rowNext, color = c.inkMuted, maxLines = 1, modifier = Modifier.alignByBaseline())
-                            StepPill(next.stepName, next.deviceBound, Modifier.weight(1f, fill = false).alignByBaseline())
+                            Text(
+                                stringResource(R.string.hive_next_label),
+                                style = AppType.rowNext,
+                                color = c.inkMuted,
+                                maxLines = 1,
+                                modifier = Modifier.alignByBaseline(),
+                            )
+                            StepPill(
+                                next.stepName,
+                                next.deviceBound,
+                                Modifier.weight(1f, fill = false).alignByBaseline(),
+                            )
                         }
                     }
                 }
@@ -247,6 +320,7 @@ private fun AllTab(hives: List<Hive>, s: SchedulerState, forecast: Forecast, now
     footerFor(hives.map { it.id }, s.runs, forecast.allDoneAt)?.let { footer ->
         val text = when (footer) {
             is Footer.Estimated -> stringResource(R.string.footer_estimated, fullClock(footer.at))
+
             is Footer.EstimatedPartial -> pluralStringResource(
                 R.plurals.footer_estimated_partial,
                 footer.total,
@@ -254,6 +328,7 @@ private fun AllTab(hives: List<Hive>, s: SchedulerState, forecast: Forecast, now
                 footer.started,
                 footer.total,
             )
+
             is Footer.AllDone -> stringResource(R.string.footer_all_done, fullClock(footer.at))
         }
         VSpace(Dimens.Gap)
@@ -272,10 +347,14 @@ private fun subtitle(run: HiveRun?): String {
     val ringing = run?.ringing
     return when {
         run == null -> stringResource(R.string.state_not_started)
+
         ringing != null && run.currentStepIndex == ringing.finishedStepIndex ->
             stringResource(R.string.state_finished, run.steps[ringing.finishedStepIndex].name)
+
         run.state == RunState.DONE -> stringResource(R.string.state_done)
+
         run.state == RunState.WAITING_FOR_DEVICE -> stringResource(R.string.state_waiting)
+
         else -> run.currentStep?.name.orEmpty()
     }
 }
@@ -288,12 +367,21 @@ private fun RowAction(hiveId: Long, run: HiveRun?, s: SchedulerState, now: Long,
     when {
         run == null || run.state == RunState.CANCELLED ->
             AppButton(stringResource(R.string.action_start), { onEvent(Event.Start(hiveId)) })
+
         run.ringing != null || run.state == RunState.AWAITING_CONFIRM ->
             AppButton(stringResource(R.string.action_done), { onEvent(Event.Done(hiveId)) })
+
         run.state == RunState.WAITING_FOR_DEVICE && headReady ->
             AppButton(stringResource(R.string.action_start), { onEvent(Event.Start(hiveId)) })
+
         run.state == RunState.WAITING_FOR_DEVICE -> Chip(stringResource(R.string.state_queued), Tone.IDLE)
-        run.state == RunState.RUNNING && ends != null -> Chip(formatCountdown(ends - now), toneOf(run), kind = ChipKind.TIME)
+
+        run.state == RunState.RUNNING && ends != null -> Chip(
+            formatCountdown(ends - now),
+            toneOf(run),
+            kind = ChipKind.TIME,
+        )
+
         run.state == RunState.DONE -> Chip(stringResource(R.string.state_done), Tone.IDLE)
     }
 }
@@ -315,7 +403,12 @@ private fun HiveTab(hive: Hive, s: SchedulerState, now: Long) {
             val ends = run?.stepEndsAt
             if (run != null && current != null && !run.isTerminal) {
                 Text(
-                    stringResource(R.string.hive_step_of, run.currentStepIndex + 1, run.steps.size, current.name.midSentence()),
+                    stringResource(
+                        R.string.hive_step_of,
+                        run.currentStepIndex + 1,
+                        run.steps.size,
+                        current.name.midSentence(),
+                    ),
                     style = AppType.label,
                     color = c.inkMuted,
                 )
@@ -326,14 +419,32 @@ private fun HiveTab(hive: Hive, s: SchedulerState, now: Long) {
             } else {
                 val line = when {
                     run == null || run.state == RunState.CANCELLED -> stringResource(R.string.hive_ready)
+
                     run.state == RunState.DONE && ringing == null -> stringResource(R.string.hive_all_done)
-                    ringing != null -> stringResource(R.string.state_finished, run.steps[ringing.finishedStepIndex].name)
+
+                    ringing != null -> stringResource(
+                        R.string.state_finished,
+                        run.steps[ringing.finishedStepIndex].name,
+                    )
+
                     run.state == RunState.WAITING_FOR_DEVICE ->
-                        if (s.lockHolder == null && s.queue.firstOrNull() == hive.id) stringResource(R.string.hive_waiting_head)
-                        else stringResource(R.string.hive_waiting)
+                        if (s.lockHolder == null &&
+                            s.queue.firstOrNull() == hive.id
+                        ) {
+                            stringResource(R.string.hive_waiting_head)
+                        } else {
+                            stringResource(R.string.hive_waiting)
+                        }
+
                     else -> stringResource(R.string.hive_tap_done)
                 }
-                Text(line, style = AppType.stateLine, color = c.ink, textAlign = TextAlign.Center, modifier = Modifier.padding(vertical = Dimens.Gap))
+                Text(
+                    line,
+                    style = AppType.stateLine,
+                    color = c.ink,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.padding(vertical = Dimens.Gap),
+                )
             }
             if (ringing?.overdue == true) Chip(stringResource(R.string.pill_overdue), Tone.DEVICE, strong = true)
             if (current != null && run.isActive && current.instruction.isNotBlank()) {
@@ -349,7 +460,16 @@ private fun HiveTab(hive: Hive, s: SchedulerState, now: Long) {
             val (rowBg, rowFg) = toneColors(tone)
             Row(
                 Modifier.fillMaxWidth()
-                    .then(if (isCurrent) Modifier.background(rowBg, RoundedCornerShape(Dimens.SmallCorner)).padding(horizontal = Dimens.Gap) else Modifier)
+                    .then(
+                        if (isCurrent) {
+                            Modifier.background(
+                                rowBg,
+                                RoundedCornerShape(Dimens.SmallCorner),
+                            ).padding(horizontal = Dimens.Gap)
+                        } else {
+                            Modifier
+                        },
+                    )
                     .padding(vertical = Dimens.RowPadding),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
@@ -402,26 +522,58 @@ private fun HiveActions(hiveId: Long, run: HiveRun?, s: SchedulerState, onEvent:
     val full = Modifier.fillMaxWidth()
     val glove = Dimens.GloveButton
     Column(verticalArrangement = Arrangement.spacedBy(Dimens.Gap)) {
-        if (run == null || run.isTerminal && run.ringing == null) {
+        if (run == null || (run.isTerminal && run.ringing == null)) {
             if (run?.state != RunState.DONE) {
-                AppButton(stringResource(R.string.action_start), { onEvent(Event.Start(hiveId)) }, full.testTag("hive-start"), kind = ButtonKind.FILLED)
+                AppButton(stringResource(R.string.action_start), {
+                    onEvent(Event.Start(hiveId))
+                }, full.testTag("hive-start"), kind = ButtonKind.FILLED)
             }
             return@Column
         }
         if (run.state == RunState.WAITING_FOR_DEVICE) {
             val ready = s.lockHolder == null && s.queue.firstOrNull() == hiveId
-            AppButton(stringResource(R.string.action_start), { onEvent(Event.Start(hiveId)) }, full.testTag("hive-start"), kind = ButtonKind.FILLED, enabled = ready)
-            if (run.ringing != null) AppButton(stringResource(R.string.action_done), { onEvent(Event.Done(hiveId)) }, full)
+            AppButton(stringResource(R.string.action_start), {
+                onEvent(Event.Start(hiveId))
+            }, full.testTag("hive-start"), kind = ButtonKind.FILLED, enabled = ready)
+            if (run.ringing !=
+                null
+            ) {
+                AppButton(stringResource(R.string.action_done), { onEvent(Event.Done(hiveId)) }, full)
+            }
         } else {
             val ringing = run.ringing != null
             val canConfirm = ringing || run.state == RunState.AWAITING_CONFIRM
             val canExtend = ringing || run.state == RunState.RUNNING
             val canSkip = run.state == RunState.RUNNING || run.state == RunState.AWAITING_CONFIRM
             val buttons = buildList<@Composable (Modifier) -> Unit> {
-                if (canConfirm) add { m -> AppButton(stringResource(R.string.action_done), { onEvent(Event.Done(hiveId)) }, m.testTag("hive-done"), ButtonKind.FILLED, minHeight = glove, style = AppType.gloveButton) }
-                if (canExtend) add { m -> AppButton(stringResource(R.string.action_add_minute), { onEvent(Event.AddMinute(hiveId)) }, m.testTag("hive-add-minute"), minHeight = glove, style = AppType.gloveButton) }
-                if (ringing) add { m -> AppButton(stringResource(R.string.action_snooze), { onEvent(Event.Snooze(hiveId)) }, m.testTag("hive-snooze"), minHeight = glove, style = AppType.gloveButton) }
-                if (canSkip) add { m -> AppButton(stringResource(R.string.action_skip), { onEvent(Event.Skip(hiveId)) }, m.testTag("hive-skip"), minHeight = glove, style = AppType.gloveButton) }
+                if (canConfirm) {
+                    add { m ->
+                        AppButton(stringResource(R.string.action_done), {
+                            onEvent(Event.Done(hiveId))
+                        }, m.testTag("hive-done"), ButtonKind.FILLED, minHeight = glove, style = AppType.gloveButton)
+                    }
+                }
+                if (canExtend) {
+                    add { m ->
+                        AppButton(stringResource(R.string.action_add_minute), {
+                            onEvent(Event.AddMinute(hiveId))
+                        }, m.testTag("hive-add-minute"), minHeight = glove, style = AppType.gloveButton)
+                    }
+                }
+                if (ringing) {
+                    add { m ->
+                        AppButton(stringResource(R.string.action_snooze), {
+                            onEvent(Event.Snooze(hiveId))
+                        }, m.testTag("hive-snooze"), minHeight = glove, style = AppType.gloveButton)
+                    }
+                }
+                if (canSkip) {
+                    add { m ->
+                        AppButton(stringResource(R.string.action_skip), {
+                            onEvent(Event.Skip(hiveId))
+                        }, m.testTag("hive-skip"), minHeight = glove, style = AppType.gloveButton)
+                    }
+                }
             }
             buttons.chunked(2).forEach { pair ->
                 Row(horizontalArrangement = Arrangement.spacedBy(Dimens.Gap)) {
@@ -431,7 +583,9 @@ private fun HiveActions(hiveId: Long, run: HiveRun?, s: SchedulerState, onEvent:
             }
         }
         if (!run.isTerminal) {
-            AppButton(stringResource(R.string.action_cancel_run), { onEvent(Event.Cancel(hiveId)) }, full.testTag("hive-cancel"), ButtonKind.DANGER)
+            AppButton(stringResource(R.string.action_cancel_run), {
+                onEvent(Event.Cancel(hiveId))
+            }, full.testTag("hive-cancel"), ButtonKind.DANGER)
         }
     }
 }

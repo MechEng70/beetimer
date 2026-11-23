@@ -13,10 +13,7 @@ import kotlinx.serialization.json.Json
 
 data class StoredTemplate(val template: Template, val isActive: Boolean)
 
-class Repository(
-    private val db: BeeTimerDb,
-    private val defaultHiveName: (Int) -> String,
-) {
+class Repository(private val db: BeeTimerDb, private val defaultHiveName: (Int) -> String) {
     private val json = Json {
         ignoreUnknownKeys = true
         encodeDefaults = true
@@ -51,8 +48,9 @@ class Repository(
         return (all.firstOrNull { it.isActive } ?: all.first()).toStored().template
     }
 
-    suspend fun loadState(): SchedulerState? =
-        db.state().get()?.let { runCatching { json.decodeFromString(SchedulerState.serializer(), it.json) }.getOrNull() }
+    suspend fun loadState(): SchedulerState? = db.state().get()?.let {
+        runCatching { json.decodeFromString(SchedulerState.serializer(), it.json) }.getOrNull()
+    }
 
     suspend fun saveState(state: SchedulerState) {
         db.state().put(StateEntity(json = json.encodeToString(SchedulerState.serializer(), state)))
@@ -89,7 +87,16 @@ class Repository(
     suspend fun updateHive(id: Long, label: String, note: String?) {
         val all = db.hives().all()
         val hive = all.firstOrNull { it.id == id } ?: return
-        db.hives().update(listOf(hive.copy(label = label.trim().ifEmpty { hive.label }, note = note?.trim()?.ifEmpty { null })))
+        db.hives().update(
+            listOf(
+                hive.copy(
+                    label = label.trim().ifEmpty {
+                        hive.label
+                    },
+                    note = note?.trim()?.ifEmpty { null },
+                ),
+            ),
+        )
     }
 
     suspend fun deleteHive(id: Long) = db.hives().delete(id)

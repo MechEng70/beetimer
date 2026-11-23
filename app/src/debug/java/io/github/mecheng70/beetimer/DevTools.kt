@@ -48,11 +48,31 @@ object DevTools {
         val state by app.engine.state.collectAsStateWithLifecycle()
         val scale = state?.timeScale ?: 1
         AppCard(Modifier.fillMaxWidth()) {
-            Text("Developer (debug build only)", style = AppType.section, color = BeeTheme.colors.ink, modifier = Modifier.padding(bottom = Dimens.Gap))
-            Text("Time scale: divides timed steps, +1 min, Snooze and planner estimates.", style = AppType.label, color = BeeTheme.colors.inkMuted)
-            Row(horizontalArrangement = Arrangement.spacedBy(Dimens.Gap), modifier = Modifier.padding(top = Dimens.Gap)) {
+            Text(
+                "Developer (debug build only)",
+                style = AppType.section,
+                color = BeeTheme.colors.ink,
+                modifier = Modifier.padding(bottom = Dimens.Gap),
+            )
+            Text(
+                "Time scale: divides timed steps, +1 min, Snooze and planner estimates.",
+                style = AppType.label,
+                color = BeeTheme.colors.inkMuted,
+            )
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(Dimens.Gap),
+                modifier = Modifier.padding(top = Dimens.Gap),
+            ) {
                 SCALES.forEach { s ->
-                    AppButton("${s}x", { app.send(Event.TimeScaleChanged(s)) }, Modifier.weight(1f).testTag("dev-scale-$s"), selected = s == scale)
+                    AppButton(
+                        "${s}x",
+                        {
+                            app.send(Event.TimeScaleChanged(s))
+                        },
+                        Modifier.weight(1f).testTag("dev-scale-$s"),
+                        selected =
+                            s == scale,
+                    )
                 }
             }
         }
@@ -81,13 +101,28 @@ object DevTools {
             val prior = before?.runs?.get(id)
             val entered = prior == null || prior.currentStepIndex != run.currentStepIndex ||
                 (prior.state == RunState.WAITING_FOR_DEVICE && run.state != RunState.WAITING_FOR_DEVICE)
-            if (run.state == RunState.DONE && prior?.state != RunState.DONE) Log.i(TAG_E2E, "DONE t=$now hive=${name(id)}")
-            else if (run.state == RunState.WAITING_FOR_DEVICE && prior?.state != RunState.WAITING_FOR_DEVICE) {
+            if (run.state == RunState.DONE &&
+                prior?.state != RunState.DONE
+            ) {
+                Log.i(TAG_E2E, "DONE t=$now hive=${name(id)}")
+            } else if (run.state == RunState.WAITING_FOR_DEVICE && prior?.state != RunState.WAITING_FOR_DEVICE) {
                 Log.i(TAG_E2E, "WAIT t=$now hive=${name(id)} step=${run.currentStep?.name}")
             } else if (entered && run.isActive) {
-                Log.i(TAG_E2E, "STEP t=$now hive=${name(id)} idx=${run.currentStepIndex} step=${run.currentStep?.name} device=${run.currentStep?.deviceBound}")
+                Log.i(
+                    TAG_E2E,
+                    "STEP t=$now hive=${name(
+                        id,
+                    )} idx=${run.currentStepIndex} step=${run.currentStep?.name} device=${run.currentStep?.deviceBound}",
+                )
             }
-            if (run.ringing != null && prior?.ringing == null) Log.i(TAG_E2E, "RING t=$now hive=${name(id)} finished=${run.steps[run.ringing!!.finishedStepIndex].name}")
+            if (run.ringing != null &&
+                prior?.ringing == null
+            ) {
+                Log.i(
+                    TAG_E2E,
+                    "RING t=$now hive=${name(id)} finished=${run.steps[run.ringing!!.finishedStepIndex].name}",
+                )
+            }
         }
         before?.runs?.keys?.filter { it !in s.runs }?.forEach { Log.i(TAG_E2E, "NOTSTARTED t=$now hive=${name(it)}") }
         if (before == null || before.lockHolder != s.lockHolder || before.queue != s.queue) {
@@ -98,7 +133,9 @@ object DevTools {
             TAG_E2E,
             "FORECAST t=$now done=${forecast.allDoneAt} " +
                 "dones=${forecast.hives.entries.joinToString(",") { "${name(it.key)}@${it.value.doneAt}" }} " +
-                forecast.steps.joinToString(";") { "${name(it.hiveId)}|${it.stepName}|${it.at}|${if (it.estimated) "~" else "="}" },
+                forecast.steps.joinToString(";") {
+                    "${name(it.hiveId)}|${it.stepName}|${it.at}|${if (it.estimated) "~" else "="}"
+                },
         )
         Invariants.check(s, alarms, forecast, now).forEach { Log.e(TAG_INVARIANT, "VIOLATION after $event: $it") }
     }

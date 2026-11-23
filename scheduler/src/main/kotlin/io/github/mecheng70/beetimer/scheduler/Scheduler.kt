@@ -122,6 +122,7 @@ private class Reduction(var s: SchedulerState, val now: Long) {
                 val fresh = HiveRun(hiveId = h, steps = s.template.steps, startedAt = now)
                 put(enterStep(fresh, 0))
             }
+
             run.state == RunState.WAITING_FOR_DEVICE && deviceAvailableFor(h) ->
                 put(enterStep(clearRinging(run), run.currentStepIndex))
         }
@@ -132,6 +133,7 @@ private class Reduction(var s: SchedulerState, val now: Long) {
         when {
             run.state == RunState.AWAITING_CONFIRM ->
                 put(enterStep(clearRinging(run), run.currentStepIndex + 1))
+
             run.ringing != null -> put(clearRinging(run))
         }
     }
@@ -149,6 +151,7 @@ private class Reduction(var s: SchedulerState, val now: Long) {
                     // Fired early: the platform consumed the alarm, so set it again.
                     effects += Effect.ScheduleAlarm(h, ringing.nextRingAt)
                 }
+
             run.state == RunState.RUNNING && endsAt != null ->
                 if (now >= endsAt) {
                     finishTimed(run, overdue = now - endsAt > SchedulerTiming.OVERDUE_AFTER_MS)
@@ -163,6 +166,7 @@ private class Reduction(var s: SchedulerState, val now: Long) {
         val ringing = run.ringing
         when {
             ringing != null -> reopen(run, ringing)
+
             run.state == RunState.RUNNING && run.stepEndsAt != null ->
                 put(run.copy(stepEndsAt = run.stepEndsAt + s.scaled(SchedulerTiming.ADD_MINUTE_MS)))
         }
@@ -226,6 +230,7 @@ private class Reduction(var s: SchedulerState, val now: Long) {
                     put(run.copy(ringing = ringing.copy(nextRingAt = now + SchedulerTiming.RING_CYCLE_MS)))
                     effects += Effect.Ring(run.hiveId, ringing.finishedStepIndex, ringing.overdue)
                 }
+
                 // The process often starts because this very alarm fired, so on time is not overdue.
                 ringing == null && run.state == RunState.RUNNING && endsAt != null && endsAt <= now ->
                     finishTimed(run, overdue = now - endsAt > SchedulerTiming.OVERDUE_AFTER_MS)
@@ -321,6 +326,7 @@ private class Reduction(var s: SchedulerState, val now: Long) {
                 stepStartedAt = now,
                 stepEndsAt = now + s.scaled(step.durationMs),
             )
+
             StepKind.MANUAL -> run.copy(
                 currentStepIndex = index,
                 state = RunState.AWAITING_CONFIRM,

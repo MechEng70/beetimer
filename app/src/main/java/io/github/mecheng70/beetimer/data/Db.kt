@@ -27,19 +27,11 @@ data class HiveEntity(
 
 /** A saved template. Steps are stored as JSON (kotlinx.serialization). */
 @Entity(tableName = "templates")
-data class TemplateEntity(
-    @PrimaryKey val id: String,
-    val name: String,
-    val stepsJson: String,
-    val isActive: Boolean,
-)
+data class TemplateEntity(@PrimaryKey val id: String, val name: String, val stepsJson: String, val isActive: Boolean)
 
 /** The whole scheduler state as one JSON row (id = 1), written once per dispatch. */
 @Entity(tableName = "scheduler_state")
-data class StateEntity(
-    @PrimaryKey val id: Int = 1,
-    val json: String,
-)
+data class StateEntity(@PrimaryKey val id: Int = 1, val json: String)
 
 @Dao
 interface HiveDao {
@@ -120,7 +112,11 @@ val MIGRATION_2_3 = object : Migration(2, 3) {
         listOf(Presets.panWandStaysIn, Presets.gunType).forEach { preset ->
             db.execSQL(
                 "UPDATE templates SET name = ?, stepsJson = ? WHERE id = ?",
-                arrayOf<Any>(preset.name, json.encodeToString(ListSerializer(Step.serializer()), preset.steps), preset.id),
+                arrayOf<Any>(
+                    preset.name,
+                    json.encodeToString(ListSerializer(Step.serializer()), preset.steps),
+                    preset.id,
+                ),
             )
         }
     }

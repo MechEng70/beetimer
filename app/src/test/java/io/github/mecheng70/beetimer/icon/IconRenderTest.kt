@@ -34,7 +34,15 @@ class IconRenderTest {
             drawable.draw(Canvas(bitmap))
             File(out, "$name.png").outputStream().use { bitmap.compress(Bitmap.CompressFormat.PNG, 100, it) }
             var opaque = 0
-            for (y in 0 until SIZE step 8) for (x in 0 until SIZE step 8) if (bitmap.getPixel(x, y) ushr 24 != 0) opaque++
+            for (y in 0 until SIZE step 8) {
+                for (x in 0 until SIZE step 8) {
+                    if (bitmap.getPixel(x, y) ushr 24 !=
+                        0
+                    ) {
+                        opaque++
+                    }
+                }
+            }
             assertTrue("$name rendered nothing", opaque > 0)
         }
     }

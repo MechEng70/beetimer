@@ -8,6 +8,7 @@ import androidx.activity.compose.setContent
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -20,30 +21,28 @@ import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.OutlinedButton
-import androidx.compose.foundation.layout.Box
 import androidx.compose.material3.HorizontalDivider
-import androidx.compose.ui.ExperimentalComposeUiApi
-import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.semantics.testTagsAsResourceId
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
-import androidx.compose.ui.text.style.TextOverflow
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.repeatOnLifecycle
-import kotlinx.coroutines.launch
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.testTagsAsResourceId
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import io.github.mecheng70.beetimer.DevTools
 import io.github.mecheng70.beetimer.R
 import io.github.mecheng70.beetimer.alarms.AlarmText
@@ -52,6 +51,7 @@ import io.github.mecheng70.beetimer.ui.theme.AlarmColors
 import io.github.mecheng70.beetimer.ui.theme.AppType
 import io.github.mecheng70.beetimer.ui.theme.BeeTimerTheme
 import io.github.mecheng70.beetimer.ui.theme.Dimens
+import kotlinx.coroutines.launch
 
 /** Full-screen alarm over the lock screen (mockup 3). Dark amber in both themes. */
 @OptIn(ExperimentalComposeUiApi::class)
@@ -122,11 +122,23 @@ class AlarmActivity : ComponentActivity() {
                         maxLines = 2,
                         modifier = Modifier.testTag("alarm-hive"),
                     )
-                    Text(info.finished, color = AlarmColors.Accent, style = AppType.alarmFinished, textAlign = TextAlign.Center)
+                    Text(
+                        info.finished,
+                        color = AlarmColors.Accent,
+                        style = AppType.alarmFinished,
+                        textAlign = TextAlign.Center,
+                    )
                 }
                 HorizontalDivider(thickness = Dimens.Border, color = AlarmColors.Border)
-                Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(Dimens.Gap)) {
-                    Text(stringResource(R.string.alarm_next_label), color = AlarmColors.Accent, style = AppType.alarmLabel)
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(Dimens.Gap),
+                ) {
+                    Text(
+                        stringResource(R.string.alarm_next_label),
+                        color = AlarmColors.Accent,
+                        style = AppType.alarmLabel,
+                    )
                     Text(
                         info.nextAction,
                         color = AlarmColors.Text,
@@ -135,20 +147,34 @@ class AlarmActivity : ComponentActivity() {
                         maxLines = 2,
                         overflow = TextOverflow.Ellipsis,
                     )
-                    info.timerLine?.let { Text(it, color = AlarmColors.Text, style = AppType.alarmTimer, textAlign = TextAlign.Center) }
-                    info.deviceNote?.let { Text(it, color = AlarmColors.Accent, style = AppType.alarmNote, textAlign = TextAlign.Center) }
+                    info.timerLine?.let {
+                        Text(it, color = AlarmColors.Text, style = AppType.alarmTimer, textAlign = TextAlign.Center)
+                    }
+                    info.deviceNote?.let {
+                        Text(it, color = AlarmColors.Accent, style = AppType.alarmNote, textAlign = TextAlign.Center)
+                    }
                 }
             }
             Button(
                 onClick = { app.send(Event.Done(id)) },
                 modifier = Modifier.fillMaxWidth().heightIn(min = Dimens.AlarmButton).testTag("alarm-done"),
                 shape = RoundedCornerShape(Dimens.AlarmCorner),
-                colors = ButtonDefaults.buttonColors(containerColor = AlarmColors.Text, contentColor = AlarmColors.Background),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = AlarmColors.Text,
+                    contentColor = AlarmColors.Background,
+                ),
             ) { Text(stringResource(R.string.action_done), style = AppType.alarmButton) }
             Spacer(Modifier.height(Dimens.Gap))
             Row(horizontalArrangement = Arrangement.spacedBy(Dimens.Gap)) {
-                AlarmOutlined(stringResource(R.string.action_add_minute), Modifier.weight(1f).testTag("alarm-add-minute")) { app.send(Event.AddMinute(id)) }
-                AlarmOutlined(stringResource(R.string.action_snooze), Modifier.weight(1f).testTag("alarm-snooze")) { app.send(Event.Snooze(id)) }
+                AlarmOutlined(
+                    stringResource(R.string.action_add_minute),
+                    Modifier.weight(1f).testTag("alarm-add-minute"),
+                ) {
+                    app.send(Event.AddMinute(id))
+                }
+                AlarmOutlined(stringResource(R.string.action_snooze), Modifier.weight(1f).testTag("alarm-snooze")) {
+                    app.send(Event.Snooze(id))
+                }
             }
         }
     }
@@ -174,7 +200,10 @@ class AlarmActivity : ComponentActivity() {
         if (returnToApp) {
             startActivity(
                 Intent(this, MainActivity::class.java)
-                    .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP),
+                    .addFlags(
+                        Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP or
+                            Intent.FLAG_ACTIVITY_SINGLE_TOP,
+                    ),
             )
         }
         finish()

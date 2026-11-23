@@ -35,7 +35,13 @@ class SeedingTest {
             assertEquals("round $round hives", listOf("Hive 1", "Hive 2", "Hive 3"), db.hives().all().map { it.label })
             val templates = db.templates().all()
             assertEquals("round $round presets", Presets.all.map { it.id }.sorted(), templates.map { it.id })
-            assertEquals("round $round active", listOf(Presets.PAN_WAND_ID), templates.filter { it.isActive }.map { it.id })
+            assertEquals(
+                "round $round active",
+                listOf(Presets.PAN_WAND_ID),
+                templates.filter {
+                    it.isActive
+                }.map { it.id },
+            )
             db.close()
         }
     }

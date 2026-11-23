@@ -21,7 +21,12 @@ object Presets {
             Step("Heat and vaporize", StepKind.TIMED, 150, instruction = "Power on. Wand in entrance."),
             Step("Cool in hive", StepKind.TIMED, 120, instruction = "Power off. Leave the wand in."),
             Step("Keep sealed", StepKind.TIMED, 600, instruction = "Wand stays in. Keep hive sealed."),
-            Step("Remove wand", StepKind.MANUAL, instruction = "Pull the wand and close the entrance.", releases = true),
+            Step(
+                "Remove wand",
+                StepKind.MANUAL,
+                instruction = "Pull the wand and close the entrance.",
+                releases = true,
+            ),
             Step("Unseal", StepKind.MANUAL, instruction = "Open the entrance."),
         ),
     ).derived()
@@ -35,7 +40,12 @@ object Presets {
             Step("Load dose", StepKind.MANUAL, instruction = "Dose per label into the cold pan.", takes = true),
             Step("Heat and vaporize", StepKind.TIMED, 150, instruction = "Power on. Wand in entrance."),
             Step("Cool in hive", StepKind.TIMED, 120, instruction = "Power off. Leave the wand in."),
-            Step("Remove wand", StepKind.MANUAL, instruction = "Pull the wand and close the entrance.", releases = true),
+            Step(
+                "Remove wand",
+                StepKind.MANUAL,
+                instruction = "Pull the wand and close the entrance.",
+                releases = true,
+            ),
             Step("Keep sealed", StepKind.TIMED, 600, instruction = "Wand is out. Keep hive sealed."),
             Step("Unseal", StepKind.MANUAL, instruction = "Open the entrance."),
         ),
@@ -63,7 +73,12 @@ object Presets {
         name = "OAV gun type",
         steps = listOf(
             Step("Seal hive", StepKind.MANUAL, instruction = "Close entrance and cracks."),
-            Step("Load cap and inject", StepKind.MANUAL, instruction = "Load the dose per label and insert the nozzle.", takes = true),
+            Step(
+                "Load cap and inject",
+                StepKind.MANUAL,
+                instruction = "Load the dose per label and insert the nozzle.",
+                takes = true,
+            ),
             Step("Vaporize", StepKind.TIMED, 20, instruction = "Vaporize the dose."),
             Step("Withdraw", StepKind.MANUAL, instruction = "Withdraw the nozzle and reseal.", releases = true),
             Step("Keep sealed", StepKind.TIMED, 600, instruction = "Leave the hive sealed."),

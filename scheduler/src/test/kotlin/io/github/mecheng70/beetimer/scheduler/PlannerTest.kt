@@ -28,7 +28,9 @@ class PlannerTest {
     @Test
     fun runningTimedStep_nextStepTimeIsFirm() {
         val h = Harness(tpl)
-        h.send(Start(a)); h.send(Done(a)); h.send(Done(a)) // Heat runs 0..100 s
+        h.send(Start(a))
+        h.send(Done(a))
+        h.send(Done(a)) // Heat runs 0..100 s
         val f = planner.forecast(h.state, h.now)
         val next = f.hives.getValue(a).next!!
         assertEquals("Hold", next.stepName)
@@ -50,7 +52,10 @@ class PlannerTest {
     @Test
     fun queuedHive_startsAfterHolderReleasesPlusHandoff() {
         val h = Harness(tpl)
-        listOf(a, b).forEach { h.send(Start(it)); h.send(Done(it)) }
+        listOf(a, b).forEach {
+            h.send(Start(it))
+            h.send(Done(it))
+        }
         h.send(Done(a)) // a heats 0..100 s; b queued
         val f = planner.forecast(h.state, h.now)
         val bStart = f.hives.getValue(b).deviceStart!!
@@ -62,7 +67,9 @@ class PlannerTest {
     @Test
     fun deviceFreeAt_isWhenTheHolderLeavesTheDeviceBlock() {
         val h = Harness(tpl)
-        h.send(Start(a)); h.send(Done(a)); h.send(Done(a)) // Heat 0..100 s, then Hold (passive) after Done
+        h.send(Start(a))
+        h.send(Done(a))
+        h.send(Done(a)) // Heat 0..100 s, then Hold (passive) after Done
         val f = planner.forecast(h.state, h.now)
         assertEquals(100 * SEC, f.deviceFreeAt)
         assertFalse("first entry at the running step's end is firm", f.deviceFreeEstimated)
@@ -72,7 +79,8 @@ class PlannerTest {
     fun deviceFreeAt_isFirmWhenTheRunningTimerItselfReleases() {
         // Heat (device, timed) then Open (passive, manual): the timer end moves on with no tap.
         val h = Harness(template(manual("Load", device = true), timed("Heat", 100, device = true), manual("Open")))
-        h.send(Start(a)); h.send(Done(a))
+        h.send(Start(a))
+        h.send(Done(a))
         val f = planner.forecast(h.state, h.now)
         assertEquals(100 * SEC, f.deviceFreeAt)
         assertFalse(f.deviceFreeEstimated)
@@ -81,7 +89,9 @@ class PlannerTest {
     @Test
     fun onlyTheRunningStepsEndIsFirm_everythingAfterItIsEstimated() {
         val h = Harness(Presets.panWandStaysIn)
-        h.send(Start(a)); h.send(Done(a)); h.send(Done(a)) // Heat running
+        h.send(Start(a))
+        h.send(Done(a))
+        h.send(Done(a)) // Heat running
         val mine = planner.forecast(h.state, h.now).steps.filter { it.hiveId == a }
         assertEquals("Cool in hive", mine.first().stepName)
         assertFalse("end of the running Heat step is firm", mine.first().estimated)
@@ -93,7 +103,9 @@ class PlannerTest {
     fun runAwaitingDone_hasNoFirmTimes() {
         // Regression: while Herb was ringing on Heat, "Keep sealed" and "Remove wand" showed as firm.
         val h = Harness(Presets.panWandStaysIn)
-        h.send(Start(a)); h.send(Done(a)); h.send(Done(a))
+        h.send(Start(a))
+        h.send(Done(a))
+        h.send(Done(a))
         h.fire(a) // Heat finished, waiting for Done
         val f = planner.forecast(h.state, h.now)
         assertTrue(f.steps.isNotEmpty())
@@ -104,7 +116,8 @@ class PlannerTest {
     @Test
     fun manualStepRun_hasNoFirmTimes() {
         val h = Harness(Presets.panWandStaysIn)
-        h.send(Start(a)); h.send(Done(a)) // on Load dose
+        h.send(Start(a))
+        h.send(Done(a)) // on Load dose
         assertTrue(planner.forecast(h.state, h.now).steps.all { it.estimated })
     }
 
@@ -119,7 +132,8 @@ class PlannerTest {
     @Test
     fun deviceFreeAt_isEstimatedWhenAManualDeviceStepRemains() {
         val h = Harness(tpl)
-        h.send(Start(a)); h.send(Done(a)) // on Load (manual, device)
+        h.send(Start(a))
+        h.send(Done(a)) // on Load (manual, device)
         val f = planner.forecast(h.state, h.now)
         assertEquals(MANUAL_STEP_MS + 100 * SEC, f.deviceFreeAt)
         assertTrue(f.deviceFreeEstimated)
@@ -135,7 +149,10 @@ class PlannerTest {
     @Test
     fun comingUp_isTimeOrderedAcrossHivesAndLimitedToFive() {
         val h = Harness(tpl)
-        listOf(a, b).forEach { h.send(Start(it)); h.send(Done(it)) }
+        listOf(a, b).forEach {
+            h.send(Start(it))
+            h.send(Done(it))
+        }
         h.send(Done(a))
         val f = planner.forecast(h.state, h.now)
         val up = f.comingUp()
@@ -147,7 +164,9 @@ class PlannerTest {
     @Test
     fun notStartedHivesAreNotProjected() {
         val h = Harness(tpl)
-        h.send(Start(a)); h.send(Done(a)); h.send(Done(a))
+        h.send(Start(a))
+        h.send(Done(a))
+        h.send(Done(a))
         val f = planner.forecast(h.state, h.now)
         assertEquals(setOf(a), f.hives.keys)
         assertTrue(f.steps.all { it.hiveId == a })
@@ -167,7 +186,9 @@ class PlannerTest {
     @Test
     fun allDone_isTheLastFinishAndEstimatedWhenManualStepsRemain() {
         val h = Harness(tpl)
-        h.send(Start(a)); h.send(Done(a)); h.send(Done(a))
+        h.send(Start(a))
+        h.send(Done(a))
+        h.send(Done(a))
         val f = planner.forecast(h.state, h.now)
         // Heat ends 100 s, Hold ends 400 s, Open takes one manual estimate.
         assertEquals(400 * SEC + MANUAL_STEP_MS, f.allDoneAt)
@@ -177,7 +198,8 @@ class PlannerTest {
     @Test
     fun nothingActiveOrPending_hasNoFinishTime() {
         val h = Harness(tpl)
-        h.send(Start(a)); h.send(Event.Cancel(a))
+        h.send(Start(a))
+        h.send(Event.Cancel(a))
         val f = planner.forecast(h.state, h.now)
         assertNull(f.allDoneAt)
         assertTrue(f.steps.isEmpty())
@@ -187,15 +209,20 @@ class PlannerTest {
     fun nextUp_isQueueHeadElseFirstNotStartedInListOrder() {
         val h = Harness(tpl)
         assertEquals(b, planner.nextUp(h.state, listOf(b, a)))
-        h.send(Start(a)); h.send(Done(a)) // a holds the device
-        h.send(Start(c)); h.send(Done(c)) // c queued
+        h.send(Start(a))
+        h.send(Done(a)) // a holds the device
+        h.send(Start(c))
+        h.send(Done(c)) // c queued
         assertEquals(c, planner.nextUp(h.state, listOf(b, a, c)))
     }
 
     @Test
     fun forecastNeverChangesTheRealState() {
         val h = Harness(tpl)
-        listOf(a, b).forEach { h.send(Start(it)); h.send(Done(it)) }
+        listOf(a, b).forEach {
+            h.send(Start(it))
+            h.send(Done(it))
+        }
         val before = h.state
         planner.forecast(h.state, h.now)
         assertEquals(before, h.state)
@@ -212,9 +239,16 @@ class PlannerTest {
             val id = hives.random(rnd)
             when (rnd.nextInt(5)) {
                 0 -> h.send(Start(id))
+
                 1 -> h.send(Done(id))
-                2 -> h.alarms.minByOrNull { it.value }?.let { h.now = maxOf(h.now, it.value); h.send(Event.TimerFired(it.key)) }
+
+                2 -> h.alarms.minByOrNull { it.value }?.let {
+                    h.now = maxOf(h.now, it.value)
+                    h.send(Event.TimerFired(it.key))
+                }
+
                 3 -> h.send(Event.Skip(id))
+
                 else -> h.send(Event.Cancel(id))
             }
             val f = planner.forecast(h.state, h.now)

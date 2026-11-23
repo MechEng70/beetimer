@@ -29,7 +29,9 @@ class EffectExecutor(
                     } else {
                         alarms.scheduleAlarmClock(effect.hiveId, effect.atMs)
                     }
+
                 is Effect.CancelAlarm -> alarms.cancel(effect.hiveId)
+
                 is Effect.Ring -> {
                     val run = state.runs[effect.hiveId] ?: continue
                     val label = labels[effect.hiveId] ?: continue
@@ -43,10 +45,14 @@ class EffectExecutor(
                         quiet = how.quietNotification,
                     )
                     if (how.openAlarmScreen) {
-                        runCatching { context.startActivity(AlarmActivity.intent(context, effect.hiveId, returnToApp = true)) }
+                        runCatching {
+                            context.startActivity(AlarmActivity.intent(context, effect.hiveId, returnToApp = true))
+                        }
                     }
                 }
+
                 is Effect.StopRing -> RingService.stop(context, effect.hiveId)
+
                 is Effect.NotifyDeviceFree -> labels[effect.hiveId]?.let { label ->
                     when (Delivery.deviceFree(isForeground())) {
                         Delivery.DeviceFree.SNACKBAR -> showInApp(effect.hiveId, label)

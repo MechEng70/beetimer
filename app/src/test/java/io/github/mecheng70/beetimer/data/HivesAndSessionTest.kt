@@ -60,7 +60,12 @@ class HivesAndSessionTest {
         val fourth = repo.addHive()
         val fifth = repo.addHive()
         val sixth = repo.addHive()
-        assertEquals(listOf("Hive 4", "Hive 5"), repo.hiveList().filter { it.id == fourth || it.id == fifth }.map { it.label })
+        assertEquals(
+            listOf("Hive 4", "Hive 5"),
+            repo.hiveList().filter {
+                it.id == fourth || it.id == fifth
+            }.map { it.label },
+        )
         assertNull(sixth)
         assertEquals(Repository.MAX_HIVES, repo.hiveList().size)
     }

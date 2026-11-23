@@ -100,7 +100,10 @@ class SchedulerTest {
     @Test
     fun cancelWhileHoldingLock_releasesAndAlertsQueueHead() {
         val t = Harness()
-        listOf(a, b, c).forEach { t.send(Start(it)); t.send(Done(it)) }
+        listOf(a, b, c).forEach {
+            t.send(Start(it))
+            t.send(Done(it))
+        }
         assertEquals(a, t.state.lockHolder)
         assertEquals(listOf(b, c), t.state.queue)
 
@@ -114,7 +117,9 @@ class SchedulerTest {
     @Test
     fun cancelWhileRunningTimedStep_cancelsItsAlarm() {
         val t = Harness()
-        t.send(Start(a)); t.send(Done(a)); t.send(Done(a))
+        t.send(Start(a))
+        t.send(Done(a))
+        t.send(Done(a))
         assertNotNull(t.alarms[a])
         val fx = t.send(Cancel(a))
         assertTrue(fx.contains(CancelAlarm(a)))
@@ -124,7 +129,10 @@ class SchedulerTest {
     @Test
     fun cancelWhileQueued_leavesLockAlone() {
         val t = Harness()
-        listOf(a, b, c).forEach { t.send(Start(it)); t.send(Done(it)) }
+        listOf(a, b, c).forEach {
+            t.send(Start(it))
+            t.send(Done(it))
+        }
         val fx = t.send(Cancel(b))
         assertEquals(NOT_STARTED, t.state.stateOf(b))
         assertEquals(a, t.state.lockHolder)
@@ -135,7 +143,10 @@ class SchedulerTest {
     @Test
     fun cancelQueueHeadWhileDeviceFree_alertsNextHead() {
         val t = Harness()
-        listOf(a, b, c).forEach { t.send(Start(it)); t.send(Done(it)) }
+        listOf(a, b, c).forEach {
+            t.send(Start(it))
+            t.send(Done(it))
+        }
         t.send(Cancel(a)) // b is told the device is free
         val fx = t.send(Cancel(b))
         assertEquals(listOf(NotifyDeviceFree(c)), fx.filterIsInstance<NotifyDeviceFree>())
@@ -144,9 +155,13 @@ class SchedulerTest {
     @Test
     fun deviceReservedForQueueHead_newcomerCannotJumpAhead() {
         val t = Harness()
-        listOf(a, b).forEach { t.send(Start(it)); t.send(Done(it)) }
+        listOf(a, b).forEach {
+            t.send(Start(it))
+            t.send(Done(it))
+        }
         t.send(Cancel(a)) // device free, reserved for b
-        t.send(Start(c)); t.send(Done(c))
+        t.send(Start(c))
+        t.send(Done(c))
         t.assertAt(c, "Load dose", WAITING_FOR_DEVICE)
         assertEquals(listOf(b, c), t.state.queue)
         assertNull(t.state.lockHolder)
@@ -155,7 +170,9 @@ class SchedulerTest {
     @Test
     fun timedToTimed_nextTimerStartsWhenAcknowledged() {
         val t = Harness()
-        t.send(Start(a)); t.send(Done(a)); t.send(Done(a))
+        t.send(Start(a))
+        t.send(Done(a))
+        t.send(Done(a))
         val fx = t.fire(a) // Heat ends at 150 s
         assertTrue(fx.contains(Ring(a, 2, overdue = false)))
         t.at(170).send(Done(a)) // power off took 20 s
@@ -167,8 +184,11 @@ class SchedulerTest {
     @Test
     fun timedToManual_movesOnAndAlarmDoneCompletesManualStep() {
         val t = Harness()
-        t.send(Start(a)); t.send(Done(a)); t.send(Done(a))
-        t.fire(a); t.send(Done(a))
+        t.send(Start(a))
+        t.send(Done(a))
+        t.send(Done(a))
+        t.fire(a)
+        t.send(Done(a))
         val fx = t.fire(a) // Cool ends
         assertTrue(fx.contains(Ring(a, 3, overdue = false)))
         t.assertAt(a, "Remove wand", AWAITING_CONFIRM)
@@ -183,7 +203,9 @@ class SchedulerTest {
     @Test
     fun addMinute_onRunningTimedStepExtendsAndReschedules() {
         val t = Harness()
-        t.send(Start(a)); t.send(Done(a)); t.send(Done(a))
+        t.send(Start(a))
+        t.send(Done(a))
+        t.send(Done(a))
         t.at(50).send(AddMinute(a))
         assertEquals(210 * SEC, t.run(a).stepEndsAt)
         assertEquals(210 * SEC, t.alarms[a])
@@ -192,8 +214,12 @@ class SchedulerTest {
     @Test
     fun addMinute_whileRinging_reopensFinishedStep() {
         val t = Harness()
-        t.send(Start(a)); t.send(Done(a)); t.send(Done(a))
-        t.fire(a); t.send(Done(a)); t.fire(a) // now on Remove wand, ringing for Cool
+        t.send(Start(a))
+        t.send(Done(a))
+        t.send(Done(a))
+        t.fire(a)
+        t.send(Done(a))
+        t.fire(a) // now on Remove wand, ringing for Cool
         val fx = t.send(AddMinute(a))
         assertTrue(fx.contains(StopRing(a)))
         t.assertAt(a, "Cool in hive", RUNNING)
@@ -207,7 +233,8 @@ class SchedulerTest {
         // Wait step then device step: the advance queued the hive; +1 min takes it back out.
         val tpl = template(timed("Wait", 10), manual("Use device", device = true), manual("Finish"))
         val t = Harness(tpl)
-        t.send(Start(b)); t.send(Start(a))
+        t.send(Start(b))
+        t.send(Start(a))
         t.send(Skip(b)) // b takes the device
         t.fire(a)
         t.assertAt(a, "Use device", WAITING_FOR_DEVICE)
@@ -221,7 +248,9 @@ class SchedulerTest {
     @Test
     fun snooze_silencesAndRingsAgainIn30s() {
         val t = Harness()
-        t.send(Start(a)); t.send(Done(a)); t.send(Done(a))
+        t.send(Start(a))
+        t.send(Done(a))
+        t.send(Done(a))
         t.fire(a)
         val fx = t.at(160).send(Snooze(a))
         assertTrue(fx.contains(StopRing(a)))
@@ -234,7 +263,9 @@ class SchedulerTest {
     @Test
     fun unacknowledgedAlarm_ringsAgainEveryCycle() {
         val t = Harness()
-        t.send(Start(a)); t.send(Done(a)); t.send(Done(a))
+        t.send(Start(a))
+        t.send(Done(a))
+        t.send(Done(a))
         t.fire(a) // at 150 s
         assertEquals(150 * SEC + SchedulerTiming.RING_CYCLE_MS, t.alarms[a])
         val fx = t.fire(a)
@@ -245,7 +276,9 @@ class SchedulerTest {
     @Test
     fun earlyTimerFired_reschedulesWithoutAdvancing() {
         val t = Harness()
-        t.send(Start(a)); t.send(Done(a)); t.send(Done(a))
+        t.send(Start(a))
+        t.send(Done(a))
+        t.send(Done(a))
         val fx = t.at(100).send(TimerFired(a))
         assertEquals(listOf(ScheduleAlarm(a, 150 * SEC)), fx)
         t.assertAt(a, "Heat and vaporize", RUNNING)
@@ -254,7 +287,9 @@ class SchedulerTest {
     @Test
     fun lateTimerFired_isMarkedOverdue() {
         val t = Harness()
-        t.send(Start(a)); t.send(Done(a)); t.send(Done(a))
+        t.send(Start(a))
+        t.send(Done(a))
+        t.send(Done(a))
         val fx = t.at(150 + 61).send(TimerFired(a))
         assertTrue(fx.contains(Ring(a, 2, overdue = true)))
     }
@@ -262,7 +297,10 @@ class SchedulerTest {
     @Test
     fun skip_lastDeviceStepReleasesLockAndAlertsHead() {
         val t = Harness()
-        listOf(a, b).forEach { t.send(Start(it)); t.send(Done(it)) }
+        listOf(a, b).forEach {
+            t.send(Start(it))
+            t.send(Done(it))
+        }
         t.send(Skip(a)) // Load dose
         t.send(Skip(a)) // Heat
         t.send(Skip(a)) // Cool
@@ -276,7 +314,10 @@ class SchedulerTest {
     @Test
     fun skip_whileWaitingForDeviceDoesNothing() {
         val t = Harness()
-        listOf(a, b).forEach { t.send(Start(it)); t.send(Done(it)) }
+        listOf(a, b).forEach {
+            t.send(Start(it))
+            t.send(Done(it))
+        }
         val before = t.state
         t.send(Skip(b))
         assertEquals(before, t.state)
@@ -285,7 +326,8 @@ class SchedulerTest {
     @Test
     fun lastStepTimed_ringsAndDoneClearsIt() {
         val t = Harness(template(manual("Seal"), timed("Wait", 30)))
-        t.send(Start(a)); t.send(Done(a))
+        t.send(Start(a))
+        t.send(Done(a))
         t.fire(a)
         assertEquals(DONE, t.run(a).state)
         assertNotNull(t.run(a).ringing)
@@ -298,7 +340,10 @@ class SchedulerTest {
     @Test
     fun queueSkipHead_movesHeadToBackAndAlertsNewHead() {
         val t = Harness()
-        listOf(a, b, c).forEach { t.send(Start(it)); t.send(Done(it)) }
+        listOf(a, b, c).forEach {
+            t.send(Start(it))
+            t.send(Done(it))
+        }
         t.send(Cancel(a))
         val fx = t.send(QueueSkipHead)
         assertEquals(listOf(c, b), t.state.queue)
@@ -312,7 +357,10 @@ class SchedulerTest {
     @Test
     fun queueRemoveHead_resetsThatHive() {
         val t = Harness()
-        listOf(a, b, c).forEach { t.send(Start(it)); t.send(Done(it)) }
+        listOf(a, b, c).forEach {
+            t.send(Start(it))
+            t.send(Done(it))
+        }
         t.send(Cancel(a))
         val fx = t.send(QueueRemoveHead)
         assertEquals(NOT_STARTED, t.state.stateOf(b))
@@ -335,7 +383,9 @@ class SchedulerTest {
     @Test
     fun cancel_returnsHiveToNotStartedWithNoRunLeft() {
         val t = Harness()
-        t.send(Start(a)); t.send(Done(a)); t.send(Done(a)) // heating with the device
+        t.send(Start(a))
+        t.send(Done(a))
+        t.send(Done(a)) // heating with the device
         t.send(Cancel(a))
         assertFalse(t.state.runs.containsKey(a))
         assertEquals(NOT_STARTED, t.state.stateOf(a))
@@ -355,7 +405,9 @@ class SchedulerTest {
     @Test
     fun restartAfterCancel_startsFreshRun() {
         val t = Harness()
-        t.send(Start(a)); t.send(Done(a)); t.send(Cancel(a))
+        t.send(Start(a))
+        t.send(Done(a))
+        t.send(Cancel(a))
         t.at(5).send(Start(a))
         t.assertAt(a, "Seal hive", AWAITING_CONFIRM)
         assertEquals(5 * SEC, t.run(a).startedAt)
@@ -364,8 +416,11 @@ class SchedulerTest {
     @Test
     fun newSession_clearsRunsAndAlarms() {
         val t = Harness()
-        t.send(Start(a)); t.send(Done(a)); t.send(Done(a))
-        t.send(Start(b)); t.send(Done(b))
+        t.send(Start(a))
+        t.send(Done(a))
+        t.send(Done(a))
+        t.send(Start(b))
+        t.send(Done(b))
         t.fire(a)
         val fx = t.send(Event.NewSession)
         assertTrue(fx.contains(StopRing(a)))
@@ -378,10 +433,15 @@ class SchedulerTest {
     @Test
     fun panWandStaysIn_runsEndToEnd_holdKeepsVaporizerUntilRemoveWand() {
         val t = Harness(Presets.panWandStaysIn)
-        listOf(a, b).forEach { t.send(Start(it)); t.send(Done(it)) }
+        listOf(a, b).forEach {
+            t.send(Start(it))
+            t.send(Done(it))
+        }
         t.send(Done(a)) // Load dose
-        t.fire(a); t.send(Done(a)) // Heat -> Cool
-        t.fire(a); t.send(Done(a)) // Cool -> Keep sealed
+        t.fire(a)
+        t.send(Done(a)) // Heat -> Cool
+        t.fire(a)
+        t.send(Done(a)) // Cool -> Keep sealed
         t.assertAt(a, "Keep sealed", RUNNING)
         assertEquals("the sealed hold keeps the vaporizer", a, t.state.lockHolder)
         t.fire(a)
@@ -399,9 +459,13 @@ class SchedulerTest {
     @Test
     fun panWandComesOut_runsEndToEnd_handsOffAfterRemoveWandAndHoldsOverlap() {
         val t = Harness(Presets.panWandComesOut)
-        listOf(a, b).forEach { t.send(Start(it)); t.send(Done(it)) }
+        listOf(a, b).forEach {
+            t.send(Start(it))
+            t.send(Done(it))
+        }
         t.send(Done(a)) // Load dose
-        t.fire(a); t.send(Done(a)) // Heat -> Cool
+        t.fire(a)
+        t.send(Done(a)) // Heat -> Cool
         t.fire(a) // Cool ends -> Remove wand (manual, releases)
         t.assertAt(a, "Remove wand", AWAITING_CONFIRM)
         assertEquals(a, t.state.lockHolder)
@@ -409,7 +473,8 @@ class SchedulerTest {
         t.assertAt(a, "Keep sealed", RUNNING)
         assertNull("the sealed hold is passive", t.state.lockHolder)
         assertTrue(fx.contains(NotifyDeviceFree(b)))
-        t.send(Start(b)); t.send(Done(b))
+        t.send(Start(b))
+        t.send(Done(b))
         t.assertAt(b, "Heat and vaporize", RUNNING)
         t.assertAt(a, "Keep sealed", RUNNING) // overlap
         t.fire(a)
@@ -433,7 +498,9 @@ class SchedulerTest {
     fun timeScale_dividesTimedStepsPlusMinuteAndSnooze() {
         val t = Harness(Presets.panWandStaysIn)
         t.send(Event.TimeScaleChanged(60))
-        t.send(Start(a)); t.send(Done(a)); t.send(Done(a))
+        t.send(Start(a))
+        t.send(Done(a))
+        t.send(Done(a))
         assertEquals(150 * SEC / 60, t.run(a).stepEndsAt)
         t.send(AddMinute(a))
         assertEquals(150 * SEC / 60 + 60 * SEC / 60, t.run(a).stepEndsAt)
@@ -445,8 +512,10 @@ class SchedulerTest {
     @Test
     fun templateWithNoDeviceSteps_neverTakesLock() {
         val t = Harness(template(manual("Seal"), timed("Wait", 10), manual("Open")))
-        t.send(Start(a)); t.send(Start(b))
-        t.send(Done(a)); t.send(Done(b))
+        t.send(Start(a))
+        t.send(Start(b))
+        t.send(Done(a))
+        t.send(Done(b))
         t.assertAt(a, "Wait", RUNNING)
         t.assertAt(b, "Wait", RUNNING)
         assertNull(t.state.lockHolder)

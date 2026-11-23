@@ -2,11 +2,16 @@ package io.github.mecheng70.beetimer
 
 import android.app.Application
 import android.media.AudioManager
+import androidx.lifecycle.DefaultLifecycleObserver
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.ProcessLifecycleOwner
 import androidx.room.Room
 import io.github.mecheng70.beetimer.alarms.AlarmScheduler
 import io.github.mecheng70.beetimer.alarms.Channels
 import io.github.mecheng70.beetimer.alarms.EffectExecutor
 import io.github.mecheng70.beetimer.alarms.Notifier
+import io.github.mecheng70.beetimer.alarms.RingService
 import io.github.mecheng70.beetimer.alarms.SchedulerEngine
 import io.github.mecheng70.beetimer.alarms.VolumeCheck
 import io.github.mecheng70.beetimer.data.BeeTimerDb
@@ -19,29 +24,34 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.launch
-import androidx.lifecycle.DefaultLifecycleObserver
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.LifecycleOwner
-import io.github.mecheng70.beetimer.alarms.RingService
-import androidx.lifecycle.ProcessLifecycleOwner
 
 /** Wires the app by hand; small enough not to need a DI library. */
 class BeeTimerApp : Application() {
     val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
 
     val prefs by lazy { Prefs(this) }
-    private val db by lazy { Room.databaseBuilder(this, BeeTimerDb::class.java, "beetimer.db").addMigrations(MIGRATION_1_2, MIGRATION_2_3).build() }
+    private val db by lazy {
+        Room.databaseBuilder(
+            this,
+            BeeTimerDb::class.java,
+            "beetimer.db",
+        ).addMigrations(MIGRATION_1_2, MIGRATION_2_3).build()
+    }
     val repo by lazy { Repository(db) { n -> getString(R.string.hive_default_name, n) } }
     val alarms by lazy { AlarmScheduler(this) }
+
     /** "Vaporizer free" messages for the snackbar while the app is on screen. */
     val deviceFreeInApp = MutableSharedFlow<Pair<Long, String>>(extraBufferCapacity = 4)
+
     /** "Alarm volume is low" snackbar, from the first Start of a session. */
     val volumeLowInApp = MutableSharedFlow<Unit>(extraBufferCapacity = 1)
     val volumeCheck by lazy {
         VolumeCheck(object : VolumeCheck.Store {
             override var checkedThisSession: Boolean
                 get() = prefs.volumeChecked
-                set(v) { prefs.volumeChecked = v }
+                set(v) {
+                    prefs.volumeChecked = v
+                }
         })
     }
 
@@ -58,7 +68,9 @@ class BeeTimerApp : Application() {
                 context = this,
                 alarms = alarms,
                 notifier = Notifier(this),
-                isForeground = { ProcessLifecycleOwner.get().lifecycle.currentState.isAtLeast(Lifecycle.State.STARTED) },
+                isForeground = {
+                    ProcessLifecycleOwner.get().lifecycle.currentState.isAtLeast(Lifecycle.State.STARTED)
+                },
                 showInApp = { id, label -> deviceFreeInApp.tryEmit(id to label) },
             ),
         )

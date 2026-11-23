@@ -21,11 +21,20 @@ object Invariants {
         val usingDevice = runs.filter { it.inDeviceStep && it.state != RunState.WAITING_FOR_DEVICE }
         if (usingDevice.size > 1) v += "more than one run holds the vaporizer: ${usingDevice.map { it.hiveId }}"
         usingDevice.forEach { r ->
-            if (state.lockHolder != r.hiveId) v += "hive ${r.hiveId} is in device step '${r.currentStep?.name}' but does not hold the vaporizer"
+            if (state.lockHolder !=
+                r.hiveId
+            ) {
+                v +=
+                    "hive ${r.hiveId} is in device step '${r.currentStep?.name}' but does not hold the vaporizer"
+            }
         }
         state.lockHolder?.let { h ->
             val r = state.runs[h]
-            if (r == null || !r.inDeviceStep || r.state == RunState.WAITING_FOR_DEVICE) v += "lock holder $h is not in a device step"
+            if (r == null || !r.inDeviceStep ||
+                r.state == RunState.WAITING_FOR_DEVICE
+            ) {
+                v += "lock holder $h is not in a device step"
+            }
             if (h in state.queue) v += "lock holder $h is also queued"
         }
         runs.filter { it.state == RunState.WAITING_FOR_DEVICE }.forEach { r ->
@@ -38,7 +47,9 @@ object Invariants {
 
         alarms?.forEach { (h, at) ->
             val r = state.runs[h]
-            val timed = r != null && (r.ringing != null || (r.state == RunState.RUNNING && r.currentStep?.kind == StepKind.TIMED))
+            val timed =
+                r != null &&
+                    (r.ringing != null || (r.state == RunState.RUNNING && r.currentStep?.kind == StepKind.TIMED))
             if (!timed) v += "alarm at $at scheduled for hive $h with no timed step or ringing alarm"
         }
 

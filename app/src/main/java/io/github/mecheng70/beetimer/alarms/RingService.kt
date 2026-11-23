@@ -41,19 +41,22 @@ class RingService : Service() {
         val hiveId = intent?.getLongExtra(EXTRA_HIVE_ID, NO_HIVE) ?: NO_HIVE
         when (intent?.action) {
             ACTION_RING -> {
-                ringing[hiveId] = intent.getStringExtra(EXTRA_TITLE).orEmpty() to intent.getStringExtra(EXTRA_TEXT).orEmpty()
+                ringing[hiveId] =
+                    intent.getStringExtra(EXTRA_TITLE).orEmpty() to intent.getStringExtra(EXTRA_TEXT).orEmpty()
                 if (intent.getBooleanExtra(EXTRA_QUIET, false)) quiet += hiveId else quiet -= hiveId
                 promote(hiveId)
                 sound.start()
                 handler.removeCallbacks(capRunnable)
                 handler.postDelayed(capRunnable, RING_CAP_MS)
             }
+
             ACTION_UNQUIET -> if (quiet.isNotEmpty()) {
                 // The app left the screen while ringing: back to the alarm channel with the
                 // full-screen intent, so the lock screen and the notification bring the alarm back.
                 quiet.clear()
                 foregroundId?.let { promote(it) }
             }
+
             ACTION_STOP -> {
                 ringing.remove(hiveId)
                 quiet -= hiveId
@@ -64,6 +67,7 @@ class RingService : Service() {
                     promote(ringing.keys.last())
                 }
             }
+
             else -> if (ringing.isEmpty()) shutDown(removeNotification = true)
         }
         return START_NOT_STICKY
@@ -86,7 +90,13 @@ class RingService : Service() {
             startForeground(Notifier.ringId(hiveId), n)
         }
         foregroundId = hiveId
-        ringing.forEach { (id, t) -> if (id != hiveId) notifier.postRing(id, notifier.ringNotification(id, t.first, t.second, quiet = id in quiet)) }
+        ringing.forEach { (id, t) ->
+            if (id !=
+                hiveId
+            ) {
+                notifier.postRing(id, notifier.ringNotification(id, t.first, t.second, quiet = id in quiet))
+            }
+        }
     }
 
     /** Two minutes of ringing are up: go quiet but leave the alarms on screen. */

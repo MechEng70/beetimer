@@ -5,6 +5,7 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -16,7 +17,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -34,15 +34,6 @@ import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.layout.onSizeChanged
-import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.zIndex
-import io.github.mecheng70.beetimer.ui.theme.AppIcons
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -50,12 +41,21 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.zIndex
 import io.github.mecheng70.beetimer.BeeTimerApp
 import io.github.mecheng70.beetimer.scheduler.Event
 import io.github.mecheng70.beetimer.scheduler.HiveRun
 import io.github.mecheng70.beetimer.scheduler.RunState
+import io.github.mecheng70.beetimer.ui.theme.AppIcons
 import io.github.mecheng70.beetimer.ui.theme.AppType
 import io.github.mecheng70.beetimer.ui.theme.BeeTheme
 import io.github.mecheng70.beetimer.ui.theme.Dimens
@@ -75,7 +75,9 @@ fun BeeTimerApp.send(event: Event) {
             val (volume, max) = alarmVolume()
             if (volumeCheck.onStart(volume, max)) volumeLowInApp.tryEmit(Unit)
         }
+
         Event.NewSession -> volumeCheck.onNewSession()
+
         else -> Unit
     }
     scope.launch { engine.dispatch(event) }
@@ -142,7 +144,13 @@ enum class ChipKind { TIME, STATE }
 
 /** Chip for a countdown ([ChipKind.TIME], bold 20 sp, 36 dp tall) or a state ([ChipKind.STATE], 14 sp). */
 @Composable
-fun Chip(text: String, tone: Tone, modifier: Modifier = Modifier, kind: ChipKind = ChipKind.STATE, strong: Boolean = false) {
+fun Chip(
+    text: String,
+    tone: Tone,
+    modifier: Modifier = Modifier,
+    kind: ChipKind = ChipKind.STATE,
+    strong: Boolean = false,
+) {
     val (bg, fg) = toneColors(tone)
     val fill = if (strong && tone == Tone.DEVICE) BeeTheme.colors.deviceStrong else bg
     val time = kind == ChipKind.TIME
@@ -150,7 +158,10 @@ fun Chip(text: String, tone: Tone, modifier: Modifier = Modifier, kind: ChipKind
         modifier
             .heightIn(min = if (time) Dimens.TimeChipMinHeight else Dimens.ChipMinHeight)
             .background(fill, RoundedCornerShape(Dimens.SmallCorner))
-            .padding(horizontal = if (time) Dimens.TimeChipPaddingH else Dimens.ChipPaddingH, vertical = Dimens.ChipPaddingV),
+            .padding(
+                horizontal = if (time) Dimens.TimeChipPaddingH else Dimens.ChipPaddingH,
+                vertical = Dimens.ChipPaddingV,
+            ),
         contentAlignment = Alignment.Center,
     ) {
         Text(text, style = if (time) AppType.timeChip else AppType.stateChip, color = fg, maxLines = 1)
@@ -175,7 +186,13 @@ fun StepPill(text: String, deviceBound: Boolean, modifier: Modifier = Modifier) 
 
 /** Icon with a 48 dp touch target. */
 @Composable
-fun IconAction(icon: ImageVector, description: String, onClick: () -> Unit, tint: Color = BeeTheme.colors.ink, enabled: Boolean = true) {
+fun IconAction(
+    icon: ImageVector,
+    description: String,
+    onClick: () -> Unit,
+    tint: Color = BeeTheme.colors.ink,
+    enabled: Boolean = true,
+) {
     Box(
         Modifier
             .size(Dimens.IconTouch)
@@ -240,21 +257,38 @@ fun <T> ReorderableColumn(
                 val dragging = draggingKey == k
                 val handle = Modifier.pointerInput(k) {
                     detectDragGesturesAfterLongPress(
-                        onDragStart = { draggingKey = k; offset = 0f },
+                        onDragStart = {
+                            draggingKey = k
+                            offset = 0f
+                        },
                         onDrag = { change, amount ->
                             change.consume()
                             offset += amount.y
                             val i = order.indexOfFirst { key(it) == k }
                             if (offset > 0 && i < order.lastIndex) {
                                 val h = heights[key(order[i + 1])] ?: 0
-                                if (offset > h / 2f) { order.add(i + 1, order.removeAt(i)); offset -= h }
+                                if (offset > h / 2f) {
+                                    order.add(i + 1, order.removeAt(i))
+                                    offset -= h
+                                }
                             } else if (offset < 0 && i > 0) {
                                 val h = heights[key(order[i - 1])] ?: 0
-                                if (-offset > h / 2f) { order.add(i - 1, order.removeAt(i)); offset += h }
+                                if (-offset > h / 2f) {
+                                    order.add(i - 1, order.removeAt(i))
+                                    offset += h
+                                }
                             }
                         },
-                        onDragEnd = { draggingKey = null; offset = 0f; latestOnMove(order.toList()) },
-                        onDragCancel = { draggingKey = null; offset = 0f; latestOnMove(order.toList()) },
+                        onDragEnd = {
+                            draggingKey = null
+                            offset = 0f
+                            latestOnMove(order.toList())
+                        },
+                        onDragCancel = {
+                            draggingKey = null
+                            offset = 0f
+                            latestOnMove(order.toList())
+                        },
                     )
                 }
                 Box(
@@ -262,7 +296,10 @@ fun <T> ReorderableColumn(
                         .onSizeChanged { heights[k] = it.height }
                         .zIndex(if (dragging) 1f else 0f)
                         .graphicsLayer { translationY = if (dragging) offset else 0f }
-                        .background(if (dragging) BeeTheme.colors.idleBg else Color.Transparent, RoundedCornerShape(Dimens.SmallCorner)),
+                        .background(
+                            if (dragging) BeeTheme.colors.idleBg else Color.Transparent,
+                            RoundedCornerShape(Dimens.SmallCorner),
+                        ),
                 ) { row(item, handle, dragging) }
             }
         }
@@ -276,7 +313,12 @@ fun DragHandle(modifier: Modifier, description: String) {
         modifier.size(Dimens.IconTouch).semantics { contentDescription = description },
         contentAlignment = Alignment.Center,
     ) {
-        Icon(AppIcons.DragHandle, contentDescription = null, tint = BeeTheme.colors.inkMuted, modifier = Modifier.size(Dimens.Icon))
+        Icon(
+            AppIcons.DragHandle,
+            contentDescription = null,
+            tint = BeeTheme.colors.inkMuted,
+            modifier = Modifier.size(Dimens.Icon),
+        )
     }
 }
 
@@ -361,7 +403,12 @@ fun TabStrip(labels: List<String>, selected: Int, onSelect: (Int) -> Unit, modif
                         .drawBehind {
                             if (on) {
                                 val h = Dimens.TabUnderline.toPx()
-                                drawLine(c.ink, Offset(0f, size.height - h / 2), Offset(size.width, size.height - h / 2), h)
+                                drawLine(
+                                    c.ink,
+                                    Offset(0f, size.height - h / 2),
+                                    Offset(size.width, size.height - h / 2),
+                                    h,
+                                )
                             }
                         }
                         .padding(vertical = Dimens.TabPadding),

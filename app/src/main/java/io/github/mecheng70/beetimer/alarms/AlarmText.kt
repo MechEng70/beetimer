@@ -33,15 +33,23 @@ object AlarmText {
         var timerLine: String? = null
         val nextAction = when {
             run.state == RunState.DONE -> context.getString(R.string.alarm_all_done)
-            run.state == RunState.WAITING_FOR_DEVICE && current != null -> context.getString(R.string.alarm_waiting, current.name)
+
+            run.state == RunState.WAITING_FOR_DEVICE && current != null -> context.getString(
+                R.string.alarm_waiting,
+                current.name,
+            )
+
             ringing != null && run.currentStepIndex == ringing.finishedStepIndex -> {
                 val next = run.steps.getOrNull(run.currentStepIndex + 1)
                 if (next?.kind == StepKind.TIMED) {
-                    timerLine = context.getString(R.string.alarm_timer_starts, formatDuration(next.durationSeconds ?: 0))
+                    timerLine =
+                        context.getString(R.string.alarm_timer_starts, formatDuration(next.durationSeconds ?: 0))
                 }
                 next?.name ?: context.getString(R.string.alarm_all_done)
             }
+
             current != null -> current.name
+
             else -> ""
         }
         return AlarmInfo(finished, finishedStep, nextAction, timerLine, deviceNote(context, run, state, labels))
@@ -61,7 +69,10 @@ object AlarmText {
             run.currentStepIndex == lastDevice && step.kind == StepKind.MANUAL
         if (!doneReleases) return null
         val nextLabel = state.queue.firstOrNull()?.let { labels[it] }
-        return if (nextLabel != null) context.getString(R.string.alarm_device_frees_next, nextLabel)
-        else context.getString(R.string.alarm_device_frees)
+        return if (nextLabel != null) {
+            context.getString(R.string.alarm_device_frees_next, nextLabel)
+        } else {
+            context.getString(R.string.alarm_device_frees)
+        }
     }
 }

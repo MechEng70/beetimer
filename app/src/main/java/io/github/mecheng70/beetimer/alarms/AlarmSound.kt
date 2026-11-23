@@ -79,6 +79,7 @@ class AlarmSound(private val context: Context) {
     private companion object {
         const val TAG = "AlarmSound"
         val VIBRATION = longArrayOf(0, 800, 400, 800, 1200)
+
         /** Alarm stream (Jason, 2026-11-21): the only behavior, no setting. */
         val ALARM_ATTRS: AudioAttributes = AudioAttributes.Builder()
             .setUsage(AudioAttributes.USAGE_ALARM)

@@ -27,7 +27,9 @@ class RestoreTest {
     }
 
     private fun Harness.heating(h: Long) {
-        send(Start(h)); send(Done(h)); send(Done(h)) // Heat runs 0..150 s
+        send(Start(h))
+        send(Done(h))
+        send(Done(h)) // Heat runs 0..150 s
     }
 
     @Test
@@ -48,14 +50,18 @@ class RestoreTest {
         assertTrue(t.run(a).ringing!!.overdue)
         assertEquals(150 * SEC, t.run(a).ringing!!.since)
         assertTrue(fx.contains(Ring(a, 2, overdue = true)))
-        assertEquals(listOf(ScheduleAlarm(a, 400 * SEC + SchedulerTiming.RING_CYCLE_MS)), fx.filterIsInstance<ScheduleAlarm>())
+        assertEquals(
+            listOf(ScheduleAlarm(a, 400 * SEC + SchedulerTiming.RING_CYCLE_MS)),
+            fx.filterIsInstance<ScheduleAlarm>(),
+        )
     }
 
     @Test
     fun afterTimedStepEnd_nextManual_movesToManualStepAndRingsOverdue() {
         val t = Harness()
         t.heating(a)
-        t.fire(a); t.send(Done(a)) // Cool runs 150..270 s
+        t.fire(a)
+        t.send(Done(a)) // Cool runs 150..270 s
         val fx = t.rebootAt(1000)
         t.assertAt(a, "Remove wand", AWAITING_CONFIRM)
         assertEquals(a, t.state.lockHolder)
@@ -122,7 +128,10 @@ class RestoreTest {
     @Test
     fun deviceFreeWithQueue_remindsHead() {
         val t = Harness()
-        listOf(a, b).forEach { t.send(Start(it)); t.send(Done(it)) }
+        listOf(a, b).forEach {
+            t.send(Start(it))
+            t.send(Done(it))
+        }
         t.send(Cancel(a))
         val fx = t.rebootAt(60)
         assertEquals(listOf(NotifyDeviceFree(b)), fx.filterIsInstance<NotifyDeviceFree>())

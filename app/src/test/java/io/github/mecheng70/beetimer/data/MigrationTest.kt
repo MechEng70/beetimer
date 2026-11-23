@@ -26,8 +26,12 @@ class MigrationTest {
         helper.createDatabase(v2, 2).apply {
             val oldPan = """[{"name":"Remove wand and unseal","kind":"MANUAL","deviceBound":true}]"""
             val oldGun = """[{"name":"Withdraw","kind":"MANUAL","deviceBound":true}]"""
-            execSQL("INSERT INTO templates (id, name, stepsJson, isActive) VALUES ('oav-pan-wand', 'OAV pan wand', '$oldPan', 1)")
-            execSQL("INSERT INTO templates (id, name, stepsJson, isActive) VALUES ('oav-gun-type', 'OAV gun type', '$oldGun', 0)")
+            execSQL(
+                "INSERT INTO templates (id, name, stepsJson, isActive) VALUES ('oav-pan-wand', 'OAV pan wand', '$oldPan', 1)",
+            )
+            execSQL(
+                "INSERT INTO templates (id, name, stepsJson, isActive) VALUES ('oav-gun-type', 'OAV gun type', '$oldGun', 0)",
+            )
             execSQL("INSERT INTO hives (id, label, note, position) VALUES (3, 'Herb', 'fence', 0)")
             close()
         }
@@ -48,8 +52,12 @@ class MigrationTest {
         helper.createDatabase(name, 1).apply {
             val oldPan = """[{"name":"Seal hive","kind":"MANUAL"},{"name":"Unseal","kind":"MANUAL"}]"""
             val gun = """[{"name":"Custom gun","kind":"MANUAL"}]"""
-            execSQL("INSERT INTO templates (id, name, stepsJson, isActive) VALUES ('oav-pan-wand', 'Old pan', '$oldPan', 0)")
-            execSQL("INSERT INTO templates (id, name, stepsJson, isActive) VALUES ('oav-gun-type', 'OAV gun type', '$gun', 1)")
+            execSQL(
+                "INSERT INTO templates (id, name, stepsJson, isActive) VALUES ('oav-pan-wand', 'Old pan', '$oldPan', 0)",
+            )
+            execSQL(
+                "INSERT INTO templates (id, name, stepsJson, isActive) VALUES ('oav-gun-type', 'OAV gun type', '$gun', 1)",
+            )
             execSQL("INSERT INTO hives (id, label, note, position) VALUES (7, 'Emory', NULL, 0)")
             close()
         }

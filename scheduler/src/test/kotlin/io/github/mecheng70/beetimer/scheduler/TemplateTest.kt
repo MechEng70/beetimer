@@ -24,7 +24,18 @@ class TemplateTest {
     @Test
     fun panWandStaysIn_matchesSpec() {
         val t = Presets.panWand(PanWandHold.STAYS_IN)
-        assertEquals(listOf("Seal hive", "Load dose", "Heat and vaporize", "Cool in hive", "Keep sealed", "Remove wand", "Unseal"), names(t))
+        assertEquals(
+            listOf(
+                "Seal hive",
+                "Load dose",
+                "Heat and vaporize",
+                "Cool in hive",
+                "Keep sealed",
+                "Remove wand",
+                "Unseal",
+            ),
+            names(t),
+        )
         assertEquals(1, t.takeIndex)
         assertEquals(5, t.releaseIndex)
         assertEquals(listOf(false, true, true, true, true, true, false), device(t))
@@ -36,7 +47,18 @@ class TemplateTest {
     @Test
     fun panWandComesOut_matchesSpec() {
         val t = Presets.panWand(PanWandHold.COMES_OUT)
-        assertEquals(listOf("Seal hive", "Load dose", "Heat and vaporize", "Cool in hive", "Remove wand", "Keep sealed", "Unseal"), names(t))
+        assertEquals(
+            listOf(
+                "Seal hive",
+                "Load dose",
+                "Heat and vaporize",
+                "Cool in hive",
+                "Remove wand",
+                "Keep sealed",
+                "Unseal",
+            ),
+            names(t),
+        )
         assertEquals(1, t.takeIndex)
         assertEquals(4, t.releaseIndex)
         assertEquals(listOf(false, true, true, true, true, false, false), device(t))
@@ -47,7 +69,10 @@ class TemplateTest {
     @Test
     fun gunType_matchesSpec() {
         val t = Presets.gunType
-        assertEquals(listOf("Seal hive", "Load cap and inject", "Vaporize", "Withdraw", "Keep sealed", "Unseal"), names(t))
+        assertEquals(
+            listOf("Seal hive", "Load cap and inject", "Vaporize", "Withdraw", "Keep sealed", "Unseal"),
+            names(t),
+        )
         assertEquals(listOf(false, true, true, true, false, false), device(t))
         assertEquals(listOf(20, 600), t.steps.mapNotNull { it.durationSeconds })
     }
@@ -57,7 +82,11 @@ class TemplateTest {
         val t = template(manual("A"), manual("B"), timed("C", 10), manual("D"), manual("E")).takeAt(1).releaseAt(3)
         assertEquals(listOf(false, true, true, true, false), device(t))
         assertEquals(listOf(false, false, false, true, false), device(t.takeAt(3)))
-        assertEquals("take and release on one step", listOf(false, false, false, true, false), device(t.takeAt(3).releaseAt(3)))
+        assertEquals(
+            "take and release on one step",
+            listOf(false, false, false, true, false),
+            device(t.takeAt(3).releaseAt(3)),
+        )
     }
 
     @Test

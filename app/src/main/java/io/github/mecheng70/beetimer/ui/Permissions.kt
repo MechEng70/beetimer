@@ -46,13 +46,18 @@ object Permissions {
     fun fullScreen(c: Context): Boolean = Build.VERSION.SDK_INT < Build.VERSION_CODES.UPSIDE_DOWN_CAKE ||
         c.getSystemService(NotificationManager::class.java).canUseFullScreenIntent()
 
-    fun battery(c: Context): Boolean = c.getSystemService(PowerManager::class.java).isIgnoringBatteryOptimizations(c.packageName)
+    fun battery(c: Context): Boolean =
+        c.getSystemService(PowerManager::class.java).isIgnoringBatteryOptimizations(c.packageName)
 
     fun anyRequiredMissing(c: Context): Boolean = !notifications(c) || !exactAlarms(c) || !fullScreen(c)
 
     fun open(c: Context, action: String) {
         runCatching { c.startActivity(Intent(action, "package:${c.packageName}".toUri())) }
-            .onFailure { c.startActivity(Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, "package:${c.packageName}".toUri())) }
+            .onFailure {
+                c.startActivity(
+                    Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, "package:${c.packageName}".toUri()),
+                )
+            }
     }
 }
 
@@ -78,22 +83,39 @@ fun PermissionsScreen(onContinue: () -> Unit) {
             verticalArrangement = Arrangement.spacedBy(Dimens.SectionGap),
         ) {
             AppCard(Modifier.fillMaxWidth()) {
-                Text(stringResource(R.string.perms_title), style = AppType.section, color = c.ink, modifier = Modifier.padding(bottom = Dimens.Gap))
+                Text(
+                    stringResource(R.string.perms_title),
+                    style = AppType.section,
+                    color = c.ink,
+                    modifier = Modifier.padding(bottom = Dimens.Gap),
+                )
                 PermRow(stringResource(R.string.perm_notifications), null, Permissions.notifications(context)) {
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) notifLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+                    if (Build.VERSION.SDK_INT >=
+                        Build.VERSION_CODES.TIRAMISU
+                    ) {
+                        notifLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+                    }
                 }
                 RowDivider()
                 PermRow(stringResource(R.string.perm_exact), null, Permissions.exactAlarms(context)) {
                     Permissions.open(context, Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM)
                 }
                 RowDivider()
-                PermRow(stringResource(R.string.perm_fsi), stringResource(R.string.perm_fsi_explain), Permissions.fullScreen(context)) {
+                PermRow(
+                    stringResource(R.string.perm_fsi),
+                    stringResource(R.string.perm_fsi_explain),
+                    Permissions.fullScreen(context),
+                ) {
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
                         Permissions.open(context, Settings.ACTION_MANAGE_APP_USE_FULL_SCREEN_INTENT)
                     }
                 }
                 RowDivider()
-                PermRow(stringResource(R.string.perm_battery), stringResource(R.string.perm_battery_explain), Permissions.battery(context)) {
+                PermRow(
+                    stringResource(R.string.perm_battery),
+                    stringResource(R.string.perm_battery_explain),
+                    Permissions.battery(context),
+                ) {
                     if (!app.prefs.batteryAsked) {
                         app.prefs.batteryAsked = true
                         @Suppress("BatteryLife") // sideloaded timer app; asked once with an explanation
@@ -119,10 +141,30 @@ private fun PermRow(title: String, explain: String?, on: Boolean, onAllow: () ->
         Row(verticalAlignment = Alignment.CenterVertically) {
             Column(Modifier.weight(1f)) {
                 Text(title, style = AppType.body, color = c.ink)
-                Text(stringResource(if (on) R.string.perm_on else R.string.perm_off), style = AppType.label, color = if (on) c.inkMuted else c.danger)
+                Text(
+                    stringResource(if (on) R.string.perm_on else R.string.perm_off),
+                    style = AppType.label,
+                    color = if (on) c.inkMuted else c.danger,
+                )
             }
-            if (on) Chip(stringResource(R.string.perm_on), Tone.PASSIVE) else AppButton(stringResource(R.string.perm_allow), onAllow)
+            if (on) {
+                Chip(
+                    stringResource(R.string.perm_on),
+                    Tone.PASSIVE,
+                )
+            } else {
+                AppButton(stringResource(R.string.perm_allow), onAllow)
+            }
         }
-        if (!on && explain != null) Text(explain, style = AppType.label, color = c.inkMuted, modifier = Modifier.padding(top = Dimens.ChipPaddingV))
+        if (!on &&
+            explain != null
+        ) {
+            Text(
+                explain,
+                style = AppType.label,
+                color = c.inkMuted,
+                modifier = Modifier.padding(top = Dimens.ChipPaddingV),
+            )
+        }
     }
 }

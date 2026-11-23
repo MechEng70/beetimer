@@ -3,7 +3,8 @@ package io.github.mecheng70.beetimer.scheduler
 import org.junit.Assert.assertEquals
 
 fun manual(name: String, device: Boolean = false) = Step(name, StepKind.MANUAL, deviceBound = device)
-fun timed(name: String, seconds: Int, device: Boolean = false) = Step(name, StepKind.TIMED, seconds, deviceBound = device)
+fun timed(name: String, seconds: Int, device: Boolean = false) =
+    Step(name, StepKind.TIMED, seconds, deviceBound = device)
 fun template(vararg steps: Step) = Template("test", "Test", steps.toList())
 
 const val SEC = 1000L
@@ -14,7 +15,8 @@ const val SEC = 1000L
  * independent of preset edits.
  */
 val legacyPanWand = Template(
-    "legacy", "Legacy pan wand",
+    "legacy",
+    "Legacy pan wand",
     listOf(
         Step("Seal hive", StepKind.MANUAL, deviceBound = false),
         Step("Load dose", StepKind.MANUAL, deviceBound = true),

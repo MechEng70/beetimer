@@ -31,11 +31,7 @@ private const val MS_PER_SECOND = 1000L
 
 /** An ordered list of steps shared by all hives. All edits return a new Template. */
 @Serializable
-data class Template(
-    val id: String,
-    val name: String,
-    val steps: List<Step>,
-) {
+data class Template(val id: String, val name: String, val steps: List<Step>) {
     /** Indices of the device-bound steps, or null when there are none. */
     val deviceBlock: IntRange?
         get() {
@@ -87,8 +83,7 @@ data class Template(
         updateStep(index, steps[index].copy(durationSeconds = seconds))
 
     /** Moves the take marker to [index]. */
-    fun takeAt(index: Int): Template =
-        copy(steps = steps.mapIndexed { i, s -> s.copy(takes = i == index) }).derived()
+    fun takeAt(index: Int): Template = copy(steps = steps.mapIndexed { i, s -> s.copy(takes = i == index) }).derived()
 
     /** Moves the release marker to [index]. */
     fun releaseAt(index: Int): Template =

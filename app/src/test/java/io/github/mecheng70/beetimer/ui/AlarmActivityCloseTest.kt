@@ -22,7 +22,10 @@ class AlarmActivityCloseTest {
     private fun closeWith(returnToApp: Boolean): Pair<AlarmActivity, String?> {
         val app = ApplicationProvider.getApplicationContext<BeeTimerApp>()
         runBlocking { app.engine.ensureLoaded() } // no runs, so nothing rings and the screen closes
-        val controller = Robolectric.buildActivity(AlarmActivity::class.java, AlarmActivity.intent(app, 1L, returnToApp)).setup()
+        val controller = Robolectric.buildActivity(
+            AlarmActivity::class.java,
+            AlarmActivity.intent(app, 1L, returnToApp),
+        ).setup()
         // Let state load and the screen recompose and close (the first test in the JVM is cold).
         repeat(40) {
             if (!controller.get().isFinishing) {

@@ -11,7 +11,10 @@ class DeliveryTest {
 
     @Test
     fun background_usesTheFullScreenNotificationAsBefore() {
-        assertEquals(Delivery.Ring(openAlarmScreen = false, quietNotification = false), Delivery.ring(foreground = false))
+        assertEquals(
+            Delivery.Ring(openAlarmScreen = false, quietNotification = false),
+            Delivery.ring(foreground = false),
+        )
     }
 
     @Test

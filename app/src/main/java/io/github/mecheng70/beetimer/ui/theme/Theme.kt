@@ -15,10 +15,10 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
-import io.github.mecheng70.beetimer.R
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
+import io.github.mecheng70.beetimer.R
 
 // Every color, text style and size in the app. Values come from the approved mockups
 // (docs/mockups/varroa-timer-mockups.html). Screens use these tokens, never literals.
@@ -136,14 +136,18 @@ object AppType {
     val title = inter(18, 24, FontWeight.SemiBold)
     val section = inter(14, 20, FontWeight.SemiBold)
     val stateLine = inter(16, 22, FontWeight.SemiBold)
+
     /** All tab hive rows: read outdoors at arm's length. */
     val rowHiveName = inter(20, 26, FontWeight.SemiBold)
     val rowStep = inter(17, 22)
     val rowNext = inter(16, 21)
+
     /** Step name in the next-step pill. */
     val stepPill = inter(16, 21, FontWeight.SemiBold)
+
     /** Countdown chips on the All tab rows: read at a glance in sun. */
     val timeChip = inter(20, 26, FontWeight.Bold)
+
     /** Device, Passive, Queued chips. */
     val stateChip = inter(14, 18, FontWeight.Medium)
     val countdown = TextStyle(fontFamily = Inter, fontSize = 52.sp, lineHeight = 1.2.em, fontWeight = FontWeight.Bold)
@@ -170,8 +174,10 @@ object Dimens {
     val SectionGap = 12.dp
     val ButtonHeight = 44.dp
     val ButtonPadding = 12.dp
+
     /** Hive tab +1 min and Skip (gloves). */
     val GloveButton = 56.dp
+
     /** Alarm screen Done, +1 min and Snooze (gloves). */
     val AlarmButton = 64.dp
     val TabGap = 14.dp
@@ -182,6 +188,7 @@ object Dimens {
     val ChipMinHeight = 28.dp
     val TimeChipPaddingH = 12.dp
     val TimeChipMinHeight = 36.dp
+
     /** All tab hive rows, top and bottom. */
     val HiveRowPaddingV = 14.dp
     val PillBorder = 1.5.dp

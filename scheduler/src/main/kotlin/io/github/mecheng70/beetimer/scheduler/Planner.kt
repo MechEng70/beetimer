@@ -122,17 +122,17 @@ class Planner(private val scheduler: Scheduler = DefaultScheduler()) {
                 doneEstimated = id in estimated,
             )
         }
-        val allDone = if (involved.isNotEmpty() && involved.all { it in doneAt }) involved.maxOf { doneAt.getValue(it) } else null
+        val allDone = if (involved.isNotEmpty() &&
+            involved.all { it in doneAt }
+        ) {
+            involved.maxOf { doneAt.getValue(it) }
+        } else {
+            null
+        }
         return Forecast(ordered, hives, allDone, involved.any { it in estimated }, freeAt, freeEstimated)
     }
 
-    private data class Action(
-        val at: Long,
-        val event: Event,
-        val hiveId: Long,
-        val estimate: Boolean,
-        val rank: Int,
-    )
+    private data class Action(val at: Long, val event: Event, val hiveId: Long, val estimate: Boolean, val rank: Int)
 
     private fun nextAction(s: SchedulerState, t: Long, lockFreedAt: Long): Action? {
         val candidates = mutableListOf<Action>()
@@ -144,21 +144,40 @@ class Planner(private val scheduler: Scheduler = DefaultScheduler()) {
                     if (run.currentStepIndex == ringing.finishedStepIndex) {
                         candidates += Action(maxOf(t, ringing.since), Event.Done(h), h, estimate = true, rank = 1)
                     } else {
-                        candidates += Action(maxOf(t, ringing.since + s.scaled(PlanningEstimates.MANUAL_STEP_MS)), Event.Done(h), h, estimate = true, rank = 1)
+                        candidates +=
+                            Action(
+                                maxOf(t, ringing.since + s.scaled(PlanningEstimates.MANUAL_STEP_MS)),
+                                Event.Done(h),
+                                h,
+                                estimate = true,
+                                rank = 1,
+                            )
                     }
+
                 ringing != null -> Unit
+
                 run.state == RunState.RUNNING && run.stepEndsAt != null ->
                     candidates += Action(maxOf(t, run.stepEndsAt), Event.TimerFired(h), h, estimate = false, rank = 0)
+
                 run.state == RunState.AWAITING_CONFIRM ->
                     candidates += Action(
                         maxOf(t, (run.stepStartedAt ?: t) + s.scaled(PlanningEstimates.MANUAL_STEP_MS)),
-                        Event.Done(h), h, estimate = true, rank = 1,
+                        Event.Done(h),
+                        h,
+                        estimate = true,
+                        rank = 1,
                     )
             }
         }
         val head = s.queue.firstOrNull()
         if (s.lockHolder == null && head != null) {
-            val at = if (lockFreedAt == Long.MIN_VALUE) t else maxOf(t, lockFreedAt + s.scaled(PlanningEstimates.HANDOFF_MS))
+            val at = if (lockFreedAt ==
+                Long.MIN_VALUE
+            ) {
+                t
+            } else {
+                maxOf(t, lockFreedAt + s.scaled(PlanningEstimates.HANDOFF_MS))
+            }
             candidates += Action(at, Event.Start(head), head, estimate = true, rank = 2)
         }
         return candidates.minWithOrNull(compareBy({ it.at }, { it.rank }, { it.hiveId }))

@@ -47,8 +47,16 @@ class PropertyTest {
             val roll = rnd.nextInt(100)
             val label: String
             when {
-                roll < 20 -> { label = "Start($h)"; t.send(Event.Start(h)) }
-                roll < 40 -> { label = "Done($h)"; t.send(Event.Done(h)) }
+                roll < 20 -> {
+                    label = "Start($h)"
+                    t.send(Event.Start(h))
+                }
+
+                roll < 40 -> {
+                    label = "Done($h)"
+                    t.send(Event.Done(h))
+                }
+
                 roll < 55 -> {
                     // Fire the earliest pending alarm at its due time (or now, if already due).
                     val due = t.alarms.minByOrNull { it.value }
@@ -61,14 +69,57 @@ class PropertyTest {
                         t.send(Event.TimerFired(h))
                     }
                 }
-                roll < 62 -> { label = "Skip($h)"; t.send(Event.Skip(h)) }
-                roll < 68 -> { label = "AddMinute($h)"; t.send(Event.AddMinute(h)) }
-                roll < 73 -> { label = "Snooze($h)"; t.send(Event.Snooze(h)) }
-                roll < 80 -> { label = "Cancel($h)"; t.send(Event.Cancel(h)) }
-                roll < 85 -> { label = "QueueSkipHead"; t.send(Event.QueueSkipHead) }
-                roll < 88 -> { label = "QueueRemoveHead"; t.send(Event.QueueRemoveHead) }
-                roll < 89 -> { label = "NewSession"; t.send(Event.NewSession) }
-                roll < 92 -> { label = "Template edit"; t.send(Event.TemplateChanged(tpl.withDuration(tpl.steps.indexOfFirst { it.kind == StepKind.TIMED }, rnd.nextInt(1, 60)))) }
+
+                roll < 62 -> {
+                    label = "Skip($h)"
+                    t.send(Event.Skip(h))
+                }
+
+                roll < 68 -> {
+                    label = "AddMinute($h)"
+                    t.send(Event.AddMinute(h))
+                }
+
+                roll < 73 -> {
+                    label = "Snooze($h)"
+                    t.send(Event.Snooze(h))
+                }
+
+                roll < 80 -> {
+                    label = "Cancel($h)"
+                    t.send(Event.Cancel(h))
+                }
+
+                roll < 85 -> {
+                    label = "QueueSkipHead"
+                    t.send(Event.QueueSkipHead)
+                }
+
+                roll < 88 -> {
+                    label = "QueueRemoveHead"
+                    t.send(Event.QueueRemoveHead)
+                }
+
+                roll < 89 -> {
+                    label = "NewSession"
+                    t.send(Event.NewSession)
+                }
+
+                roll < 92 -> {
+                    label = "Template edit"
+                    t.send(
+                        Event.TemplateChanged(
+                            tpl.withDuration(
+                                tpl.steps.indexOfFirst {
+                                    it.kind ==
+                                        StepKind.TIMED
+                                },
+                                rnd.nextInt(1, 60),
+                            ),
+                        ),
+                    )
+                }
+
                 else -> {
                     label = "reboot"
                     t.alarms.clear()

@@ -49,5 +49,15 @@ class VersionTest(unittest.TestCase):
         self.assertEqual(dashboard.version_from("org.gradle.caching=true\n"), "?")
 
 
+class RoundTest(unittest.TestCase):
+    def test_round_comes_from_handoff(self):
+        # The header used to say "round R11, playbook adoption" forever; it now follows HANDOFF.md.
+        text = "- **Round in progress:** none. R11, R12 and R13 are done. Wait for Jason's next round.\n"
+        self.assertEqual(dashboard.handoff_round(text), "none. R11, R12 and R13 are done")
+
+    def test_missing_round_line_is_empty(self):
+        self.assertEqual(dashboard.handoff_round("# Handoff\n"), "")
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -180,7 +180,7 @@ oracle. Run through all tasks in order and stop only at the brief's hard stops.
 - **Tests:** unit tests for any changed pure code; screenshots before and after for any fix.
 - **Device testing (Jason):** watch a countdown on the All tab and the Hive tab tick from 10:00 to 9:59 and
   1:00 to 0:59: the text next to it must not shift.
-- Done: `3fd10f4`.
+- Done: `3fd10f4`. Jason checked on the phone, 2026-11-23: fine.
 
 ### Phase 4: device test hygiene
 
@@ -431,7 +431,8 @@ Small round from Jason: phone on the release build, mockup note, release 0.1.0-a
   release certificate. Pre-release `v0.1.0-alpha.2` at `a6478ad` with the APK and `.sha256`
   (https://github.com/MechEng70/beetimer/releases/tag/v0.1.0-alpha.2). Downloaded back: sha256 OK, signature
   verified, certificate matches `config/release-cert-sha256.txt`, versionCode 100002. Not installed on the phone.
-- Done: `a6478ad`.
+- Done: `a6478ad`. Jason installed alpha.2 over alpha.1 from GitHub, 2026-11-23: hives and settings kept. The
+  alarm screen check (Then line only, phone locked) is still open.
 
 ## Found during R11 (for Jason; not fixed in R11 unless a task above covers it)
 
@@ -458,8 +459,10 @@ Small round from Jason: phone on the release build, mockup note, release 0.1.0-a
 
 ## Open checks (need Jason)
 
-- Themed icons on the OnePlus: Settings, Wallpapers & style, Icons, Themed icons, then look at Bee Timer on
-  the home screen.
+- [x] Themed icons on the OnePlus: Settings, Wallpapers & style, Icons, Themed icons, then look at Bee Timer
+  on the home screen (Jason, 2026-11-23: fine).
+- [ ] Alarm screen with the phone locked, on 0.1.0-alpha.2 (T-013a, T-021): readable at arm's length, nothing
+  over the buttons, a step that frees the vaporizer shows only the Then line. Not tested yet (Jason, 2026-11-23).
 - [x] GitHub social preview set to `docs/icon/icon-1024.png` (Jason, 2026-11-22).
 
 ## Backlog (not scheduled; don't build without asking)
@@ -471,3 +474,7 @@ Small round from Jason: phone on the release build, mockup note, release 0.1.0-a
 - **B4 Add and delete steps in the step editor**: the model has `addStep` and `removeStep`; needs UI that
   isn't in the mockups, so ask first.
 - **B5 Session history**: deferred from the brief.
+- **B6 All tab footer with 1 hive done and 2 not started** (Jason, 2026-11-23): with nothing running, the
+  planner has no finish time, so `footerFor` (`ui/Footer.kt`) returns null and the footer is blank. That is the
+  current, tested behavior (`FooterTest.nothingRunning_andNotAllDone_showsNothing`), so it's a design change:
+  decide what it should say (for example "1 of 3 hives done") before building.

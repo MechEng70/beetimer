@@ -38,3 +38,4 @@ Throttle is the decision taken before the task (playbook section 9). "n/a": trac
 | T-024 | Jason | main (records) | 2026-11-23 18:30 | 2026-11-23 18:33 | S | 6 | 6 | 65 | 65 | wide open | Phone moved to the release by Jason; Waiting on Jason list restored for the dashboard |
 | T-025 | Opus 5.5 | main | 2026-11-23 18:30 | 2026-11-23 18:33 | S | 6 | 6 | 65 | 65 | wide open | Mockup alarm note; headless render checked |
 | T-026 | Opus 5.5 | main | 2026-11-23 18:33 | 2026-11-23 18:38 | S | 6 | 7 | 65 | 65 | wide open | release.sh, pre-release v0.1.0-alpha.2, downloaded and verified |
+| Close-out | Opus 5.5 | main | 2026-11-23 18:42 | 2026-11-23 18:52 | S | 7 | 7 | 65 | 65 | wide open | Jason's phone checks recorded; HANDOFF rewritten for a cold start; backlog B6; dashboard round label from HANDOFF (test) |

@@ -111,6 +111,17 @@ def handoff_next(text: str) -> str:
     return m.group(1).strip() if m else ""
 
 
+def handoff_round(text: str) -> str:
+    """The round line in HANDOFF.md, "- **Round in progress:** ...", up to its first full stop."""
+    m = re.search(r"^- \*\*Round in progress:\*\* ([^\n]+)$", text, re.M)
+    if not m:
+        return ""
+    sentences = re.split(r"(?<=\.)\s+", m.group(1).strip())
+    # "none." alone says little, so keep the sentence after it ("R11, R12 and R13 are done").
+    keep = sentences[:2] if sentences[0].rstrip(".").lower() == "none" else sentences[:1]
+    return " ".join(keep).rstrip(".")
+
+
 def handoff_waiting(text: str) -> list[str]:
     m = re.search(r"^### Waiting on Jason\s*\n(.*?)(?=^#|\Z)", text, re.M | re.S)
     if not m:
@@ -365,7 +376,7 @@ def render() -> str:
     h.append(f"<title>Bee Timer status</title><style>{CSS}</style></head><body data-written=\"{esc(written)}\"><main>")
     icon = icon_data_uri()
     h.append('<header><div class="titlebox">' + (f'<img src="{icon}" alt="">' if icon else ""))
-    h.append(f'<div><h1>Bee Timer status</h1><div class="sub">Version <span class=num>{esc(version())}</span> &middot; round R11, playbook adoption &middot; '
+    h.append(f'<div><h1>Bee Timer status</h1><div class="sub">Version <span class=num>{esc(version())}</span> &middot; round: {esc(handoff_round(handoff) or "?")} &middot; '
              f'written <span class=num>{esc(datetime.now().strftime("%Y-%m-%d %-I:%M %p"))}</span> (<span id="age"></span>)</div></div></div>')
     h.append('<div><button onclick="location.reload()">Reload</button> <button class="quiet" id="auto" onclick="toggleAuto()">Auto reload: off</button></div></header>')
 

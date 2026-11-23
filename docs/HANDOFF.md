@@ -13,7 +13,7 @@ is the oracle.
 
 - **Branch:** the brief says `master`; the branch is `main` (renamed and pushed 2026-11-22). Use `main`.
 - **Done:** T-001 to T-015. Status per task is in `docs/design/TASKS.md` (R11 section).
-- **Next:** T-016: signed release build, record the certificate SHA-256, Jason confirms the backup.
+- **Next:** T-017 upgrade path on the emulator. T-016 waits only on Jason's backup confirmation.
 - **Found during R11:** listed in TASKS.md under that heading.
 - **Brief updated mid-round:** Jason's chat updated the playbook and brief at about 10:56, after T-001 to T-005
   were committed. T-001 gained usage tracking (done in a follow-up T-001 commit); CLAUDE.md, TASKS.md and
@@ -31,11 +31,10 @@ Usage tracking (set up in T-001):
 
 ### In progress (2026-11-23 17:12)
 
-T-013 to T-015 are committed. No stashes, no uncommitted work.
+T-013 to T-015 are committed, T-016 is done except Jason's backup confirmation. No stashes.
 - **T-016:** Jason made the keystore (`~/keys/beetimer-release.jks`, alias `beetimer`, `keystore.properties`
-  in the repo root). Checked: git-ignored, mode 600, standard key names, never in history. Still to do with
-  the emulator off: release build signs, record the certificate SHA-256 in DEVELOPING.md and
-  `config/release-cert-sha256.txt`. Never print passwords.
+  in the repo root; git-ignored, mode 600). Release build signs; certificate SHA-256 recorded;
+  `scripts/release.sh` works end to end. Never print passwords.
 
 T-013 notes: the emulator now boots on the software GPU (`-gpu swiftshader_indirect`); the host GPU segfaulted
 twice in long runs. A full run at 10x takes about 2 hours for both font scales. Never `pkill -f run.sh` from a
@@ -44,6 +43,7 @@ shell whose own command line contains that text (it kills itself). Emulator: sto
 ### Waiting on Jason
 
 Not blocking; collected for the end of the round (details in TASKS.md, "Found during R11"):
+- T-016 (hard stop 2): confirm the release keystore `.jks` and both passwords are in your password manager.
 - s1x10 and s2x10 now duplicate s1 and s2 (T-013). Delete the two flow files and their generator lines?
 - Alarm screen (T-013a): when Done frees the vaporizer it shows both "Then: Hive 2, load dose" and "Vaporizer
   frees when you tap Done. Hive 2 is next." Keep both, or drop the second?

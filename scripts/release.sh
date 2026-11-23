@@ -22,7 +22,9 @@ PROPS="${BEETIMER_KEYSTORE_PROPERTIES:-$PWD/keystore.properties}"
 CERT_FILE=config/release-cert-sha256.txt
 BUILD_TOOLS="${ANDROID_HOME:-$HOME/Android/Sdk}/build-tools/36.0.0"
 
-prop() { grep -E "^$1=" "$PROPS" | head -1 | cut -d= -f2-; }
+# Pipes under pipefail must not stop reading early (`head`, `grep -m1`, `grep -q`): the writer dies of SIGPIPE
+# (exit 141) and set -e ends the script silently. Filters below read all their input (test_release_sh.py).
+prop() { awk -v k="$1" 'index($0, k "=") == 1 && !f { print substr($0, length(k) + 2); f = 1 }' "$PROPS"; }
 
 [ -f "$PROPS" ] || die "keystore.properties not found at $PROPS"
 store=$(prop storeFile)
@@ -34,7 +36,7 @@ for k in storePassword keyAlias keyPassword; do
 done
 [ -s "$CERT_FILE" ] || die "$CERT_FILE is missing: record the release certificate's SHA-256 first (DEVELOPING.md)"
 expected_cert=$(tr -d ' :\n' <"$CERT_FILE" | tr 'a-f' 'A-F')
-if adb devices 2>/dev/null | grep -qE '^emulator-[0-9]+\s+device'; then
+if adb devices 2>/dev/null | awk '/^emulator-[0-9]+[ \t]+device/ { up = 1 } END { exit !up }'; then
     die "an emulator is running; stop it first (scripts/e2e/emulator.sh stop)"
 fi
 
@@ -49,12 +51,12 @@ apk=app/build/outputs/apk/release/app-release.apk
 
 # Signature and certificate.
 "$BUILD_TOOLS/apksigner" verify --verbose "$apk" >/dev/null || die "apksigner verify failed"
-cert=$("$BUILD_TOOLS/apksigner" verify --print-certs "$apk" | grep -m1 'certificate SHA-256 digest' |
-    awk '{print $NF}' | tr 'a-f' 'A-F')
+cert=$("$BUILD_TOOLS/apksigner" verify --print-certs "$apk" |
+    awk '/certificate SHA-256 digest/ && !f { print $NF; f = 1 }' | tr 'a-f' 'A-F')
 [ "$cert" = "$expected_cert" ] || die "signing certificate $cert is not the expected $expected_cert"
 
 # App ID, versionCode and versionName from the APK itself.
-badging=$("$BUILD_TOOLS/aapt2" dump badging "$apk" | head -1)
+badging=$("$BUILD_TOOLS/aapt2" dump badging "$apk" | awk 'NR == 1')
 got_id=$(sed -nE "s/.*package: name='([^']+)'.*/\1/p" <<<"$badging")
 got_code=$(sed -nE "s/.*versionCode='([^']+)'.*/\1/p" <<<"$badging")
 got_name=$(sed -nE "s/.*versionName='([^']+)'.*/\1/p" <<<"$badging")

@@ -263,8 +263,9 @@ oracle. Run through all tasks in order and stop only at the brief's hard stops.
   `BEETIMER_KEYSTORE_PROPERTIES`; `~/` expanded). `release.sh` refuses, before building, with no properties
   file, with a missing keystore, without `config/release-cert-sha256.txt`, or with an emulator up (first three
   shown). `.gitignore` already covers `*.jks`, `*.keystore`, `keystore.properties`, `release/` and `build/`.
+- Done: `ace1fdc`.
 
-#### T-016 [ ] Keystore (hard stop 2) (S)
+#### T-016 [!] Keystore (hard stop 2) (S)
 - **Goal:** the exact steps for Jason to make and back up the release keystore.
 - **Files:** `docs/DEVELOPING.md`.
 - **Depends on:** T-015.
@@ -273,6 +274,13 @@ oracle. Run through all tasks in order and stop only at the brief's hard stops.
   (`~/keys/beetimer-release.jks`). Stop for Jason to run them and confirm the backup.
 - **Tests:** none.
 - **Device testing (Jason):** none. Jason runs the commands and confirms the backup.
+- Result: Jason made the keystore (2026-11-23, before this session). The release build signs with it
+  (`CN=Jason Glithero, O=MechEng70`, APK signature v2); certificate SHA-256 recorded in
+  `config/release-cert-sha256.txt` and DEVELOPING.md. `scripts/release.sh` ran end to end:
+  `release/beetimer-0.1.0-alpha.1.apk`, versionCode 100001, sha256 checked. Bug found and fixed on the first
+  run: `head -1` and `grep -m1` after pipes under pipefail killed the script with SIGPIPE (exit 141) right
+  after the gate; regression test `scripts/tests/test_release_sh.py`.
+- **Waiting on Jason:** confirm the `.jks` file and both passwords are backed up in the password manager.
 
 #### T-017 [ ] Upgrade path (M)
 - **Goal:** release build tested fresh and as an upgrade from itself.

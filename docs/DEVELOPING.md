@@ -140,5 +140,6 @@ git-ignored.
   chmod 600 ~/keys/<app>-release.jks
   ```
 
-- Release certificate SHA-256 (also in `config/release-cert-sha256.txt`, which `release.sh` checks):
-  CERT_PENDING
+- Release certificate SHA-256 (also in `config/release-cert-sha256.txt`, which `release.sh` checks), signer
+  `CN=Jason Glithero, O=MechEng70`:
+  `83173e0e3f927356034bbbd6b8f05740ae5cec77d293eb9aba908c4e0bcd28b7`

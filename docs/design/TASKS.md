@@ -134,7 +134,7 @@ oracle. Run through all tasks in order and stop only at the brief's hard stops.
 - **Device testing (Jason):** none.
 - Done: `12dea94`.
 
-#### T-008 [ ] Gate script (S)
+#### T-008 [x] Gate script (S)
 - **Goal:** one `scripts/check.sh`: ktlint, detekt, Android lint, unit tests, Semgrep, Snyk.
 - **Files:** `scripts/check.sh`, `docs/DEVELOPING.md`.
 - **Depends on:** T-006, T-007.
@@ -143,6 +143,7 @@ oracle. Run through all tasks in order and stop only at the brief's hard stops.
   taken from the Gradle cache.
 - **Tests:** the gate itself, run end to end.
 - **Device testing (Jason):** none.
+- Done: `828fb55`.
 
 ### Phase 3: data and layout rules
 

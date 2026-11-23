@@ -42,7 +42,7 @@ if [ -n "$r7" ]; then
   if [ "$day" -le 5 ]; then budget=$((day * 20)); else budget=100; fi
 fi
 
-task=$(grep -m1 -oE '^- \*\*Next:\*\* T-[0-9]+' "$REPO/docs/HANDOFF.md" 2>/dev/null | grep -oE 'T-[0-9]+')
+task=$(grep -m1 -oE '^- \*\*Next:\*\* T-[0-9]+[a-z]?' "$REPO/docs/HANDOFF.md" 2>/dev/null | grep -oE 'T-[0-9]+[a-z]?')
 
 left() { # seconds until epoch $1 as 2h05m or 3d04h
   [ -z "$1" ] && { echo "?"; return; }

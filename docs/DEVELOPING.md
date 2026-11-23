@@ -25,7 +25,7 @@ Fedora; Android Studio is not needed.
 ```
 ./gradlew :scheduler:test          # scheduler unit tests (pure Kotlin, fast)
 ./gradlew assembleDebug            # app/build/outputs/apk/debug/app-debug.apk
-scripts/check.sh                   # the gate: ktlint, detekt, lint, tests, Semgrep, Snyk (about 3 min)
+scripts/check.sh                   # the gate: ktlint, detekt, lint, tests, py-tests, Semgrep, Snyk (3 min)
 ./gradlew ktlintFormat             # fix formatting before the gate
 scripts/build-apk.sh               # gate + APK copied to release/beetimer-<version>.apk
 ```

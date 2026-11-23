@@ -67,7 +67,7 @@ def parse_tasks(text: str) -> list[dict]:
         if m:
             phases.append({"id": m.group(1), "name": m.group(2), "tasks": []})
             continue
-        m = re.match(r"^#### (T-\d{3}) \[(.)\] (.+?)(?: \((S|M|L)\))?\s*$", line)
+        m = re.match(r"^#### (T-\d{3}[a-z]?) \[(.)\] (.+?)(?: \((S|M|L)\))?\s*$", line)
         if m and phases:
             task = {"id": m.group(1), "mark": m.group(2), "title": m.group(3), "size": m.group(4) or "", "fields": {}}
             phases[-1]["tasks"].append(task)

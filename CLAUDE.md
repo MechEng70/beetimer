@@ -46,6 +46,7 @@
 
 - `scripts/check.sh` is the gate. A task is not done until it passes. It runs, in order: ktlint (format),
   detekt (lint, zero warnings, no baseline file), Android lint, all unit tests (JUnit and Robolectric),
+  Python script tests (`scripts/**/test_*.py`, unittest, standard library only; zero tests fails),
   Semgrep (Kotlin and secrets), Snyk open source and Snyk code (high and above). Each step runs every time
   (no Gradle cache) and writes its result to `build/gate/last.tsv`.
 - Android lint warnings about newer library versions are expected while compileSdk is 36.

@@ -9,7 +9,7 @@ The wording of Android's own questions differs a little from phone to phone. The
 
 1. On your phone, open this page in your browser:
    https://github.com/MechEng70/beetimer/releases/latest
-2. Under "Assets", tap the file that ends in `.apk` (for example `beetimer-0.1.0-alpha.apk`). If the browser
+2. Under "Assets", tap the file that ends in `.apk` (for example `beetimer-0.1.0-alpha.1.apk`). If the browser
    warns that the file might be harmful, choose to download it anyway.
 3. When the download is done, tap "Open" (or tap the file in your notifications or your Downloads).
 4. The first time, Android says your browser is not allowed to install apps. Tap "Settings", turn on
@@ -38,10 +38,15 @@ If alarms come late or not at all, check the battery settings for Bee Timer in y
 Install the new version the same way, over the old one. Do not uninstall first, or your hives and settings
 are lost.
 
+**Coming from a test build (0.1.0-alpha):** builds before 0.1.0-alpha.1 were signed with a test key, and
+Android won't install a release over them ("App not installed" or "package conflicts"). Uninstall the old one
+first, then install. This loses its hives and settings, so note your hive names first. It's needed once; later
+releases install over 0.1.0-alpha.1 and keep everything.
+
 ## From a computer (adb)
 
 With USB debugging on and the phone plugged in:
 
 ```
-adb install -r app-debug.apk
+adb install -r beetimer-0.1.0-alpha.1.apk
 ```

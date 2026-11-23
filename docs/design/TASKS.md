@@ -265,7 +265,7 @@ oracle. Run through all tasks in order and stop only at the brief's hard stops.
   shown). `.gitignore` already covers `*.jks`, `*.keystore`, `keystore.properties`, `release/` and `build/`.
 - Done: `ace1fdc`.
 
-#### T-016 [!] Keystore (hard stop 2) (S)
+#### T-016 [x] Keystore (hard stop 2) (S)
 - **Goal:** the exact steps for Jason to make and back up the release keystore.
 - **Files:** `docs/DEVELOPING.md`.
 - **Depends on:** T-015.
@@ -280,9 +280,10 @@ oracle. Run through all tasks in order and stop only at the brief's hard stops.
   `release/beetimer-0.1.0-alpha.1.apk`, versionCode 100001, sha256 checked. Bug found and fixed on the first
   run: `head -1` and `grep -m1` after pipes under pipefail killed the script with SIGPIPE (exit 141) right
   after the gate; regression test `scripts/tests/test_release_sh.py`.
-- **Waiting on Jason:** confirm the `.jks` file and both passwords are backed up in the password manager.
+- Jason confirmed the backup (keystore and both passwords in the password manager), 2026-11-23.
+- Done: `1f96b5d`.
 
-#### T-017 [ ] Upgrade path (M)
+#### T-017 [x] Upgrade path (M)
 - **Goal:** release build tested fresh and as an upgrade from itself.
 - **Files:** `docs/e2e/` notes, `docs/INSTALL.md`.
 - **Depends on:** T-016.
@@ -291,6 +292,10 @@ oracle. Run through all tasks in order and stop only at the brief's hard stops.
   Jason's phone is not touched; the uninstall and reinstall step goes on his list.
 - **Tests:** emulator install and upgrade.
 - **Device testing (Jason):** uninstall the debug alpha (hive names are lost), install alpha.1, rename hives.
+- Result (emulator, Jason's yes for the two uninstalls there): the release APK over the debug build is refused
+  (`INSTALL_FAILED_UPDATE_INCOMPATIBLE`); alpha.1 installs fresh (100001); alpha.2 (100002, same certificate)
+  installs over it with Emory's name and started run kept, no crash. Debug build put back afterwards.
+  `docs/INSTALL.md` explains the one-time uninstall; details in `docs/e2e/FIXES.md`.
 
 ### Phase 6: GitHub
 

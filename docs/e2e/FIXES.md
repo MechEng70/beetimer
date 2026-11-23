@@ -84,3 +84,13 @@ No assertion changed.
 - s6's "+1 min extended the hold" threshold was 10.5 s, right for 60x but a no-op at 10x (the hold alone is
   60 s). It is now (600 + 30) s / scale: the hold plus half the minute, as before.
 
+## R11 T-017: upgrade path (release builds, emulator)
+
+Not a Maestro scenario; run once by hand on the emulator with Jason's yes for the two uninstalls (emulator only).
+- The release APK (0.1.0-alpha.1) over the debug build: refused, `INSTALL_FAILED_UPDATE_INCOMPATIBLE`
+  (signatures do not match). The same will happen on Jason's phone: one uninstall, hive names lost.
+- Fresh install of 0.1.0-alpha.1 (100001), Hive 1 renamed to Emory, its run started (Seal hive).
+- 0.1.0-alpha.2 (100002, built with `-PappVersion=0.1.0-alpha.2`, same certificate) installed over it with
+  `adb install -r`: no onboarding, Emory still on Seal hive, Hive 2 still there, no crash.
+- The debug build was put back afterwards for the E2E suite.
+

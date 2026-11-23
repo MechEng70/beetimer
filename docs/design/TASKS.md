@@ -300,7 +300,7 @@ oracle. Run through all tasks in order and stop only at the brief's hard stops.
   have fixed minimum heights. A row grows when a long step name wraps (R10 decision), which happens on a state
   change, not a tick, and below the tapped control.
 - **Citations.** Answered by Jason 2026-11-23 (SPEC section 5): 10 min hold (Berry et al. 2022), heat and cool
-  (VARROX manual, primary), gun 20 s (Dadant page, secondary; the OxaVap guide wasn't readable).
+  (Nashville Area Beekeepers handout, secondary), gun 20 s (Dadant ProVap 110 page, secondary).
 
 ## Open checks (need Jason)
 
